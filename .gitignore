@@ -1,0 +1,53 @@
+#####################################################################################
+# Generated
+#####################################################################################
+
+## Packages installed by NPM. https://docs.npmjs.com/about-packages-and-modules
+node_modules/
+
+## Vitest coverage output. https://vitest.dev/guide/coverage.html
+coverage/
+
+## ESLint cache. https://eslint.org/docs/latest/use/command-line-interface#caching
+.eslintcache
+
+## Nx output.
+.nx/
+
+# Logs.
+*.log
+.pnpm-debug.log*
+
+
+#####################################################################################
+# Operating System
+#####################################################################################
+
+## MacOS folder settings. https://en.wikipedia.org/wiki/.DS_Store
+.DS_Store
+
+## Windows folder icon settings. https://learn.microsoft.com/en-us/windows/win32/shell/how-to-customize-folders-with-desktop-ini#use-a-desktopini-file
+Desktop.ini
+
+
+#####################################################################################
+# Development Environment
+#####################################################################################
+
+## Private environment variables.
+.env
+.env.*
+!.env.example
+
+## JetBrains IDE settings. https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+.idea/*.iml
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf
+
+## VSCode settings. Based on the following recommendation: https://stackoverflow.com/a/57749909
+.vscode/**/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json

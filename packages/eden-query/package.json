@@ -1,0 +1,14 @@
+{
+  "name": "@ap0nia/eden-query",
+  "version": "0.0.0",
+  "description": "elysia.js eden and svelte-query integration",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ap0nia/elysia-tools",
+    "directory": "packages/eden-query"
+  },
+  "type": "module",
+  "main": "src/index.ts"
+}

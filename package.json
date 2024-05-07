@@ -1,0 +1,71 @@
+{
+  "name": "elysia-tools",
+  "version": "0.0.0",
+  "description": "monorepo for custom tools for elysia.js",
+  "private": true,
+  "license": "MIT",
+  "homepage": "https://ap0nia.github.io/elysia-tools",
+  "funding": "https://github.com/ap0nia/elysia-tools",
+  "contributors": [
+    {
+      "name": "ap0nia",
+      "email": "ap0nia@github.com",
+      "url": "https://github.com/ap0nia"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ap0nia/elysia-tools"
+  },
+  "bugs": {
+    "url": "https://github.com/ap0nia/elysia-tools/issues"
+  },
+  "keywords": [],
+  "type": "module",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "postinstall": "changeset init && husky install",
+    "format": "nx run-many -t format",
+    "lint": "nx run-many -t lint",
+    "build": "nx run-many -t build",
+    "test": "vitest",
+    "release": "changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.26.2",
+    "@commitlint/cli": "^17.6.7",
+    "@commitlint/config-conventional": "^17.6.7",
+    "@commitlint/types": "^17.4.4",
+    "@eslint/js": "^9.0.0",
+    "@types/eslint-config-prettier": "^6.11.3",
+    "@types/eslint__js": "^8.42.3",
+    "@types/lint-staged": "^13.2.0",
+    "@types/node": "^20.4.5",
+    "@typescript-eslint/eslint-plugin": "^7.4.0",
+    "@typescript-eslint/parser": "^7.4.0",
+    "@vitest/coverage-v8": "^0.34.0",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "devmoji": "^2.3.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
+    "eslint-plugin-svelte": "2.36.0-next.13",
+    "globals": "^15.1.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^14.0.0",
+    "nx": "^18.3.4",
+    "prettier": "^3.0.0",
+    "svelte": "^4.2.13",
+    "svelte-eslint-parser": "^0.33.1",
+    "turbo": "^1.10.12",
+    "typescript": "^5.1.6",
+    "typescript-eslint": "^7.4.0",
+    "vitest": "^0.34.0"
+  },
+  "packageManager": "pnpm@8.6.12",
+  "engines": {
+    "pnpm": "^8.0.0",
+    "node": ">=18"
+  }
+}
