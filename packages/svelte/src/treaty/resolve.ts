@@ -1,23 +1,23 @@
 import { EdenWS } from '@elysiajs/eden/treaty'
 import {
+  createInfiniteQuery,
+  type CreateInfiniteQueryOptions,
   createQuery,
   type CreateQueryOptions,
-  useQueryClient,
-  type CreateMutationOptions,
-  createMutation,
+  type StoreOrVal,
 } from '@tanstack/svelte-query'
 import type Elysia from 'elysia'
 import { isNumericString } from 'elysia/utils'
 import { get, writable } from 'svelte/store'
 
+import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
 import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
+import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
+import { getQueryKey } from '../internal/query'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
 import { isStore } from '../utils/is-store'
-import { getQueryKey } from '../internal/query'
-import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
-import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
 import type { Treaty } from './types'
 
 function processHeaders(
@@ -81,24 +81,36 @@ function processHeaders(
  * Resolve a treaty request.
  */
 export async function resolveTreatyProxy(
-  body: any,
-  options: any,
+  /**
+   * Options when first parameter of GET request.
+   * Body when first parameter of POST, PUT, etc. request.
+   */
+  bodyOrOptions: any,
+
+  /**
+   * Options when second parameter of POST, PUT, etc. request.
+   */
+  optionsOrUndefined: any,
   domain: string,
   config: Treaty.Config,
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
   const methodPaths = [...paths]
+
   const method = methodPaths.pop()
+
   const path = '/' + methodPaths.join('/')
 
   const fetcher = config.fetcher ?? globalThis.fetch
 
   const isGetOrHead = method === 'get' || method === 'head' || method === 'subscribe'
 
+  const options = isGetOrHead ? bodyOrOptions : optionsOrUndefined
+
   const headers = processHeaders(config.headers, path, options)
 
-  const rawQuery = isGetOrHead ? body?.['query'] : options?.query
+  const rawQuery = isGetOrHead ? bodyOrOptions?.['query'] : options?.query
 
   const query = buildQuery(rawQuery)
 
@@ -110,22 +122,20 @@ export async function resolveTreatyProxy(
 
   let fetchInit = {
     method: method?.toUpperCase(),
-    body,
+    body: bodyOrOptions,
     ...config.fetch,
     headers,
   } satisfies RequestInit
 
   fetchInit.headers = {
     ...headers,
-    ...processHeaders(
-      // For GET and HEAD, options is moved to body (1st param)
-      isGetOrHead ? body?.headers : options?.headers,
-      path,
-      fetchInit,
-    ),
+    ...processHeaders(options.headers, path, fetchInit),
   }
 
-  const fetchOpts = isGetOrHead && typeof body === 'object' ? body.fetch : options?.fetch
+  const fetchOpts =
+    isGetOrHead && typeof bodyOrOptions === 'object'
+      ? bodyOrOptions.fetch
+      : optionsOrUndefined?.fetch
 
   fetchInit = {
     ...fetchInit,
@@ -162,7 +172,7 @@ export async function resolveTreatyProxy(
     delete fetchInit.body
   }
 
-  if (hasFile(body)) {
+  if (hasFile(bodyOrOptions)) {
     const formData = new FormData()
 
     // FormData is 1 level deep
@@ -193,10 +203,10 @@ export async function resolveTreatyProxy(
 
       formData.append(key, field as string)
     }
-  } else if (typeof body === 'object') {
+  } else if (typeof bodyOrOptions === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
-    fetchInit.body = JSON.stringify(body)
-  } else if (body !== undefined && body !== null) {
+    fetchInit.body = JSON.stringify(bodyOrOptions)
+  } else if (bodyOrOptions !== undefined && bodyOrOptions !== null) {
     fetchInit.headers['content-type'] = 'text/plain'
   }
 
@@ -329,49 +339,67 @@ export async function resolveQueryTreatyProxy(
    */
   const endpoint = '/' + methodPaths.join('/')
 
-  /**
-   * {@link EdenRequestOptions} if {@link method} is 'get'.
-   * Otherwise the body, and {@link options} is the {@link EdenRequestOptions}.
-   */
-  const optionsValue = isStore(options) ? get(options) : options
-
-  const abortOnUnmount =
-    Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
-
-  const { queryOptions, ...rest } = optionsValue
-
   switch (hook) {
     case 'createQuery': {
+      const typedOptions = options as StoreOrVal<
+        EdenRequestOptions & { queryOptions?: Partial<CreateQueryOptions> }
+      >
+
+      /**
+       * {@link EdenRequestOptions} if {@link method} is 'get'.
+       * Otherwise the body, and {@link options} is the {@link EdenRequestOptions}.
+       */
+      const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
+
+      const abortOnUnmount =
+        Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
+
       const { queryOptions, ...rest } = optionsValue
 
       const baseQueryOptions = {
         queryKey: getQueryKey(endpoint, optionsValue, 'query'),
-        // queryFn: async (context) => {
-        //   return await fetch(endpoint, {
-        //     ...rest,
-        //     signal: abortOnUnmount ? context.signal : undefined,
-        //   } as EdenRequestOptions)
-        // },
+        queryFn: async (context) => {
+          return await resolveTreatyProxy(
+            {
+              ...rest,
+              method,
+              signal: abortOnUnmount ? context.signal : undefined,
+            },
+            undefined,
+            domain,
+            config,
+            paths,
+            elysia,
+          )
+        },
         ...queryOptions,
-      } satisfies CreateQueryOptions
+      } as CreateQueryOptions
 
-      if (!isStore(options)) {
+      if (!isStore(typedOptions)) {
         return createQuery(baseQueryOptions as any)
       }
 
       const optionsStore = writable(baseQueryOptions, (set) => {
-        const unsubscribe = options.subscribe((newInput) => {
-          const { queryOptions, ...rest } = optionsValue
+        const unsubscribe = typedOptions.subscribe((newInput) => {
+          const { queryOptions, ...rest } = newInput
 
           set({
             ...baseQueryOptions,
             queryKey: getQueryKey(endpoint, newInput, 'query'),
-            // queryFn: async (context) => {
-            //   return await fetch(endpoint, {
-            //     ...rest,
-            //     signal: abortOnUnmount ? context.signal : undefined,
-            //   } as EdenRequestOptions)
-            // },
+            queryFn: async (context) => {
+              return await resolveTreatyProxy(
+                {
+                  ...rest,
+                  method,
+                  signal: abortOnUnmount ? context.signal : undefined,
+                },
+                undefined,
+                domain,
+                config,
+                paths,
+                elysia,
+              )
+            },
             ...queryOptions,
           })
         })
@@ -382,46 +410,93 @@ export async function resolveQueryTreatyProxy(
       return createQuery(optionsStore as any)
     }
 
-    // case 'createInfiniteQuery': {
-    //   const { queryOptions, ...rest } = optionsValue
+    case 'createInfiniteQuery': {
+      const typedOptions = options as StoreOrVal<
+        EdenRequestOptions & { queryOptions?: Partial<CreateInfiniteQueryOptions> }
+      >
 
-    //   const baseQueryOptions = {
-    //     queryKey: getQueryKey(endpoint, optionsValue, 'query'),
-    //     // queryFn: async (context) => {
-    //     //   return await fetch(endpoint, {
-    //     //     ...rest,
-    //     //     signal: abortOnUnmount ? context.signal : undefined,
-    //     //   } as EdenRequestOptions)
-    //     // },
-    //     ...queryOptions,
-    //   } satisfies CreateQueryOptions
+      /**
+       * {@link EdenRequestOptions} if {@link method} is 'get'.
+       * Otherwise the body, and {@link options} is the {@link EdenRequestOptions}.
+       */
+      const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-    //   if (!isStore(options)) {
-    //     return createQuery(baseQueryOptions as any)
-    //   }
+      const abortOnUnmount =
+        Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
 
-    //   const optionsStore = writable(baseQueryOptions, (set) => {
-    //     const unsubscribe = options.subscribe((newInput) => {
-    //       const { queryOptions, ...rest } = optionsValue
+      const { queryOptions, ...rest } = optionsValue
 
-    //       set({
-    //         ...baseQueryOptions,
-    //         queryKey: getQueryKey(endpoint, newInput, 'query'),
-    //         // queryFn: async (context) => {
-    //         //   return await fetch(endpoint, {
-    //         //     ...rest,
-    //         //     signal: abortOnUnmount ? context.signal : undefined,
-    //         //   } as EdenRequestOptions)
-    //         // },
-    //         ...queryOptions,
-    //       })
-    //     })
+      const baseQueryOptions = {
+        queryKey: getQueryKey(endpoint, optionsValue, 'infinite'),
+        queryFn: async (context) => {
+          // FIXME: scuffed way to set cursor.
+          if (rest.query) {
+            rest.query['cursor'] = context.pageParam
+          }
 
-    //     return unsubscribe
-    //   })
+          if (rest.params) {
+            rest.params['cursor'] = context.pageParam
+          }
 
-    //   return createQuery(optionsStore as any)
-    // }
+          return await resolveTreatyProxy(
+            {
+              ...rest,
+              method,
+              signal: abortOnUnmount ? context.signal : undefined,
+            },
+            undefined,
+            domain,
+            config,
+            paths,
+            elysia,
+          )
+        },
+        ...queryOptions,
+      } as CreateInfiniteQueryOptions
+
+      if (!isStore(options)) {
+        return createInfiniteQuery(baseQueryOptions)
+      }
+
+      const optionsStore = writable(baseQueryOptions, (set) => {
+        const unsubscribe = options.subscribe((newInput) => {
+          const { queryOptions, ...rest } = newInput
+
+          set({
+            ...baseQueryOptions,
+            queryKey: getQueryKey(endpoint, newInput, 'infinite'),
+            queryFn: async (context) => {
+              // FIXME: scuffed way to set cursor.
+              if (rest.query) {
+                rest.query['cursor'] = context.pageParam
+              }
+
+              if (rest.params) {
+                rest.params['cursor'] = context.pageParam
+              }
+
+              return await resolveTreatyProxy(
+                {
+                  ...rest,
+                  method,
+                  signal: abortOnUnmount ? context.signal : undefined,
+                },
+                undefined,
+                domain,
+                config,
+                paths,
+                elysia,
+              )
+            },
+            ...queryOptions,
+          })
+        })
+
+        return unsubscribe
+      })
+
+      return createInfiniteQuery(optionsStore)
+    }
 
     // case 'createMutation': {
     //   const queryClient = svelteQueryOptions?.svelteQueryContext ?? useQueryClient()

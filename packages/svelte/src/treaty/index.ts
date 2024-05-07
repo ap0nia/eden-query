@@ -14,6 +14,9 @@ function isFetchCall(body: any, options: any, paths: string[]) {
   )
 }
 
+/**
+ * Vanilla proxy, should be the same as the one offered by the official eden package.
+ */
 export function createTreatyProxy(
   domain: string,
   config: Treaty.Config,
