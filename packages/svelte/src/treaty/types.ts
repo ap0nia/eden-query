@@ -1,6 +1,14 @@
 import type { EdenWS } from '@elysiajs/eden/treaty'
 import type Elysia from 'elysia'
-import type { Prettify } from 'elysia/types'
+import type { MaybeArray, MaybePromise, Prettify } from 'elysia/types'
+
+import type { IsNever } from '../utils/is-never'
+
+type Files = File | FileList
+
+type ReplaceBlobWithFiles<in out RecordType extends Record<string, unknown>> = {
+  [K in keyof RecordType]: RecordType[K] extends Blob | Blob[] ? Files : RecordType[K]
+} & {}
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Treaty {
@@ -87,9 +95,7 @@ export namespace Treaty {
       | RequestInit['headers']
       | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
     >
-    onRequest?: MaybeArray<
-      (path: string, options: FetchRequestInit) => MaybePromise<FetchRequestInit | void>
-    >
+    onRequest?: MaybeArray<(path: string, options: RequestInit) => MaybePromise<RequestInit | void>>
     onResponse?: MaybeArray<(response: Response) => MaybePromise<unknown>>
     keepDomain?: boolean
   }
@@ -100,7 +106,7 @@ export namespace Treaty {
         error: null
         response: Response
         status: number
-        headers: FetchRequestInit['headers']
+        headers: RequestInit['headers']
       }
     | {
         data: null
@@ -117,7 +123,7 @@ export namespace Treaty {
             }[Exclude<keyof Res, 200>]
         response: Response
         status: number
-        headers: FetchRequestInit['headers']
+        headers: RequestInit['headers']
       }
 
   export interface OnMessage<Data = unknown> extends MessageEvent {
