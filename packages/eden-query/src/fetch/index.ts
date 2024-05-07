@@ -3,16 +3,12 @@ import type { EdenFetch } from '@elysiajs/eden/fetch'
 import {
   createInfiniteQuery,
   type CreateInfiniteQueryOptions,
-  type CreateInfiniteQueryResult,
   createMutation,
   type CreateMutationOptions,
-  type CreateMutationResult,
   createQuery,
   type CreateQueryOptions,
-  type CreateQueryResult,
   type FetchInfiniteQueryOptions,
   type FetchQueryOptions,
-  type InfiniteData,
   type InvalidateOptions,
   type StoreOrVal,
   useQueryClient,
@@ -20,14 +16,12 @@ import {
 import { Elysia } from 'elysia'
 import { get, writable } from 'svelte/store'
 
-import type { HttpMutationMethods, HttpQueryMethods } from '../internal/http'
-import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type { InfiniteRoutes, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import type { TreatyToPath } from '../internal/treaty-to-path'
-import type { Filter } from '../utils/filter'
 import { isStore } from '../utils/is-store'
+import type { EdenFetchQueryContext } from './context'
+import type { EdenFetchQueryHooks } from './hooks'
 
 function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>(
   fetch: EdenFetch.Create<T>,
@@ -96,7 +90,7 @@ function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>
 }
 
 export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
-  server: string,
+  server = '',
   config?: EdenFetch.Config,
   svelteQueryOptions?: SvelteQueryProxyOptions,
 ): T extends {
@@ -291,99 +285,10 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
   } as any
 }
 
-export type EdenFetchQueryContext<TSchema extends Record<string, any>> = {
-  invalidate: <
-    TEndpoint extends keyof Filter<TSchema, HttpQueryMethods>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
-    TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-  >(
-    endpoint: TEndpoint,
-    input: EdenRequestOptions<TMethod, TRoute>,
-    options?: InvalidateOptions,
-  ) => void
-
-  fetch: <
-    TEndpoint extends keyof Filter<TSchema, HttpQueryMethods>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
-    TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-    TOutput = InferRouteOutput<TRoute>,
-  >(
-    endpoint: TEndpoint,
-    input: EdenRequestOptions<TMethod, TRoute>,
-    options?: InvalidateOptions,
-  ) => Promise<TOutput>
-
-  fetchInfinite: <
-    TEndpoint extends keyof InfiniteRoutes<TSchema>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
-    TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-    TOutput = InferRouteOutput<TRoute>,
-    TError = InferRouteError<TRoute>,
-  >(
-    endpoint: TEndpoint,
-    input: EdenRequestOptions<TMethod, TRoute>,
-    options?: InvalidateOptions,
-  ) => Promise<InfiniteData<TOutput, TError>>
-}
-
 export type EdenFetchQuery<TSchema extends Record<string, any>> = {
   fetch: EdenFetch.Fn<TSchema>
 
   context: EdenFetchQueryContext<TSchema>
 
   createContext: () => EdenFetchQueryContext<TSchema>
-
-  createQuery: <
-    TEndpoint extends keyof Filter<TSchema, HttpQueryMethods>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
-    TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-    TInput = InferRouteInput<TRoute>,
-    TOutput = InferRouteOutput<TRoute>,
-    TError = InferRouteError<TRoute>,
-  >(
-    endpoint: TEndpoint,
-    options: StoreOrVal<
-      EdenRequestOptions<TMethod, TRoute> & {
-        queryOptions?: Omit<
-          CreateQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-          'queryKey'
-        >
-      }
-    >,
-  ) => CreateQueryResult<TOutput, TError>
-
-  createInfiniteQuery: <
-    TEndpoint extends keyof InfiniteRoutes<TSchema>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
-    TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-    TInput = InferRouteInput<TRoute, ReservedInfiniteQueryKeys>,
-    TOutput = InferRouteOutput<TRoute>,
-    TError = InferRouteError<TRoute>,
-  >(
-    endpoint: TEndpoint,
-    options: StoreOrVal<
-      EdenRequestOptions<TMethod, TRoute, ReservedInfiniteQueryKeys> & {
-        queryOptions: Omit<
-          CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-          'queryKey'
-        >
-      }
-    >,
-  ) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
-
-  createMutation: <
-    TEndpoint extends keyof Filter<TSchema, HttpMutationMethods>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethods>>,
-    TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-    TInput = EdenRequestOptions<TMethod, TRoute>,
-    TOutput = InferRouteOutput<TRoute>,
-    TError = InferRouteError<TRoute>,
-    /**
-     * TODO: what is TContext for a fetch request mutation?
-     */
-    TContext = unknown,
-  >(
-    endpoint: TEndpoint,
-    options?: CreateMutationOptions<TOutput, TError, TInput, TContext>,
-  ) => CreateMutationResult<TOutput, TError, TInput, TContext>
-}
+} & EdenFetchQueryHooks<TSchema>
