@@ -16,13 +16,18 @@ import {
 import { Elysia } from 'elysia'
 import { get, writable } from 'svelte/store'
 
+import type { HttpQueryMethods } from '../internal/http'
+import type { InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import type { TreatyToPath } from '../internal/treaty-to-path'
+import type { Filter } from '../utils/filter'
 import { isStore } from '../utils/is-store'
 import type { EdenFetchQueryContext } from './context'
 import type { EdenFetchQueryHooks } from './hooks'
 
+/**
+ */
 function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>(
   fetch: EdenFetch.Create<T>,
   svelteQueryOptions?: SvelteQueryProxyOptions,
@@ -89,6 +94,9 @@ function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>
   }
 }
 
+/**
+ * TODO: allow passing in an instance of {@link Elysia} for server-side usage.
+ */
 export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
   server = '',
   config?: EdenFetch.Config,
@@ -288,7 +296,27 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
 export type EdenFetchQuery<TSchema extends Record<string, any>> = {
   fetch: EdenFetch.Fn<TSchema>
 
+  /**
+   * Only defined when the QueryClient is provided directly to the constructor.
+   * Otherwise, invoke {@link createContext}
+   */
   context: EdenFetchQueryContext<TSchema>
 
   createContext: () => EdenFetchQueryContext<TSchema>
 } & EdenFetchQueryHooks<TSchema>
+
+export type InferEdenQueryInput<
+  T extends Elysia<any, any, any, any, any, any, any, any>,
+  TEndpoint extends keyof Filter<T['_routes'], HttpQueryMethods>,
+  TMethod extends Uppercase<Extract<keyof T['_routes'][TEndpoint], HttpQueryMethods>>,
+  TRoute extends
+    T['_routes'][TEndpoint][Lowercase<TMethod>] = T['_routes'][TEndpoint][Lowercase<TMethod>],
+> = InferRouteInput<TRoute>
+
+export type InferEdenQueryOutput<
+  T extends Elysia<any, any, any, any, any, any, any, any>,
+  TEndpoint extends keyof Filter<T['_routes'], HttpQueryMethods>,
+  TMethod extends Uppercase<Extract<keyof T['_routes'][TEndpoint], HttpQueryMethods>>,
+  TRoute extends
+    T['_routes'][TEndpoint][Lowercase<TMethod>] = T['_routes'][TEndpoint][Lowercase<TMethod>],
+> = InferRouteOutput<TRoute>
