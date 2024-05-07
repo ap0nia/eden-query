@@ -2,6 +2,8 @@ import { EdenWS } from '@elysiajs/eden/treaty'
 import {
   createInfiniteQuery,
   type CreateInfiniteQueryOptions,
+  createMutation,
+  type CreateMutationOptions,
   createQuery,
   type CreateQueryOptions,
   type StoreOrVal,
@@ -313,6 +315,7 @@ export async function resolveTreatyProxy(
  */
 export async function resolveQueryTreatyProxy(
   options: any,
+  additionalOptions: any,
   domain: string,
   config: Treaty.Config,
   paths: string[] = [],
@@ -498,61 +501,71 @@ export async function resolveQueryTreatyProxy(
       return createInfiniteQuery(optionsStore)
     }
 
-    // case 'createMutation': {
-    //   const queryClient = svelteQueryOptions?.svelteQueryContext ?? useQueryClient()
-    //   const bodyValue = isStore(options) ? get(options) : options
+    case 'createMutation': {
+      const typedOptions = options as CreateMutationOptions
 
-    //   const baseOptions = {
-    //     mutationKey: [endpoint],
-    //     // mutationFn: async (variables) => {
-    //     //   return await fetch(endpoint, variables)
-    //     // },
-    //     onSuccess(data, variables, context) {
-    //       const originalFn = () => bodyValue?.onSuccess?.(data, variables, context)
+      const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-    //       return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
-    //         ? svelteQueryOptions.overrides.createMutation.onSuccess({
-    //           queryClient,
-    //           meta: bodyValue?.meta as any,
-    //           originalFn,
-    //         })
-    //         : originalFn()
-    //     },
-    //     ...bodyValue,
-    //   } satisfies CreateMutationOptions
+      const baseOptions = {
+        mutationKey: [endpoint],
+        mutationFn: async (variables: any) => {
+          return await resolveTreatyProxy(
+            variables,
+            additionalOptions,
+            domain,
+            config,
+            paths,
+            elysia,
+          )
+        },
+        onSuccess(data, variables, context) {
+          const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
+          return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
+            ? svelteQueryOptions.overrides.createMutation.onSuccess({
+                meta: optionsValue?.meta as any,
+                originalFn,
+              })
+            : originalFn()
+        },
+        ...optionsValue,
+      } satisfies CreateMutationOptions
 
-    //   if (!isStore(options)) {
-    //     return createMutation(baseOptions)
-    //   }
+      if (!isStore(options)) {
+        return createMutation(baseOptions)
+      }
 
-    //   const optionsStore = writable(baseOptions, (set) => {
-    //     const unsubscribe = options.subscribe((newInput) => {
-    //       set({
-    //         ...baseOptions,
-    //         mutationKey: [endpoint],
-    //         mutationFn: async (variables) => {
-    //           return await fetch(endpoint, variables)
-    //         },
-    //         onSuccess(data, variables, context) {
-    //           const originalFn = () => newInput?.onSuccess?.(data, variables, context)
+      const optionsStore = writable(baseOptions, (set) => {
+        const unsubscribe = options.subscribe((newInput) => {
+          set({
+            ...baseOptions,
+            mutationKey: [endpoint],
+            mutationFn: async (variables: any) => {
+              return await resolveTreatyProxy(
+                variables,
+                additionalOptions,
+                domain,
+                config,
+                paths,
+                elysia,
+              )
+            },
+            onSuccess(data, variables, context) {
+              const originalFn = () => newInput?.onSuccess?.(data, variables, context)
+              return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
+                ? svelteQueryOptions.overrides.createMutation.onSuccess({
+                    meta: newInput?.meta as any,
+                    originalFn,
+                  })
+                : originalFn()
+            },
+            ...newInput,
+          })
+        })
+        return unsubscribe
+      })
 
-    //           return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
-    //             ? svelteQueryOptions.overrides.createMutation.onSuccess({
-    //               queryClient,
-    //               meta: newInput?.meta as any,
-    //               originalFn,
-    //             })
-    //             : originalFn()
-    //         },
-    //         ...newInput,
-    //       })
-    //     })
-
-    //     return unsubscribe
-    //   })
-
-    //   return createMutation(optionsStore)
-    // }
+      return createMutation(optionsStore)
+    }
 
     // TODO: not sure how to handle subscriptions.
     // case 'createSubscription': {

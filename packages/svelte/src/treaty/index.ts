@@ -2,7 +2,8 @@ import type { Elysia } from 'elysia'
 
 import { SAMPLE_DOMAIN } from '../constants'
 import { httpMethods, resolveFetchOrigin } from '../internal/http'
-import { resolveTreatyProxy } from './resolve'
+import type { SvelteQueryProxyOptions } from '../internal/options'
+import { resolveQueryTreatyProxy, resolveTreatyProxy } from './resolve'
 import type { Treaty } from './types'
 
 function isFetchCall(body: any, options: any, paths: string[]) {
@@ -45,13 +46,61 @@ export function createTreatyProxy(
   })
 }
 
+/**
+ * Proxy with svelte-query integration.
+ */
+export function createTreatyQueryProxy(
+  domain: string,
+  config: Treaty.Config,
+  paths: string[] = [],
+  svelteQueryOptions?: SvelteQueryProxyOptions,
+  elysia?: Elysia<any, any, any, any, any, any>,
+): any {
+  return new Proxy(() => {}, {
+    get(_, path: string): any {
+      return createTreatyQueryProxy(
+        domain,
+        config,
+        path === 'index' ? paths : [...paths, path],
+        svelteQueryOptions,
+        elysia,
+      )
+    },
+    apply(_, __, [body, options]) {
+      if (isFetchCall(body, options, paths)) {
+        return resolveQueryTreatyProxy(
+          body,
+          options,
+          domain,
+          config,
+          paths,
+          svelteQueryOptions,
+          elysia,
+        )
+      }
+
+      if (typeof body === 'object')
+        return createTreatyQueryProxy(
+          domain,
+          config,
+          [...paths, Object.values(body)[0] as string],
+          svelteQueryOptions,
+          elysia,
+        )
+
+      return createTreatyQueryProxy(domain, config, paths, svelteQueryOptions, elysia)
+    },
+  })
+}
+
 export function createTreatyFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
   domain: string | T,
+  svelteQueryOptions?: SvelteQueryProxyOptions,
   config: Treaty.Config = {},
 ): Treaty.Create<T> {
   if (typeof domain === 'string') {
     const resolvedDomain = resolveFetchOrigin(domain, config)
-    return createTreatyProxy(resolvedDomain, config)
+    return createTreatyQueryProxy(resolvedDomain, config, [], svelteQueryOptions)
   }
 
   if (typeof window !== 'undefined')
@@ -59,5 +108,5 @@ export function createTreatyFetchQuery<T extends Elysia<any, any, any, any, any,
       'Elysia instance server found on client side, this is not recommended for security reason. Use generic type instead.',
     )
 
-  return createTreatyProxy(SAMPLE_DOMAIN, config, [], domain)
+  return createTreatyQueryProxy(SAMPLE_DOMAIN, config, [], svelteQueryOptions, domain)
 }

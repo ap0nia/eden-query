@@ -15,7 +15,6 @@ export interface SvelteQueryProxyOptions {
 export interface CreateMutationOverride {
   onSuccess: (opts: {
     originalFn: () => StoreOrVal<unknown>
-    queryClient: QueryClient
     meta: Record<string, unknown>
   }) => MaybePromise<unknown>
 }

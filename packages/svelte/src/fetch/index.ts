@@ -183,7 +183,6 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
         queryKey: getQueryKey(endpoint, optionsValue, 'infinite'),
         queryFn: async (context) => {
           // FIXME: scuffed way to set cursor.
-
           if (rest.query) {
             rest.query['cursor'] = context.pageParam
           }
@@ -213,7 +212,6 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
             queryKey: getQueryKey(endpoint, newInput, 'infinite'),
             queryFn: async (context) => {
               // FIXME: scuffed way to set cursor.
-
               if (rest.query) {
                 rest.query['cursor'] = context.pageParam
               }
@@ -221,6 +219,7 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
               if (rest.params) {
                 rest.params['cursor'] = context.pageParam
               }
+
               return await fetch(endpoint, {
                 ...rest,
                 signal: abortOnUnmount ? context.signal : undefined,
@@ -236,7 +235,6 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
       return createInfiniteQuery(optionsStore)
     },
     createMutation: (endpoint: string, options?: CreateMutationOptions) => {
-      const queryClient = svelteQueryOptions?.svelteQueryContext ?? useQueryClient()
       const optionsValue = isStore(options) ? get(options) : options
 
       const baseOptions = {
@@ -249,7 +247,6 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
 
           return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
             ? svelteQueryOptions.overrides.createMutation.onSuccess({
-                queryClient,
                 meta: optionsValue?.meta as any,
                 originalFn,
               })
