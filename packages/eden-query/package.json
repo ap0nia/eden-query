@@ -10,5 +10,9 @@
     "directory": "packages/eden-query"
   },
   "type": "module",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {
+    "@elysiajs/eden": "^1.0.12",
+    "@tanstack/svelte-query": "^5.35.1"
+  }
 }
