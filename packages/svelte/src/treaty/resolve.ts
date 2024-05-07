@@ -1,12 +1,23 @@
 import { EdenWS } from '@elysiajs/eden/treaty'
+import {
+  createQuery,
+  type CreateQueryOptions,
+  useQueryClient,
+  type CreateMutationOptions,
+  createMutation,
+} from '@tanstack/svelte-query'
 import type Elysia from 'elysia'
 import { isNumericString } from 'elysia/utils'
+import { get, writable } from 'svelte/store'
 
-import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
 import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
+import { isStore } from '../utils/is-store'
+import { getQueryKey } from '../internal/query'
+import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
+import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
 import type { Treaty } from './types'
 
 function processHeaders(
@@ -277,5 +288,204 @@ export async function resolveTreatyProxy(
     response,
     status: response.status,
     headers: response.headers,
+  }
+}
+
+/**
+ * GET hooks will only have one parameter: options.
+ * eden.api.hello.get.createQuery(options)
+ *
+ * POST, etc. hooks will also only have one parameter: options.
+ * They add body when calling `mutate` or `mutateAsync`
+ *
+ * const mutation = eden.api.hello.post.createMutation(options)
+ * mutation.mutate(body)
+ */
+export async function resolveQueryTreatyProxy(
+  options: any,
+  domain: string,
+  config: Treaty.Config,
+  paths: string[] = [],
+  svelteQueryOptions?: SvelteQueryProxyOptions,
+  elysia?: Elysia<any, any, any, any, any, any>,
+) {
+  /**
+   * @example ['api', 'hello', 'get', 'createQuery']
+   */
+  const methodPaths = [...paths]
+
+  /**
+   * @example 'createQuery'
+   */
+  const hook = methodPaths.pop() ?? ''
+
+  /**
+   * @example 'get'
+   */
+  const method = methodPaths.pop() ?? ''
+
+  /**
+   * @example '/api/hello'
+   */
+  const endpoint = '/' + methodPaths.join('/')
+
+  /**
+   * {@link EdenRequestOptions} if {@link method} is 'get'.
+   * Otherwise the body, and {@link options} is the {@link EdenRequestOptions}.
+   */
+  const optionsValue = isStore(options) ? get(options) : options
+
+  const abortOnUnmount =
+    Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
+
+  const { queryOptions, ...rest } = optionsValue
+
+  switch (hook) {
+    case 'createQuery': {
+      const { queryOptions, ...rest } = optionsValue
+
+      const baseQueryOptions = {
+        queryKey: getQueryKey(endpoint, optionsValue, 'query'),
+        // queryFn: async (context) => {
+        //   return await fetch(endpoint, {
+        //     ...rest,
+        //     signal: abortOnUnmount ? context.signal : undefined,
+        //   } as EdenRequestOptions)
+        // },
+        ...queryOptions,
+      } satisfies CreateQueryOptions
+
+      if (!isStore(options)) {
+        return createQuery(baseQueryOptions as any)
+      }
+
+      const optionsStore = writable(baseQueryOptions, (set) => {
+        const unsubscribe = options.subscribe((newInput) => {
+          const { queryOptions, ...rest } = optionsValue
+
+          set({
+            ...baseQueryOptions,
+            queryKey: getQueryKey(endpoint, newInput, 'query'),
+            // queryFn: async (context) => {
+            //   return await fetch(endpoint, {
+            //     ...rest,
+            //     signal: abortOnUnmount ? context.signal : undefined,
+            //   } as EdenRequestOptions)
+            // },
+            ...queryOptions,
+          })
+        })
+
+        return unsubscribe
+      })
+
+      return createQuery(optionsStore as any)
+    }
+
+    // case 'createInfiniteQuery': {
+    //   const { queryOptions, ...rest } = optionsValue
+
+    //   const baseQueryOptions = {
+    //     queryKey: getQueryKey(endpoint, optionsValue, 'query'),
+    //     // queryFn: async (context) => {
+    //     //   return await fetch(endpoint, {
+    //     //     ...rest,
+    //     //     signal: abortOnUnmount ? context.signal : undefined,
+    //     //   } as EdenRequestOptions)
+    //     // },
+    //     ...queryOptions,
+    //   } satisfies CreateQueryOptions
+
+    //   if (!isStore(options)) {
+    //     return createQuery(baseQueryOptions as any)
+    //   }
+
+    //   const optionsStore = writable(baseQueryOptions, (set) => {
+    //     const unsubscribe = options.subscribe((newInput) => {
+    //       const { queryOptions, ...rest } = optionsValue
+
+    //       set({
+    //         ...baseQueryOptions,
+    //         queryKey: getQueryKey(endpoint, newInput, 'query'),
+    //         // queryFn: async (context) => {
+    //         //   return await fetch(endpoint, {
+    //         //     ...rest,
+    //         //     signal: abortOnUnmount ? context.signal : undefined,
+    //         //   } as EdenRequestOptions)
+    //         // },
+    //         ...queryOptions,
+    //       })
+    //     })
+
+    //     return unsubscribe
+    //   })
+
+    //   return createQuery(optionsStore as any)
+    // }
+
+    // case 'createMutation': {
+    //   const queryClient = svelteQueryOptions?.svelteQueryContext ?? useQueryClient()
+    //   const bodyValue = isStore(options) ? get(options) : options
+
+    //   const baseOptions = {
+    //     mutationKey: [endpoint],
+    //     // mutationFn: async (variables) => {
+    //     //   return await fetch(endpoint, variables)
+    //     // },
+    //     onSuccess(data, variables, context) {
+    //       const originalFn = () => bodyValue?.onSuccess?.(data, variables, context)
+
+    //       return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
+    //         ? svelteQueryOptions.overrides.createMutation.onSuccess({
+    //           queryClient,
+    //           meta: bodyValue?.meta as any,
+    //           originalFn,
+    //         })
+    //         : originalFn()
+    //     },
+    //     ...bodyValue,
+    //   } satisfies CreateMutationOptions
+
+    //   if (!isStore(options)) {
+    //     return createMutation(baseOptions)
+    //   }
+
+    //   const optionsStore = writable(baseOptions, (set) => {
+    //     const unsubscribe = options.subscribe((newInput) => {
+    //       set({
+    //         ...baseOptions,
+    //         mutationKey: [endpoint],
+    //         mutationFn: async (variables) => {
+    //           return await fetch(endpoint, variables)
+    //         },
+    //         onSuccess(data, variables, context) {
+    //           const originalFn = () => newInput?.onSuccess?.(data, variables, context)
+
+    //           return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
+    //             ? svelteQueryOptions.overrides.createMutation.onSuccess({
+    //               queryClient,
+    //               meta: newInput?.meta as any,
+    //               originalFn,
+    //             })
+    //             : originalFn()
+    //         },
+    //         ...newInput,
+    //       })
+    //     })
+
+    //     return unsubscribe
+    //   })
+
+    //   return createMutation(optionsStore)
+    // }
+
+    // TODO: not sure how to handle subscriptions.
+    // case 'createSubscription': {
+    //   return client.subscription(path, anyArgs[0], anyArgs[1])
+    // }
+
+    default: {
+      throw new TypeError(`eden.${endpoint}.${hook} is not a function`)
+    }
   }
 }
