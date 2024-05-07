@@ -1,5 +1,5 @@
 {
-  "name": "@ap0nia/eden-query",
+  "name": "@ap0nia/eden-svelte-query",
   "version": "0.0.0",
   "description": "elysia.js eden and svelte-query integration",
   "private": true,
