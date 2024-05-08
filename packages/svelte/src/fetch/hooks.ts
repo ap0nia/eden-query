@@ -11,7 +11,7 @@ import type {
 } from '@tanstack/svelte-query'
 import type { Readable } from 'svelte/store'
 
-import type { HttpMutationMethods, HttpQueryMethods } from '../internal/http'
+import type { HttpMutationMethod, HttpQueryMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteRoutes, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import type { EdenRequestOptions } from '../internal/options'
@@ -20,8 +20,8 @@ import type { Override } from '../utils/override'
 
 export type EdenFetchQueryHooks<TSchema extends Record<string, any>> = {
   createQuery: <
-    TEndpoint extends keyof Filter<TSchema, HttpQueryMethods>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
+    TEndpoint extends keyof Filter<TSchema, HttpQueryMethod>,
+    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethod>>,
     TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
     TInput = InferRouteInput<TRoute>,
     TOutput = InferRouteOutput<TRoute>,
@@ -40,7 +40,7 @@ export type EdenFetchQueryHooks<TSchema extends Record<string, any>> = {
 
   createInfiniteQuery: <
     TEndpoint extends keyof InfiniteRoutes<TSchema>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethods>>,
+    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethod>>,
     TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
     TInput = InferRouteInput<TRoute, ReservedInfiniteQueryKeys>,
     TOutput = InferRouteOutput<TRoute>,
@@ -58,8 +58,8 @@ export type EdenFetchQueryHooks<TSchema extends Record<string, any>> = {
   ) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
 
   createMutation: <
-    TEndpoint extends keyof Filter<TSchema, HttpMutationMethods>,
-    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethods>>,
+    TEndpoint extends keyof Filter<TSchema, HttpMutationMethod>,
+    TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethod>>,
     TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
     TInput = EdenRequestOptions<TMethod, TRoute>,
     TOutput = InferRouteOutput<TRoute>,
@@ -89,7 +89,7 @@ export type EdenFetchAsyncMutationFunction<
   TEndpoint extends keyof TSchema,
   TContext = any,
 > = <
-  TResolvedMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethods>>,
+  TResolvedMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethod>>,
   TResolvedRoute extends TSchema[TEndpoint][Lowercase<TResolvedMethod>],
   TResolvedOutput = InferRouteOutput<TResolvedRoute>,
   TResolvedError = InferRouteError<TResolvedRoute>,
@@ -108,7 +108,7 @@ export type EdenFetchMutationFunction<
   TEndpoint extends keyof TSchema,
   TContext = any,
 > = <
-  TResolvedMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethods>>,
+  TResolvedMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpMutationMethod>>,
   TResolvedRoute extends TSchema[TEndpoint][Lowercase<TResolvedMethod>],
   TResolvedOutput = InferRouteOutput<TResolvedRoute>,
   TResolvedError = InferRouteError<TResolvedRoute>,

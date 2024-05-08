@@ -13,13 +13,13 @@ export const httpMethods = [
   ...httpSubscriptionMethods,
 ] as const
 
-export type HttpQueryMethods = (typeof httpQueryMethods)[number]
+export type HttpQueryMethod = (typeof httpQueryMethods)[number]
 
-export type HttpMutationMethods = (typeof httpMutationMethods)[number]
+export type HttpMutationMethod = (typeof httpMutationMethods)[number]
 
-export type HttpSubscriptionMethods = (typeof httpSubscriptionMethods)[number]
+export type HttpSubscriptionMethod = (typeof httpSubscriptionMethods)[number]
 
-export type HttpMethods = (typeof httpMethods)[number]
+export type HttpMethod = (typeof httpMethods)[number]
 
 export function resolveWsOrigin(domain: string) {
   return domain.replace(

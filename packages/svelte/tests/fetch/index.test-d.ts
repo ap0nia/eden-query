@@ -70,4 +70,15 @@ describe('fetch', () => {
       })
     })
   })
+
+  test('infinite', () => {
+    const elysia = new Elysia().get('/hello', () => 123).get('/hello/:cursor', () => true)
+
+    const eden = createEdenFetchQuery<typeof elysia>()
+
+    eden.createInfiniteQuery('/hello/:cursor', {
+      params: {},
+      queryOptions: {} as any,
+    })
+  })
 })

@@ -16,7 +16,7 @@ import {
 import { Elysia } from 'elysia'
 import { get, writable } from 'svelte/store'
 
-import type { HttpQueryMethods } from '../internal/http'
+import type { HttpQueryMethod } from '../internal/http'
 import type { InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
 import { getQueryKey } from '../internal/query'
@@ -272,7 +272,6 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
 
               return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
                 ? svelteQueryOptions.overrides.createMutation.onSuccess({
-                    queryClient,
                     meta: newInput?.meta as any,
                     originalFn,
                   })
@@ -304,16 +303,16 @@ export type EdenFetchQuery<TSchema extends Record<string, any>> = {
 
 export type InferEdenQueryInput<
   T extends Elysia<any, any, any, any, any, any, any, any>,
-  TEndpoint extends keyof Filter<T['_routes'], HttpQueryMethods>,
-  TMethod extends Uppercase<Extract<keyof T['_routes'][TEndpoint], HttpQueryMethods>>,
+  TEndpoint extends keyof Filter<T['_routes'], HttpQueryMethod>,
+  TMethod extends Uppercase<Extract<keyof T['_routes'][TEndpoint], HttpQueryMethod>>,
   TRoute extends
     T['_routes'][TEndpoint][Lowercase<TMethod>] = T['_routes'][TEndpoint][Lowercase<TMethod>],
 > = InferRouteInput<TRoute>
 
 export type InferEdenQueryOutput<
   T extends Elysia<any, any, any, any, any, any, any, any>,
-  TEndpoint extends keyof Filter<T['_routes'], HttpQueryMethods>,
-  TMethod extends Uppercase<Extract<keyof T['_routes'][TEndpoint], HttpQueryMethods>>,
+  TEndpoint extends keyof Filter<T['_routes'], HttpQueryMethod>,
+  TMethod extends Uppercase<Extract<keyof T['_routes'][TEndpoint], HttpQueryMethod>>,
   TRoute extends
     T['_routes'][TEndpoint][Lowercase<TMethod>] = T['_routes'][TEndpoint][Lowercase<TMethod>],
 > = InferRouteOutput<TRoute>
