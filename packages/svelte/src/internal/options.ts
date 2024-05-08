@@ -61,6 +61,7 @@ export type EdenRequestOptions<
       }
     : {
         body?: unknown
-      }) & {
+      })
+& {
     eden?: SvelteQueryProxyOptions
   }
