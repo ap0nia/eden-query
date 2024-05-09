@@ -28,19 +28,19 @@ describe('fetch', () => {
           }),
         },
       )
-      .get(
-        '/a/b',
-        async () => {
-          return 12345
-        },
-        {
-          body: t.Object({
-            goodbye: t.String(),
-          }),
-        },
-      )
+      .get('/a/b/:id', async () => {
+        return 12345
+      })
 
     const eden = createEdenFetchQuery<typeof elysia>()
+
+    const utils = eden.getContext()
+
+    // Partial route used for invalidation key only accepts two arguments.
+    utils.invalidate('/a', { cancelRefetch: true })
+
+    // Full route used  for invalidate takes three arguments.
+    utils.invalidate('/a/b/:id', { params: { id: '' } }, { cancelRefetch: true })
 
     // When creating the mutation, its types are ambiguous because the method is 'POST' | 'delete'
     const mutation = eden.createMutation('/index', {})
