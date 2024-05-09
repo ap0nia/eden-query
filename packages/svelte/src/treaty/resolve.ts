@@ -100,9 +100,10 @@ export async function resolveTreatyProxy(
 ) {
   const methodPaths = [...paths]
 
-  const method = methodPaths.pop()
+  // Pop the hook, e.g. "createQuery".
+  methodPaths.pop()
 
-  const path = '/' + methodPaths.join('/')
+  const method = methodPaths.pop()
 
   const fetcher = config.fetcher ?? globalThis.fetch
 
@@ -110,7 +111,15 @@ export async function resolveTreatyProxy(
 
   const options = isGetOrHead ? bodyOrOptions : optionsOrUndefined
 
-  const headers = processHeaders(config.headers, path, options)
+  let endpoint = '/' + methodPaths.join('/')
+
+  if (options?.params != null) {
+    Object.entries(options.params).forEach(([key, value]) => {
+      endpoint = endpoint.replace(`:${key}`, value as string)
+    })
+  }
+
+  const headers = processHeaders(config.headers, endpoint, options)
 
   const rawQuery = isGetOrHead ? bodyOrOptions?.['query'] : options?.query
 
@@ -118,7 +127,7 @@ export async function resolveTreatyProxy(
 
   if (method === 'subscribe') {
     const wsOrigin = resolveWsOrigin(domain)
-    const url = wsOrigin + path + query
+    const url = wsOrigin + endpoint + query
     return new EdenWS(url)
   }
 
@@ -131,7 +140,7 @@ export async function resolveTreatyProxy(
 
   fetchInit.headers = {
     ...headers,
-    ...processHeaders(options.headers, path, fetchInit),
+    ...processHeaders(options.headers, endpoint, fetchInit),
   }
 
   const fetchOpts =
@@ -149,12 +158,13 @@ export async function resolveTreatyProxy(
   }
 
   config.onRequest ??= []
+
   if (!Array.isArray(config.onRequest)) {
     config.onRequest = [config.onRequest]
   }
 
   for (const value of config.onRequest) {
-    const temp = await value(path, fetchInit)
+    const temp = await value(endpoint, fetchInit)
 
     if (typeof temp === 'object')
       fetchInit = {
@@ -162,7 +172,7 @@ export async function resolveTreatyProxy(
         ...temp,
         headers: {
           ...fetchInit.headers,
-          ...processHeaders(temp.headers, path, fetchInit),
+          ...processHeaders(temp.headers, endpoint, fetchInit),
         },
       }
   }
@@ -217,7 +227,7 @@ export async function resolveTreatyProxy(
   }
 
   for (const value of config.onRequest) {
-    const temp = await value(path, fetchInit)
+    const temp = await value(endpoint, fetchInit)
 
     if (typeof temp === 'object')
       fetchInit = {
@@ -230,7 +240,8 @@ export async function resolveTreatyProxy(
       }
   }
 
-  const url = domain + path + query
+  const url = domain + endpoint + query
+
   const response = await (elysia?.handle(new Request(url, fetchInit)) ?? fetcher(url, fetchInit))
 
   let data = null
@@ -313,7 +324,7 @@ export async function resolveTreatyProxy(
  * const mutation = eden.api.hello.post.createMutation(options)
  * mutation.mutate(body)
  */
-export async function resolveQueryTreatyProxy(
+export function resolveQueryTreatyProxy(
   options: any,
   additionalOptions: any,
   domain: string,

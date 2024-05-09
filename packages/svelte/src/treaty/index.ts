@@ -50,7 +50,7 @@ export function createTreatyProxy(
  * Proxy with svelte-query integration.
  */
 export function createTreatyQueryProxy(
-  domain: string,
+  domain: string = '',
   config: Treaty.Config,
   paths: string[] = [],
   svelteQueryOptions?: SvelteQueryProxyOptions,
@@ -94,10 +94,14 @@ export function createTreatyQueryProxy(
 }
 
 export function createTreatyFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
-  domain: string | T,
-  svelteQueryOptions?: SvelteQueryProxyOptions,
+  domain?: string | T,
   config: Treaty.Config = {},
+  svelteQueryOptions?: SvelteQueryProxyOptions,
 ): Treaty.Create<T> {
+  if (domain == null) {
+    return createTreatyQueryProxy(domain, config, [], svelteQueryOptions)
+  }
+
   if (typeof domain === 'string') {
     const resolvedDomain = resolveFetchOrigin(domain, config)
     return createTreatyQueryProxy(resolvedDomain, config, [], svelteQueryOptions)

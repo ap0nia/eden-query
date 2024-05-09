@@ -1,7 +1,10 @@
-export declare class EdenFetchError<Status extends number = number, Value = unknown> extends Error {
-  status: Status
-  value: Value
-  constructor(status: Status, value: Value)
+export class EdenFetchError<Status extends number = number, Value = unknown> extends Error {
+  constructor(
+    readonly status: Status,
+    readonly value: Value,
+  ) {
+    super()
+  }
 }
 
 export type MapError<T extends Record<number, unknown>> = [

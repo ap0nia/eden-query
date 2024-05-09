@@ -1,5 +1,5 @@
 import { LOCAL_ADDRESSES } from '../constants'
-import type { Treaty } from '../treaty'
+import type { Treaty } from '../treaty/types'
 
 export const httpQueryMethods = ['get', 'options', 'head'] as const
 
