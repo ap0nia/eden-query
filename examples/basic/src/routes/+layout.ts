@@ -14,11 +14,7 @@ export const load: LayoutLoad = async (event) => {
     },
   })
 
-  const eden = createTreatyFetchQuery<App>(
-    undefined,
-    { fetcher: event.fetch },
-    { svelteQueryContext: queryClient },
-  )
+  const eden = createTreatyFetchQuery<App>(undefined, { queryClient, fetcher: event.fetch })
 
   return { queryClient, eden }
 }

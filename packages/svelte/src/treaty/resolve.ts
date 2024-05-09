@@ -22,6 +22,8 @@ import { createNewFile, hasFile } from '../utils/file'
 import { isStore } from '../utils/is-store'
 import type { Treaty } from './types'
 
+export type EdenTreatyQueryConfig = Treaty.Config & SvelteQueryProxyConfig
+
 function processHeaders(
   h: Treaty.Config['headers'],
   path: string,
@@ -328,9 +330,8 @@ export function resolveQueryTreatyProxy(
   options: any,
   additionalOptions: any,
   domain: string,
-  config: Treaty.Config,
+  config: EdenTreatyQueryConfig,
   paths: string[] = [],
-  svelteQueryOptions?: SvelteQueryProxyConfig,
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
   /**
@@ -366,7 +367,7 @@ export function resolveQueryTreatyProxy(
       const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
       const abortOnUnmount =
-        Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
+        Boolean(config?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
 
       const { queryOptions, ...rest } = optionsValue
 
@@ -436,7 +437,7 @@ export function resolveQueryTreatyProxy(
       const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
       const abortOnUnmount =
-        Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
+        Boolean(config?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
 
       const { queryOptions, ...rest } = optionsValue
 
@@ -531,8 +532,8 @@ export function resolveQueryTreatyProxy(
         },
         onSuccess(data, variables, context) {
           const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
-          return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
-            ? svelteQueryOptions.overrides.createMutation.onSuccess({
+          return config?.overrides?.createMutation?.onSuccess != null
+            ? config.overrides.createMutation.onSuccess({
                 meta: optionsValue?.meta as any,
                 originalFn,
               })
@@ -562,8 +563,8 @@ export function resolveQueryTreatyProxy(
             },
             onSuccess(data, variables, context) {
               const originalFn = () => newInput?.onSuccess?.(data, variables, context)
-              return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
-                ? svelteQueryOptions.overrides.createMutation.onSuccess({
+              return config?.overrides?.createMutation?.onSuccess != null
+                ? config.overrides.createMutation.onSuccess({
                     meta: newInput?.meta as any,
                     originalFn,
                   })
