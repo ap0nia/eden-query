@@ -51,3 +51,12 @@ export function resolveFetchOrigin(domain: string, config: Treaty.Config) {
 
   return domain
 }
+
+export function isFetchCall(body: any, options: any, paths: string[]) {
+  return (
+    !body ||
+    options ||
+    (typeof body === 'object' && Object.keys(body).length !== 1) ||
+    httpMethods.includes(paths.at(-1) as any)
+  )
+}
