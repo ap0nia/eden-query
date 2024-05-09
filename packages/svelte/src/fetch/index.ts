@@ -7,13 +7,11 @@ import {
   type CreateMutationOptions,
   createQuery,
   type CreateQueryOptions,
-  type FetchInfiniteQueryOptions,
-  type FetchQueryOptions,
-  type InvalidateOptions,
+  QueryClient,
   type StoreOrVal,
-  useQueryClient,
 } from '@tanstack/svelte-query'
 import { Elysia } from 'elysia'
+import { getContext, setContext } from 'svelte'
 import { get, writable } from 'svelte/store'
 
 import type { HttpQueryMethod } from '../internal/http'
@@ -22,100 +20,51 @@ import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/opt
 import { getQueryKey } from '../internal/query'
 import type { TreatyToPath } from '../internal/treaty-to-path'
 import type { Filter } from '../utils/filter'
+import type { IsOptional } from '../utils/is-optional'
 import { isStore } from '../utils/is-store'
-import type { EdenFetchQueryContext } from './context'
+import { createContext, EDEN_CONTEXT_KEY, type EdenFetchQueryContext } from './context'
 import type { EdenFetchQueryHooks } from './hooks'
 
-/**
- */
-function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>(
-  fetch: EdenFetch.Create<T>,
-  config?: SvelteQueryProxyConfig,
-) {
-  const queryClient = config?.queryClient ?? useQueryClient()
-
-  return {
-    invalidate: (endpoint: string, input: any, options?: InvalidateOptions) => {
-      queryClient.invalidateQueries(
-        {
-          queryKey: getQueryKey(endpoint, input),
-        },
-        options,
-      )
-    },
-    fetch: (endpoint: string, input: any, options?: FetchQueryOptions) => {
-      const abortOnUnmount = Boolean(config?.abortOnUnmount)
-
-      const baseQueryOptions = {
-        queryKey: getQueryKey(endpoint, input, 'query'),
-        queryFn: async (context) => {
-          return await fetch(
-            endpoint as any,
-            {
-              ...input,
-              signal: abortOnUnmount ? context.signal : undefined,
-            } as EdenRequestOptions,
-          )
-        },
-        ...options,
-      } satisfies CreateQueryOptions
-
-      return queryClient.fetchQuery(baseQueryOptions)
-    },
-
-    fetchInfinite: (endpoint: string, input: any, options?: FetchInfiniteQueryOptions) => {
-      const abortOnUnmount = Boolean(config?.abortOnUnmount)
-
-      const baseQueryOptions: FetchInfiniteQueryOptions = {
-        initialPageParam: 0,
-        queryKey: getQueryKey(endpoint, input, 'infinite'),
-        queryFn: async (context) => {
-          if (input.query) {
-            input.query['cursor'] = context.pageParam
-          }
-
-          if (input.params) {
-            input.params['cursor'] = context.pageParam
-          }
-
-          return await fetch(
-            endpoint as any,
-            {
-              ...input,
-              signal: abortOnUnmount ? context.signal : undefined,
-            } as EdenRequestOptions,
-          )
-        },
-        ...options,
-      }
-
-      return queryClient.fetchInfiniteQuery(baseQueryOptions)
-    },
-  }
-}
+export type EdenFetchQueryConfig = EdenFetch.Config & SvelteQueryProxyConfig
 
 /**
  * TODO: allow passing in an instance of {@link Elysia} for server-side usage.
  */
-export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
+export function createEdenFetchQuery<
+  T extends Elysia<any, any, any, any, any, any, any, any>,
+  TConfig extends EdenFetchQueryConfig = EdenFetchQueryConfig,
+>(
   server = '',
-  config?: EdenFetch.Config,
-  svelteQueryOptions?: SvelteQueryProxyConfig,
+  config?: EdenFetchQueryConfig,
 ): T extends {
   _routes: infer TSchema extends Record<string, any>
 }
   ? // @ts-expect-error Type 'unknown' is not assignable to type 'Record<string, any>'
-    EdenFetchQuery<TreatyToPath<TSchema>>
+    EdenFetchQuery<TreatyToPath<TSchema>, TConfig>
   : 'Please install Elysia before using Eden' {
   const fetch: any = edenFetch(server, config)
 
-  const context =
-    svelteQueryOptions?.queryClient != null ? createContext(fetch, svelteQueryOptions) : undefined
+  const context = config?.queryClient != null ? createContext(fetch, config) : undefined
+
+  const createContextThunk = () => createContext(fetch, config)
+
+  const getContextThunk = () => {
+    return getContext(EDEN_CONTEXT_KEY)
+  }
 
   return {
+    config: (newConfig: EdenFetchQueryConfig) => {
+      return createEdenFetchQuery(server, { ...config, ...newConfig })
+    },
     fetch,
     context,
-    createContext: () => createContext(fetch, svelteQueryOptions),
+    createContext: createContextThunk,
+    setContext: (queryClient: QueryClient, configOverride?: EdenFetchQueryConfig) => {
+      const contextProxy = createContext(fetch, { ...config, queryClient, ...configOverride })
+      setContext(EDEN_CONTEXT_KEY, contextProxy)
+    },
+    getContext: getContextThunk,
+    useUtils: getContextThunk,
     createQuery: (
       endpoint: string,
       options: StoreOrVal<EdenRequestOptions & { queryOptions?: Partial<CreateQueryOptions> }>,
@@ -123,7 +72,7 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
       const optionsValue = isStore(options) ? get(options) : options
 
       const abortOnUnmount =
-        Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
+        Boolean(config?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
 
       const { queryOptions, ...rest } = optionsValue
 
@@ -173,7 +122,7 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
       const optionsValue = isStore(options) ? get(options) : options
 
       const abortOnUnmount =
-        Boolean(svelteQueryOptions?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
+        Boolean(config?.abortOnUnmount) || Boolean(optionsValue.eden?.abortOnUnmount)
 
       const { queryOptions, ...rest } = optionsValue
 
@@ -243,8 +192,8 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
         onSuccess(data, variables, context) {
           const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
 
-          return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
-            ? svelteQueryOptions.overrides.createMutation.onSuccess({
+          return config?.overrides?.createMutation?.onSuccess != null
+            ? config.overrides.createMutation.onSuccess({
                 meta: optionsValue?.meta as any,
                 originalFn,
               })
@@ -268,8 +217,8 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
             onSuccess(data, variables, context) {
               const originalFn = () => newInput?.onSuccess?.(data, variables, context)
 
-              return svelteQueryOptions?.overrides?.createMutation?.onSuccess != null
-                ? svelteQueryOptions.overrides.createMutation.onSuccess({
+              return config?.overrides?.createMutation?.onSuccess != null
+                ? config.overrides.createMutation.onSuccess({
                     meta: newInput?.meta as any,
                     originalFn,
                   })
@@ -287,17 +236,39 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
   } as any
 }
 
-export type EdenFetchQuery<TSchema extends Record<string, any>> = {
+export type EdenFetchQuery<
+  TSchema extends Record<string, any>,
+  TConfig extends EdenFetchQueryConfig = EdenFetchQueryConfig,
+> = {
+  /**
+   * Official, initialized {@link edenFetch} instance.
+   */
   fetch: EdenFetch.Fn<TSchema>
 
   /**
-   * Only defined when the QueryClient is provided directly to the constructor.
-   * Otherwise, invoke {@link createContext}
+   * Get the utilities from setContext.
    */
-  context: EdenFetchQueryContext<TSchema>
+  getContext: () => EdenFetchQueryContext<TSchema>
 
-  createContext: () => EdenFetchQueryContext<TSchema>
-} & EdenFetchQueryHooks<TSchema>
+  /**
+   * Alias for {@link EdenFetchQuery.createContext}
+   */
+  useUtils: () => EdenFetchQueryContext<TSchema>
+
+  /**
+   * Builder utility to strongly define the config in a second step.
+   */
+  config: <TNewConfig extends EdenFetchQueryConfig>(
+    newConfig: TNewConfig,
+  ) => EdenFetchQuery<TSchema, TNewConfig>
+} & EdenFetchQueryHooks<TSchema> &
+  (IsOptional<TConfig, 'queryClient'> extends true
+    ? {
+        context?: EdenFetchQueryContext<TSchema>
+      }
+    : {
+        context: EdenFetchQueryContext<TSchema>
+      })
 
 export type InferEdenQueryInput<
   T extends Elysia<any, any, any, any, any, any, any, any>,
