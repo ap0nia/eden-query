@@ -4,12 +4,12 @@ import type { IsNever } from '../utils/is-never'
 import type { IsUnknown } from '../utils/is-unknown'
 import type { MaybePromise } from '../utils/promise'
 
-export interface SvelteQueryProxyOptions {
+export interface SvelteQueryProxyConfig {
   overrides?: {
     createMutation?: Partial<CreateMutationOverride>
   }
   abortOnUnmount?: boolean
-  svelteQueryContext?: QueryClient
+  queryClient?: QueryClient
 }
 
 export interface CreateMutationOverride {
@@ -61,7 +61,6 @@ export type EdenRequestOptions<
       }
     : {
         body?: unknown
-      })
-& {
-    eden?: SvelteQueryProxyOptions
+      }) & {
+    eden?: SvelteQueryProxyConfig
   }

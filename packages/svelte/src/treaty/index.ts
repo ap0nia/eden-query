@@ -2,7 +2,7 @@ import type { Elysia } from 'elysia'
 
 import { SAMPLE_DOMAIN } from '../constants'
 import { httpMethods, resolveFetchOrigin } from '../internal/http'
-import type { SvelteQueryProxyOptions } from '../internal/options'
+import type { SvelteQueryProxyConfig } from '../internal/options'
 import { resolveQueryTreatyProxy, resolveTreatyProxy } from './resolve'
 import type { Treaty } from './types'
 
@@ -53,7 +53,7 @@ export function createTreatyQueryProxy(
   domain: string = '',
   config: Treaty.Config,
   paths: string[] = [],
-  svelteQueryOptions?: SvelteQueryProxyOptions,
+  svelteQueryOptions?: SvelteQueryProxyConfig,
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {
   return new Proxy(() => {}, {
@@ -96,7 +96,7 @@ export function createTreatyQueryProxy(
 export function createTreatyFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
   domain?: string | T,
   config: Treaty.Config = {},
-  svelteQueryOptions?: SvelteQueryProxyOptions,
+  svelteQueryOptions?: SvelteQueryProxyConfig,
 ): Treaty.Create<T> {
   if (domain == null) {
     return createTreatyQueryProxy(domain, config, [], svelteQueryOptions)

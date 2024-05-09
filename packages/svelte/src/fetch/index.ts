@@ -18,7 +18,7 @@ import { get, writable } from 'svelte/store'
 
 import type { HttpQueryMethod } from '../internal/http'
 import type { InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
+import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import type { TreatyToPath } from '../internal/treaty-to-path'
 import type { Filter } from '../utils/filter'
@@ -30,9 +30,9 @@ import type { EdenFetchQueryHooks } from './hooks'
  */
 function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>(
   fetch: EdenFetch.Create<T>,
-  svelteQueryOptions?: SvelteQueryProxyOptions,
+  config?: SvelteQueryProxyConfig,
 ) {
-  const queryClient = svelteQueryOptions?.svelteQueryContext ?? useQueryClient()
+  const queryClient = config?.queryClient ?? useQueryClient()
 
   return {
     invalidate: (endpoint: string, input: any, options?: InvalidateOptions) => {
@@ -44,7 +44,7 @@ function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>
       )
     },
     fetch: (endpoint: string, input: any, options?: FetchQueryOptions) => {
-      const abortOnUnmount = Boolean(svelteQueryOptions?.abortOnUnmount)
+      const abortOnUnmount = Boolean(config?.abortOnUnmount)
 
       const baseQueryOptions = {
         queryKey: getQueryKey(endpoint, input, 'query'),
@@ -64,7 +64,7 @@ function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>
     },
 
     fetchInfinite: (endpoint: string, input: any, options?: FetchInfiniteQueryOptions) => {
-      const abortOnUnmount = Boolean(svelteQueryOptions?.abortOnUnmount)
+      const abortOnUnmount = Boolean(config?.abortOnUnmount)
 
       const baseQueryOptions: FetchInfiniteQueryOptions = {
         initialPageParam: 0,
@@ -100,7 +100,7 @@ function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>
 export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
   server = '',
   config?: EdenFetch.Config,
-  svelteQueryOptions?: SvelteQueryProxyOptions,
+  svelteQueryOptions?: SvelteQueryProxyConfig,
 ): T extends {
   _routes: infer TSchema extends Record<string, any>
 }
@@ -110,9 +110,7 @@ export function createEdenFetchQuery<T extends Elysia<any, any, any, any, any, a
   const fetch: any = edenFetch(server, config)
 
   const context =
-    svelteQueryOptions?.svelteQueryContext != null
-      ? createContext(fetch, svelteQueryOptions)
-      : undefined
+    svelteQueryOptions?.queryClient != null ? createContext(fetch, svelteQueryOptions) : undefined
 
   return {
     fetch,

@@ -15,7 +15,7 @@ import { get, writable } from 'svelte/store'
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
 import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
-import type { EdenRequestOptions, SvelteQueryProxyOptions } from '../internal/options'
+import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
@@ -330,7 +330,7 @@ export function resolveQueryTreatyProxy(
   domain: string,
   config: Treaty.Config,
   paths: string[] = [],
-  svelteQueryOptions?: SvelteQueryProxyOptions,
+  svelteQueryOptions?: SvelteQueryProxyConfig,
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
   /**

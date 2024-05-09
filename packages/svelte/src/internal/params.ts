@@ -1,6 +1,6 @@
-import type { SvelteQueryProxyOptions } from './options'
 import type { IsNever } from '../utils/is-never'
 import type { IsUnknown } from '../utils/is-unknown'
+import type { SvelteQueryProxyConfig } from './options'
 
 type Files = File | FileList
 
@@ -46,7 +46,7 @@ export type EdenQueryParams<
     : {
         body?: unknown
       }) & {
-    eden?: SvelteQueryProxyOptions
+    eden?: SvelteQueryProxyConfig
   }
 
 /**
