@@ -11,6 +11,9 @@ coverage/
 ## ESLint cache. https://eslint.org/docs/latest/use/command-line-interface#caching
 .eslintcache
 
+## TypeScript compile output.
+dist/
+
 ## Nx output.
 .nx/
 
