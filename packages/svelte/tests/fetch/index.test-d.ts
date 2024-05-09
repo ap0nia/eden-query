@@ -28,6 +28,17 @@ describe('fetch', () => {
           }),
         },
       )
+      .get(
+        '/a/b',
+        async () => {
+          return 12345
+        },
+        {
+          body: t.Object({
+            goodbye: t.String(),
+          }),
+        },
+      )
 
     const eden = createEdenFetchQuery<typeof elysia>()
 
