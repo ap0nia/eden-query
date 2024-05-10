@@ -14,17 +14,16 @@ import {
   type ResetOptions,
   type SetDataOptions,
   type Updater,
-  useQueryClient,
 } from '@tanstack/svelte-query'
-import type { RouteSchema } from 'elysia'
+import type { Elysia, RouteSchema } from 'elysia'
 
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
-import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
 import type { EdenQueryParams } from '../internal/params'
 import { getQueryKey } from '../internal/query'
 import type { DeepPartial } from '../utils/deep-partial'
 import type { Override } from '../utils/override'
+import { type EdenTreatyQueryConfig, resolveTreaty } from './resolve'
 import type { TreatyQueryKey } from './types'
 
 /**
@@ -163,74 +162,179 @@ type TreatyInfiniteQueryContext<
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>
 }
 
+export function createInnerContext(
+  domain: string,
+  config: EdenTreatyQueryConfig,
+  queryClient: QueryClient,
+  paths: string[] = [],
+  elysia?: Elysia<any, any, any, any, any, any>,
+) {
+  const proxy = new Proxy(() => {}, {
+    get(_, path: string): any {
+      switch (path) {
+        default: {
+          return createInnerContext(
+            domain,
+            config,
+            queryClient,
+            path === 'index' ? paths : [...paths, path],
+            elysia,
+          )
+        }
+      }
+    },
+    apply(_, __, anyArgs) {
+      const pathsCopy = [...paths]
+
+      /**
+       * @example 'fetch', 'invalidate'
+       */
+      const hook = pathsCopy.pop() ?? ''
+
+      /**
+       * @example 'get'
+       */
+      const method = pathsCopy.pop() ?? ''
+
+      const endpoint = '/' + pathsCopy.join('/')
+
+      const abortOnUnmount =
+        Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
+
+      const queryOptions = {
+        queryKey: getQueryKey(endpoint, anyArgs[0], 'query'),
+        queryFn: async (context) => {
+          const result = await resolveTreaty(
+            {
+              ...anyArgs[0],
+              method,
+              signal: abortOnUnmount ? context.signal : undefined,
+            },
+            undefined,
+            domain,
+            config,
+            paths,
+            elysia,
+          )
+          return result
+        },
+        ...anyArgs[1],
+      } satisfies FetchQueryOptions
+
+      const infiniteQueryOptions = {
+        queryKey: getQueryKey(endpoint, anyArgs[0], 'infinite'),
+        queryFn: async (context) => {
+          const options = { ...anyArgs[0] }
+
+          // FIXME: scuffed way to set cursor.
+          if (options.query) {
+            options.query['cursor'] = context.pageParam
+          }
+
+          if (options.params) {
+            options.params['cursor'] = context.pageParam
+          }
+
+          const result = await resolveTreaty(
+            {
+              ...options,
+              method,
+              signal: abortOnUnmount ? context.signal : undefined,
+            },
+            undefined,
+            domain,
+            config,
+            paths,
+            elysia,
+          )
+          return result
+        },
+        ...anyArgs[1],
+      } satisfies FetchInfiniteQueryOptions
+
+      // general query key used for invalidations, etc.
+      const queryKey = getQueryKey(endpoint, anyArgs[0], 'any')
+
+      switch (hook) {
+        case 'options':
+          return queryOptions
+
+        case 'infiniteOptions':
+          return infiniteQueryOptions
+
+        case 'fetch':
+          return queryClient.fetchQuery(queryOptions)
+
+        case 'prefetch':
+          return queryClient.prefetchQuery(queryOptions)
+
+        case 'getData':
+          return queryClient.getQueryData(queryOptions.queryKey)
+
+        case 'ensureData':
+          return queryClient.ensureQueryData(queryOptions)
+
+        case 'setData':
+          return queryClient.setQueryData(queryOptions.queryKey, anyArgs[1], anyArgs[2])
+
+        case 'fetchInfinite':
+          return queryClient.fetchInfiniteQuery(infiniteQueryOptions)
+
+        case 'prefetchInfinite':
+          return queryClient.prefetchInfiniteQuery(infiniteQueryOptions)
+
+        case 'getInfiniteData':
+          return queryClient.getQueryData(infiniteQueryOptions.queryKey)
+
+        case 'ensureInfiniteData':
+          return queryClient.ensureQueryData(infiniteQueryOptions)
+
+        case 'setInfiniteData':
+          return queryClient.setQueryData(infiniteQueryOptions.queryKey, anyArgs[0], anyArgs[1])
+
+        case 'invalidate':
+          return queryClient.invalidateQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+
+        case 'refetch':
+          return queryClient.refetchQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+
+        case 'cancel':
+          return queryClient.cancelQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+
+        case 'reset':
+          return queryClient.resetQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+
+        default:
+          throw new TypeError(`context.${paths.join('.')}.${hook} is not a function`)
+      }
+    },
+  })
+  return proxy as any
+}
+
 /**
  * Creates query utilities.
  */
 export function createContext<TSchema extends Record<string, any>>(
-  config?: SvelteQueryProxyConfig,
+  domain: string,
+  config: EdenTreatyQueryConfig,
+  queryClient: QueryClient,
+  paths: string[] = [],
+  elysia?: Elysia<any, any, any, any, any, any>,
 ): EdenTreatyQueryContext<TSchema> {
-  let fetch: any = {}
+  const innerProxy = createInnerContext(domain, config, queryClient, paths, elysia)
 
-  const queryClient = config?.queryClient ?? useQueryClient()
-
-  const context = {
-    invalidate: (endpoint: string, input: any, options?: InvalidateOptions) => {
-      queryClient.invalidateQueries(
-        {
-          queryKey: getQueryKey(endpoint, input),
-        },
-        options,
-      )
-    },
-    fetch: (endpoint: string, input: any, options?: FetchQueryOptions) => {
-      const abortOnUnmount = Boolean(config?.abortOnUnmount)
-
-      const baseQueryOptions = {
-        queryKey: getQueryKey(endpoint, input, 'query'),
-        queryFn: async (context) => {
-          return await fetch(
-            endpoint as any,
-            {
-              ...input,
-              signal: abortOnUnmount ? context.signal : undefined,
-            } as EdenRequestOptions,
-          )
-        },
-        ...options,
-      } satisfies CreateQueryOptions
-
-      return queryClient.fetchQuery(baseQueryOptions)
-    },
-
-    fetchInfinite: (endpoint: string, input: any, options?: FetchInfiniteQueryOptions) => {
-      const abortOnUnmount = Boolean(config?.abortOnUnmount)
-
-      const baseQueryOptions: FetchInfiniteQueryOptions = {
-        initialPageParam: 0,
-        queryKey: getQueryKey(endpoint, input, 'infinite'),
-        queryFn: async (context) => {
-          if (input.query) {
-            input.query['cursor'] = context.pageParam
-          }
-
-          if (input.params) {
-            input.params['cursor'] = context.pageParam
-          }
-
-          return await fetch(
-            endpoint as any,
-            {
-              ...input,
-              signal: abortOnUnmount ? context.signal : undefined,
-            } as EdenRequestOptions,
-          )
-        },
-        ...options,
+  const proxy = new Proxy(() => {}, {
+    get(_, path: string): any {
+      switch (path) {
+        case 'queryClient': {
+          return queryClient
+        }
+        default: {
+          return innerProxy[path]
+        }
       }
-
-      return queryClient.fetchInfiniteQuery(baseQueryOptions)
     },
-  }
-
-  return context as any
+  })
+  return proxy as any
 }
