@@ -86,7 +86,10 @@ export type TreatyCreateQuery<
 export type TreatyCreateInfiniteQuery<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+  TParams extends EdenQueryParams<any, TRoute, ReservedInfiniteQueryKeys> = EdenQueryParams<
+    any,
+    TRoute
+  >,
   TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,

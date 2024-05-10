@@ -1,8 +1,10 @@
 import {
   type CancelOptions,
+  type CreateInfiniteQueryOptions,
   type CreateQueryOptions,
   type FetchInfiniteQueryOptions,
   type FetchQueryOptions,
+  type InfiniteData,
   type InvalidateOptions,
   type InvalidateQueryFilters,
   Query,
@@ -17,7 +19,7 @@ import {
 import type { RouteSchema } from 'elysia'
 
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type { InfiniteCursorKey } from '../internal/infinite'
+import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
 import type { EdenQueryParams } from '../internal/params'
 import { getQueryKey } from '../internal/query'
@@ -128,56 +130,37 @@ type TreatyQueryContext<
 type TreatyInfiniteQueryContext<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+  TParams extends EdenQueryParams<any, TRoute, ReservedInfiniteQueryKeys> = EdenQueryParams<
+    any,
+    TRoute
+  >,
   TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TEndpoint = TreatyQueryKey<TPath>,
 > = {
-  fetch: (
+  fetchInfinite: (
     input: TParams,
     options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-  ) => Promise<TOutput>
+  ) => Promise<InfiniteData<TOutput>>
 
-  prefetch: (
+  prefetchInfinite: (
     input: TParams,
     options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
   ) => Promise<void>
 
-  ensureData: (
-    input: TParams,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-  ) => Promise<TOutput>
+  getInfiniteData: (input: TInput) => InfiniteData<TOutput> | undefined
 
-  getData: (input: TParams) => TOutput | undefined
-
-  setData: (
+  setInfiniteData: (
     input: TParams,
-    updater: Updater<TOutput | undefined, TOutput | undefined>,
+    updater: Updater<InfiniteData<TOutput> | undefined, InfiniteData<TOutput> | undefined>,
     options?: SetDataOptions,
   ) => void
 
-  invalidate: (
-    input?: DeepPartial<TParams>,
-    filters?: Override<
-      InvalidateQueryFilters,
-      {
-        predicate?: (query: Query<TOutput, TError, TOutput, [TEndpoint, TInput]>) => boolean
-      }
-    >,
-    options?: InvalidateOptions,
-  ) => Promise<void>
-
-  refetch: (input?: TInput, filters?: QueryFilters, options?: RefetchOptions) => Promise<void>
-
-  cancel: (input?: TInput, filters?: QueryFilters, options?: CancelOptions) => Promise<void>
-
-  reset: (input?: TInput, filters?: QueryFilters, options?: ResetOptions) => Promise<void>
-
-  options: (
-    input: TInput,
-    options?: CreateQueryOptions<TOutput, TError>,
-  ) => CreateQueryOptions<TOutput, TError>
+  infiniteOptions: (
+    input: TParams,
+    options?: CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+  ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>
 }
 
 /**
@@ -251,42 +234,3 @@ export function createContext<TSchema extends Record<string, any>>(
 
   return context as any
 }
-
-// export type EdenTreatyQueryContext<TSchema extends Record<string, any>> = {
-//   invalidate: <
-//     TEndpoint extends keyof TSchema,
-//     TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethod>>,
-//     TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-//   >(
-//     endpoint: TEndpoint,
-//     ...args: TEndpoint extends keyof Filter<TSchema, HttpQueryMethod>
-//       ? [input: EdenRequestOptions<TMethod, TRoute>, options?: InvalidateOptions]
-//       : [options?: InvalidateOptions]
-//   ) => void
-//
-//   fetch: <
-//     TEndpoint extends keyof Filter<TSchema, HttpQueryMethod>,
-//     TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethod>>,
-//     TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-//     TOutput = InferRouteOutput<TRoute>,
-//     TError = InferRouteError<TRoute>,
-//     TInput = InferRouteInput<TRoute>,
-//   >(
-//     endpoint: TEndpoint,
-//     input: EdenRequestOptions<TMethod, TRoute>,
-//     options?: FetchQueryOptions<TOutput, TError, TInput, [TEndpoint, TInput]>,
-//   ) => Promise<TOutput>
-//
-//   fetchInfinite: <
-//     TEndpoint extends keyof InfiniteRoutes<TSchema>,
-//     TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethod>>,
-//     TRoute extends TSchema[TEndpoint][Lowercase<TMethod>],
-//     TOutput = InferRouteOutput<TRoute>,
-//     TError = InferRouteError<TRoute>,
-//     TInput = InferRouteInput<TRoute>,
-//   >(
-//     endpoint: TEndpoint,
-//     input: EdenRequestOptions<TMethod, TRoute>,
-//     options?: FetchInfiniteQueryOptions<TOutput, TError, TInput, [TEndpoint, TInput]>,
-//   ) => Promise<InfiniteData<TOutput>>
-// }
