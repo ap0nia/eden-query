@@ -4,10 +4,11 @@ import { QueryClient } from '@tanstack/svelte-query'
 import { Elysia } from 'elysia'
 import { getContext, setContext } from 'svelte'
 
+import { EDEN_CONTEXT_KEY } from '../constants'
 import type { SvelteQueryProxyConfig } from '../internal/options'
 import type { TreatyToPath } from '../internal/treaty-to-path'
 import type { IsOptional } from '../utils/is-optional'
-import { createContext, EDEN_CONTEXT_KEY, type EdenFetchQueryContext } from './context'
+import { createContext, type EdenFetchQueryContext } from './context'
 import { createHooks, type EdenFetchQueryHooks } from './hooks'
 
 export type EdenFetchQueryConfig = EdenFetch.Config & SvelteQueryProxyConfig
@@ -18,9 +19,17 @@ export type EdenFetchQuery<
 > = EdenFetchQueryHooks<TSchema> &
   (IsOptional<TConfig, 'queryClient'> extends true
     ? {
+        /**
+         * i.e. "utils". Only guaranteed to be defined if {@link EdenFetchQuery.config}
+         * is invoked with a defined queryClient.
+         */
         context?: EdenFetchQueryContext<TSchema>
       }
     : {
+        /**
+         * i.e. "utils". Only guaranteed to be defined if {@link EdenFetchQuery.config}
+         * is invoked with a defined queryClient.
+         */
         context: EdenFetchQueryContext<TSchema>
       }) & {
     /**
@@ -36,18 +45,14 @@ export type EdenFetchQuery<
     fetch: EdenFetch.Fn<TSchema>
 
     /**
+     * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
      */
     setContext: (queryClient: QueryClient, configOverride?: EdenFetchQueryConfig) => void
 
     /**
-     * Get the utilities from setContext.
+     * Get the utilities saved by {@link EdenFetchQuery.setContext}.
      */
     getContext: () => EdenFetchQueryContext<TSchema>
-
-    /**
-     * Alias for {@link EdenFetchQuery.createContext}
-     */
-    useUtils: () => EdenFetchQueryContext<TSchema>
   }
 
 /**
@@ -67,9 +72,7 @@ export function createEdenFetchQuery<
   : 'Please install Elysia before using Eden' {
   const fetch: any = edenFetch(server, config)
 
-  const context = config?.queryClient != null ? createContext(fetch, config) : undefined
-
-  const createContextThunk = () => createContext(fetch, config)
+  const utils = config?.queryClient != null ? createContext(fetch, config) : undefined
 
   const getContextThunk = () => {
     return getContext(EDEN_CONTEXT_KEY)
@@ -80,14 +83,12 @@ export function createEdenFetchQuery<
       return createEdenFetchQuery(server, { ...config, ...newConfig })
     },
     fetch,
-    context,
-    createContext: createContextThunk,
+    utils,
     setContext: (queryClient: QueryClient, configOverride?: EdenFetchQueryConfig) => {
       const contextProxy = createContext(fetch, { ...config, queryClient, ...configOverride })
       setContext(EDEN_CONTEXT_KEY, contextProxy)
     },
     getContext: getContextThunk,
-    useUtils: getContextThunk,
     ...createHooks(fetch, config),
   } as any
 }

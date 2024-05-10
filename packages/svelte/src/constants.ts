@@ -12,3 +12,5 @@ export const LOCAL_ADDRESSES = ['localhost', '127.0.0.1', '0.0.0.0']
 export const SAMPLE_DOMAIN = 'http://i.love.ely'
 
 export const IS_SERVER = typeof FileList === 'undefined'
+
+export const EDEN_CONTEXT_KEY = Symbol('EDEN_CONTEXT_KEY')
