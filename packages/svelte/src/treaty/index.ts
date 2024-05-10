@@ -67,16 +67,14 @@ export function createTreatyQueryProxy(
     return createEdenTreatyQuery(domain, { ...config, ...newConfig })
   }
 
-  const f = fetch as any
-
-  const context = config?.queryClient != null ? createContext(f, config) : undefined
+  const context = config?.queryClient != null ? createContext(config) : undefined
 
   const getContextThunk = () => {
     return getContext(EDEN_CONTEXT_KEY)
   }
 
   const setContextHelper = (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => {
-    const contextProxy = createContext(f, { ...config, queryClient, ...configOverride })
+    const contextProxy = createContext({ ...config, queryClient, ...configOverride })
     setContext(EDEN_CONTEXT_KEY, contextProxy)
   }
 
