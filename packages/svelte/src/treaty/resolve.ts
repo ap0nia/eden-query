@@ -20,12 +20,12 @@ import { getQueryKey } from '../internal/query'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
 import { isStore } from '../utils/is-store'
-import type { Treaty } from './types'
+import type { TreatyConfig } from './types'
 
-export type EdenTreatyQueryConfig = Treaty.Config & SvelteQueryProxyConfig
+export type EdenTreatyQueryConfig = TreatyConfig & SvelteQueryProxyConfig
 
 function processHeaders(
-  h: Treaty.Config['headers'],
+  h: TreatyConfig['headers'],
   path: string,
   options: RequestInit = {},
   headers: Record<string, string> = {},
@@ -84,7 +84,7 @@ function processHeaders(
 /**
  * Resolve a treaty request.
  */
-export async function resolveTreatyProxy(
+export async function resolveTreaty(
   /**
    * Options when first parameter of GET request.
    * Body when first parameter of POST, PUT, etc. request.
@@ -96,7 +96,7 @@ export async function resolveTreatyProxy(
    */
   optionsOrUndefined: any,
   domain: string,
-  config: Treaty.Config,
+  config: TreatyConfig,
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
@@ -374,7 +374,7 @@ export function resolveQueryTreatyProxy(
       const baseQueryOptions = {
         queryKey: getQueryKey(endpoint, optionsValue, 'query'),
         queryFn: async (context) => {
-          return await resolveTreatyProxy(
+          return await resolveTreaty(
             {
               ...rest,
               method,
@@ -402,7 +402,7 @@ export function resolveQueryTreatyProxy(
             ...baseQueryOptions,
             queryKey: getQueryKey(endpoint, newInput, 'query'),
             queryFn: async (context) => {
-              return await resolveTreatyProxy(
+              return await resolveTreaty(
                 {
                   ...rest,
                   method,
@@ -453,7 +453,7 @@ export function resolveQueryTreatyProxy(
             rest.params['cursor'] = context.pageParam
           }
 
-          return await resolveTreatyProxy(
+          return await resolveTreaty(
             {
               ...rest,
               method,
@@ -490,7 +490,7 @@ export function resolveQueryTreatyProxy(
                 rest.params['cursor'] = context.pageParam
               }
 
-              return await resolveTreatyProxy(
+              return await resolveTreaty(
                 {
                   ...rest,
                   method,
@@ -521,14 +521,7 @@ export function resolveQueryTreatyProxy(
       const baseOptions = {
         mutationKey: [endpoint],
         mutationFn: async (variables: any) => {
-          return await resolveTreatyProxy(
-            variables,
-            additionalOptions,
-            domain,
-            config,
-            paths,
-            elysia,
-          )
+          return await resolveTreaty(variables, additionalOptions, domain, config, paths, elysia)
         },
         onSuccess(data, variables, context) {
           const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
@@ -552,7 +545,7 @@ export function resolveQueryTreatyProxy(
             ...baseOptions,
             mutationKey: [endpoint],
             mutationFn: async (variables: any) => {
-              return await resolveTreatyProxy(
+              return await resolveTreaty(
                 variables,
                 additionalOptions,
                 domain,
