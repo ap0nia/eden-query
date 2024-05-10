@@ -8,7 +8,6 @@ import type {
   InfiniteData,
   StoreOrVal,
 } from '@tanstack/svelte-query'
-import { Elysia } from 'elysia'
 import type { MaybeArray, MaybePromise, Prettify, RouteSchema } from 'elysia/types'
 
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
@@ -24,33 +23,26 @@ export interface TreatyBaseOptions {
   fetch?: RequestInit
 }
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace Treaty {
-  export type Create<App extends Elysia<any, any, any, any, any, any, any, any>> = App extends {
-    _routes: infer Schema extends Record<string, any>
-  }
-    ? Prettify<Sign<Schema>>
-    : 'Please install Elysia before using Eden'
+export type EdenTreatyQueryHooks<
+  in out Route extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof Route]: K extends 'subscribe'
+    ? EdenSubscribeParams<Route[K]>
+    : Route[K] extends RouteSchema
+    ? TreatyQueryHooks<Route[K], K, TPath>
+    : EdenTreatyQueryHooks<Route[K], [...TPath, K]>
+}
 
-  export type Sign<in out Route extends Record<string, any>, TPath extends any[] = []> = {
-    [K in keyof Route]: K extends 'subscribe'
-      ? EdenSubscribeParams<Route[K]>
-      : Route[K] extends RouteSchema
-      ? TreatyQueryHooks<Route[K], K, TPath>
-      : Sign<Route[K], [...TPath, K]>
-  }
-
-  export interface Config {
-    fetch?: Omit<RequestInit, 'headers' | 'method'>
-    fetcher?: typeof fetch
-    headers?: MaybeArray<
-      | RequestInit['headers']
-      | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
-    >
-    onRequest?: MaybeArray<(path: string, options: RequestInit) => MaybePromise<RequestInit | void>>
-    onResponse?: MaybeArray<(response: Response) => MaybePromise<unknown>>
-    keepDomain?: boolean
-  }
+export interface TreatyConfig {
+  fetch?: Omit<RequestInit, 'headers' | 'method'>
+  fetcher?: typeof fetch
+  headers?: MaybeArray<
+    RequestInit['headers'] | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
+  >
+  onRequest?: MaybeArray<(path: string, options: RequestInit) => MaybePromise<RequestInit | void>>
+  onResponse?: MaybeArray<(response: Response) => MaybePromise<unknown>>
+  keepDomain?: boolean
 }
 
 export type TreatyQueryHooks<

@@ -16,7 +16,7 @@ import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/opt
 import { getQueryKey } from '../internal/query'
 import type { Filter } from '../utils/filter'
 
-export type EdenFetchQueryContext<TSchema extends Record<string, any>> = {
+export type EdenTreatyQueryContext<TSchema extends Record<string, any>> = {
   invalidate: <
     TEndpoint extends keyof TSchema,
     TMethod extends Uppercase<Extract<keyof TSchema[TEndpoint], HttpQueryMethod>>,
@@ -56,6 +56,7 @@ export type EdenFetchQueryContext<TSchema extends Record<string, any>> = {
 }
 
 /**
+ * Creates query utilities.
  */
 export function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>(
   fetch: EdenFetch.Create<T>,
