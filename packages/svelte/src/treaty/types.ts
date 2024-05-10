@@ -13,8 +13,11 @@ import type { MaybeArray, MaybePromise, Prettify, RouteSchema } from 'elysia/typ
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
+import type { SvelteQueryProxyConfig } from '../internal/options'
 import type { EdenQueryParams } from '../internal/params'
 import type { Join, Stringable } from '../utils/join'
+
+export type EdenTreatyQueryConfig = TreatyConfig & SvelteQueryProxyConfig
 
 /**
  * Additional options available for the `treaty` variant of eden.

@@ -4,14 +4,11 @@ import { getContext, setContext } from 'svelte'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import { isFetchCall, resolveFetchOrigin } from '../internal/http'
-import type { SvelteQueryProxyConfig } from '../internal/options'
 import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { resolveQueryTreatyProxy } from './resolve'
-import type { EdenTreatyQueryHooks, TreatyConfig } from './types'
-
-export type EdenTreatyQueryConfig = TreatyConfig & SvelteQueryProxyConfig
+import type { EdenTreatyQueryConfig, EdenTreatyQueryHooks } from './types'
 
 export type EdenTreatyQuery<
   TSchema extends Record<string, any>,
