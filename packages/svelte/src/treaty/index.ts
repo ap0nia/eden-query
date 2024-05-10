@@ -53,8 +53,8 @@ export type EdenTreatyQuery<
  * Inner proxy builder.
  */
 export function createTreatyQueryProxy(
-  domain = '',
-  config: EdenTreatyQueryConfig,
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {

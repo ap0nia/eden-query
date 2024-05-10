@@ -14,6 +14,7 @@ import {
   type ResetOptions,
   type SetDataOptions,
   type Updater,
+  useQueryClient,
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
@@ -163,9 +164,9 @@ type TreatyInfiniteQueryContext<
 }
 
 export function createInnerContext(
-  domain: string,
-  config: EdenTreatyQueryConfig,
-  queryClient: QueryClient,
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
+  queryClient = useQueryClient(),
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
@@ -316,9 +317,9 @@ export function createInnerContext(
  * Creates query utilities.
  */
 export function createContext<TSchema extends Record<string, any>>(
-  domain: string,
-  config: EdenTreatyQueryConfig,
-  queryClient: QueryClient,
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
+  queryClient = useQueryClient(),
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ): EdenTreatyQueryContext<TSchema> {
