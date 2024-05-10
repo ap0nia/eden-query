@@ -1,5 +1,5 @@
-import { createTreatyFetchQuery } from '@ap0nia/eden-svelte-query'
+import { createEdenTreatyQuery } from '@ap0nia/eden-svelte-query'
 
 import type { App } from '$lib/server'
 
-export const eden = createTreatyFetchQuery<App>()
+export const eden = createEdenTreatyQuery<App>()

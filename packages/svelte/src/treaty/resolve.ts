@@ -93,8 +93,8 @@ export async function resolveTreaty(
    * Options when second parameter of POST, PUT, etc. request.
    */
   optionsOrUndefined: any,
-  domain: string,
-  config: TreatyConfig,
+  domain = '',
+  config: TreatyConfig = {},
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
@@ -111,7 +111,13 @@ export async function resolveTreaty(
 
   const options = isGetOrHead ? bodyOrOptions : optionsOrUndefined
 
-  let endpoint = '/' + methodPaths.join('/')
+  const suffix = methodPaths[methodPaths.length - 1] === 'index' ? '/' : ''
+
+  if (suffix !== '') {
+    methodPaths.pop()
+  }
+
+  let endpoint = '/' + methodPaths.filter((p) => p !== 'index').join('/') + suffix
 
   if (options?.params != null) {
     Object.entries(options.params).forEach(([key, value]) => {
