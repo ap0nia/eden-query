@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia'
 import { describe, test } from 'vitest'
 
+import { createEdenTreatyQuery } from '../../src'
 import { createEdenFetchQuery } from '../../src/fetch'
 
 describe('fetch', () => {
@@ -28,7 +29,7 @@ describe('fetch', () => {
           }),
         },
       )
-      .get('/a/b/:id', async () => {
+      .get('/a/b/:cursor', async () => {
         return 12345
       })
 
@@ -40,7 +41,9 @@ describe('fetch', () => {
     utils.invalidate('/a', { cancelRefetch: true })
 
     // Full route used  for invalidate takes three arguments.
-    utils.invalidate('/a/b/:id', { params: { id: '' } }, { cancelRefetch: true })
+    utils.invalidate('/a/b/:cursor', { params: { cursor: '' } }, { cancelRefetch: true })
+
+    eden.createInfiniteQuery('/a/b/:cursor', { queryOptions: {} as any, params: {} })
 
     // When creating the mutation, its types are ambiguous because the method is 'POST' | 'delete'
     const mutation = eden.createMutation('/index', {})
@@ -91,5 +94,17 @@ describe('fetch', () => {
       params: {},
       queryOptions: {} as any,
     })
+  })
+
+  test('treaty', () => {
+    const elysia = new Elysia().get('/hello', () => 123).get('/hello/:cursor', () => true)
+
+    const eden = createEdenTreatyQuery<typeof elysia>()
+
+    const utils = eden.getContext()
+
+    utils.hello[':cursor']
+
+    eden.hello[':cursor'].get.createInfiniteQuery
   })
 })

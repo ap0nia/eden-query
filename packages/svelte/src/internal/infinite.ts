@@ -18,5 +18,3 @@ export type InfiniteRoutes<T> = {
     ? K
     : never]: T[K]
 }
-
-export type N = InfiniteCursorKey extends keyof Record<never, string> | undefined ? true : false

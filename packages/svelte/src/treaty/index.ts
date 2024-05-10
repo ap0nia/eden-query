@@ -5,6 +5,7 @@ import { getContext, setContext } from 'svelte'
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import { isFetchCall, resolveFetchOrigin } from '../internal/http'
 import type { SvelteQueryProxyConfig } from '../internal/options'
+import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { resolveQueryTreatyProxy } from './resolve'
@@ -18,9 +19,17 @@ export type EdenTreatyQuery<
 > = EdenTreatyQueryHooks<TSchema> &
   (IsOptional<TConfig, 'queryClient'> extends true
     ? {
+        /**
+         * i.e. "utils". Only guaranteed to be defined if {@link EdenTreatyQuery.config}
+         * is invoked with a defined queryClient.
+         */
         context?: EdenTreatyQueryContext<TSchema>
       }
     : {
+        /**
+         * i.e. "utils". Only guaranteed to be defined if {@link EdenTreatyQuery.config}
+         * is invoked with a defined queryClient.
+         */
         context: EdenTreatyQueryContext<TSchema>
       }) & {
     /**
@@ -29,6 +38,16 @@ export type EdenTreatyQuery<
     config: <TNewConfig extends EdenTreatyQueryConfig>(
       newConfig: TNewConfig,
     ) => EdenTreatyQuery<TSchema, TNewConfig>
+
+    /**
+     * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
+     */
+    setContext: (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => void
+
+    /**
+     * Get the utilities saved by {@link EdenFetchQuery.setContext}.
+     */
+    getContext: () => EdenTreatyQueryContext<TSchema>
   }
 
 /**
@@ -37,7 +56,7 @@ export type EdenTreatyQuery<
  * Inner proxy builder.
  */
 export function createTreatyQueryProxy(
-  domain: string = '',
+  domain = '',
   config: EdenTreatyQueryConfig,
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
@@ -45,7 +64,7 @@ export function createTreatyQueryProxy(
   /**
    */
   const configBuilder = (newConfig: EdenTreatyQueryConfig) => {
-    return createTreatyFetchQuery(domain, { ...config, ...newConfig })
+    return createEdenTreatyQuery(domain, { ...config, ...newConfig })
   }
 
   const f = fetch as any
@@ -108,7 +127,7 @@ export function createTreatyQueryProxy(
   })
 }
 
-export function createTreatyFetchQuery<
+export function createEdenTreatyQuery<
   T extends Elysia<any, any, any, any, any, any, any, any>,
   TConfig extends EdenTreatyQueryConfig = EdenTreatyQueryConfig,
 >(
@@ -128,10 +147,11 @@ export function createTreatyFetchQuery<
     return createTreatyQueryProxy(resolvedDomain, config, [])
   }
 
-  if (typeof window !== 'undefined')
+  if (isBrowser()) {
     console.warn(
-      'Elysia instance server found on client side, this is not recommended for security reason. Use generic type instead.',
+      'Elysia instance found on client side, this is not recommended for security reason. Use generic type instead.',
     )
+  }
 
   return createTreatyQueryProxy(SAMPLE_DOMAIN, config, [], domain)
 }
