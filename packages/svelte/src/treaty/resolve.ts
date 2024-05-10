@@ -15,14 +15,12 @@ import { get, writable } from 'svelte/store'
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
 import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
-import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
+import type { EdenRequestOptions } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
 import { isStore } from '../utils/is-store'
-import type { TreatyConfig } from './types'
-
-export type EdenTreatyQueryConfig = TreatyConfig & SvelteQueryProxyConfig
+import type { EdenTreatyQueryConfig, TreatyConfig } from './types'
 
 function processHeaders(
   h: TreatyConfig['headers'],

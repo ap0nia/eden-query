@@ -23,8 +23,8 @@ import type { EdenQueryParams } from '../internal/params'
 import { getQueryKey } from '../internal/query'
 import type { DeepPartial } from '../utils/deep-partial'
 import type { Override } from '../utils/override'
-import { type EdenTreatyQueryConfig, resolveTreaty } from './resolve'
-import type { TreatyQueryKey } from './types'
+import { resolveTreaty } from './resolve'
+import type { EdenTreatyQueryConfig, TreatyQueryKey } from './types'
 
 /**
  */
