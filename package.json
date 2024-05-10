@@ -43,7 +43,7 @@
     "@types/node": "^20.4.5",
     "@typescript-eslint/eslint-plugin": "^7.4.0",
     "@typescript-eslint/parser": "^7.4.0",
-    "@vitest/coverage-v8": "^0.34.0",
+    "@vitest/coverage-v8": "^1.6.0",
     "commitizen": "^4.3.0",
     "cz-conventional-changelog": "^3.3.0",
     "devmoji": "^2.3.0",
@@ -63,9 +63,9 @@
     "typescript-eslint": "^7.4.0",
     "vitest": "^1.6.0"
   },
-  "packageManager": "pnpm@8.6.12",
+  "packageManager": "pnpm@9.1.0",
   "engines": {
-    "pnpm": "^8.0.0",
+    "pnpm": "^9.0.0",
     "node": ">=18"
   }
 }
