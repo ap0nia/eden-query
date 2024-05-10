@@ -13,7 +13,7 @@ import type { MaybeArray, MaybePromise, Prettify, RouteSchema } from 'elysia/typ
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
-import type { EdenQueryParams, EdenSubscribeParams } from '../internal/params'
+import type { EdenQueryParams } from '../internal/params'
 import type { Join, Stringable } from '../utils/join'
 
 /**
@@ -23,15 +23,13 @@ export interface TreatyBaseOptions {
   fetch?: RequestInit
 }
 
-export type EdenTreatyQueryHooks<
-  in out Route extends Record<string, any>,
-  TPath extends any[] = [],
-> = {
-  [K in keyof Route]: K extends 'subscribe'
-    ? EdenSubscribeParams<Route[K]>
-    : Route[K] extends RouteSchema
-    ? TreatyQueryHooks<Route[K], K, TPath>
-    : EdenTreatyQueryHooks<Route[K], [...TPath, K]>
+/**
+ * The wrapper type.
+ */
+export type EdenTreatyQueryHooks<TSchema extends Record<string, any>, TPath extends any[] = []> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? TreatyQueryHooksMapping<TSchema[K], K, TPath>
+    : EdenTreatyQueryHooks<TSchema[K], [...TPath, K]>
 }
 
 export interface TreatyConfig {
@@ -45,7 +43,12 @@ export interface TreatyConfig {
   keepDomain?: boolean
 }
 
-export type TreatyQueryHooks<
+/**
+ * The actual hooks mapping.
+ *
+ * @example { createQuery: ..., createInfiniteQuery: ... }
+ */
+export type TreatyQueryHooksMapping<
   TRoute extends RouteSchema,
   TMethod,
   TPath extends any[] = [],
