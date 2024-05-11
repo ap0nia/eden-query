@@ -2,7 +2,6 @@ import { EdenWS } from '@elysiajs/eden/treaty'
 import {
   createInfiniteQuery,
   type CreateInfiniteQueryOptions,
-  createMutation,
   type CreateMutationOptions,
   createQuery,
   type CreateQueryOptions,
@@ -20,6 +19,7 @@ import { getQueryKey } from '../internal/query'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
 import { isStore } from '../utils/is-store'
+import { createTreatyMutation } from './mutation'
 import type { EdenTreatyQueryConfig, TreatyConfig } from './types'
 
 function processHeaders(
@@ -526,8 +526,9 @@ export function resolveQueryTreatyProxy(
 
       const baseOptions = {
         mutationKey: [endpoint],
-        mutationFn: async (variables: any) => {
-          return await resolveTreaty(variables, additionalOptions, domain, config, paths, elysia)
+        mutationFn: async (customVariables: any = {}) => {
+          const { variables, options } = customVariables
+          return await resolveTreaty(variables, options, domain, config, paths, elysia)
         },
         onSuccess(data, variables, context) {
           const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
@@ -542,7 +543,7 @@ export function resolveQueryTreatyProxy(
       } satisfies CreateMutationOptions
 
       if (!isStore(options)) {
-        return createMutation(baseOptions)
+        return createTreatyMutation(baseOptions)
       }
 
       const optionsStore = writable(baseOptions, (set) => {
@@ -575,7 +576,7 @@ export function resolveQueryTreatyProxy(
         return unsubscribe
       })
 
-      return createMutation(optionsStore)
+      return createTreatyMutation(optionsStore)
     }
 
     // TODO: not sure how to handle subscriptions.

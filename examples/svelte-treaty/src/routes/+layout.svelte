@@ -7,5 +7,16 @@
 </script>
 
 <QueryClientProvider client={data.queryClient}>
+  <header>
+    <p>Links</p>
+    <ul>
+      <li>
+        <a href="/">Home</a>
+      </li>
+      <li>
+        <a href="/create-mutation">createMutation</a>
+      </li>
+    </ul>
+  </header>
   <slot />
 </QueryClientProvider>
