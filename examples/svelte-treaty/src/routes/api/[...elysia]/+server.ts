@@ -3,7 +3,8 @@ import { app } from '$lib/server'
 import type { RequestHandler } from './$types'
 
 const handle: RequestHandler = async (event) => {
-  ;(event.request as any).event = event
+  const request: any = event.request
+  request.event = event
   return await app.handle(event.request)
 }
 

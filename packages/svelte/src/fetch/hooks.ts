@@ -19,7 +19,7 @@ import { get, type Readable, writable } from 'svelte/store'
 import type { HttpMutationMethod, HttpQueryMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteRoutes, ReservedInfiniteQueryKeys } from '../internal/infinite'
-import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
+import type { EdenQueryProxyConfig, EdenRequestOptions } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import type { TreatyToPath } from '../internal/treaty-to-path'
 import type { Filter } from '../utils/filter'
@@ -138,7 +138,7 @@ export function createHooks<T extends Elysia<any, any, any, any, any, any, any, 
     // @ts-expect-error Type 'unknown' is not assignable to type 'Record<string, any>'
     TreatyToPath<T['_routes']>
   >,
-  config?: SvelteQueryProxyConfig,
+  config?: EdenQueryProxyConfig,
 ) {
   return {
     createQuery: (

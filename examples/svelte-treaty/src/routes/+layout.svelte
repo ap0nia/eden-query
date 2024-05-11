@@ -1,4 +1,6 @@
 <script lang="ts">
+  import '../app.css'
+
   import { QueryClientProvider } from '@tanstack/svelte-query'
 
   import { eden } from '$lib/eden'
@@ -19,6 +21,9 @@
       </li>
       <li>
         <a href="/create-mutation">createMutation</a>
+      </li>
+      <li>
+        <a href="/abort-on-unmount">abortOnUnmount</a>
       </li>
     </ul>
   </header>

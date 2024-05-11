@@ -16,9 +16,9 @@ import { writable } from 'svelte/store'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
-import { isFetchCall } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
+import type { EdenQueryProxyConfig } from '../internal/options'
 import type { EdenQueryParams } from '../internal/params'
 import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
@@ -54,14 +54,9 @@ export function resolveQueryTreatyProxy(
   args: any[],
   domain?: string,
   config: EdenTreatyQueryConfig = {},
-  originalPaths: string[] = [],
+  paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
-  /**
-   * Duplicate the paths array. Nested functions will mutate this for the current resolver.
-   */
-  const paths = [...originalPaths]
-
   /**
    * @example 'createQuery'
    */
@@ -114,6 +109,8 @@ export function resolveQueryTreatyProxy(
       const typedOptions = args[0] as CreateMutationOptions
 
       const mutationOptions = createTreatyMutationOptions(paths, args, domain, config, elysia)
+
+      console.log({ mutationOptions })
 
       if (!isStore(typedOptions)) {
         return createTreatyMutation(mutationOptions)
@@ -181,6 +178,7 @@ export type TreatyCreateQuery<
   createQuery: (
     options: StoreOrVal<
       TParams & {
+        eden?: EdenQueryProxyConfig
         queryOptions?: Omit<
           CreateQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
           'queryKey'
@@ -210,6 +208,7 @@ export type TreatyCreateInfiniteQuery<
   createInfiniteQuery: (
     options: StoreOrVal<
       TParams & {
+        eden?: EdenQueryProxyConfig
         queryOptions: Omit<
           CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
           'queryKey'
@@ -290,22 +289,14 @@ export function createInnerTreatyQueryProxy(
   const paths: any[] = []
 
   const innerProxy: any = new Proxy(() => {}, {
-    get(_, path: string): any {
+    get: (_, path: string): any => {
       if (path !== 'index') {
         paths.push(path)
       }
       return innerProxy
     },
-    apply(_, __, anyArgs) {
-      if (isFetchCall(anyArgs[0], anyArgs[1], paths)) {
-        return resolveQueryTreatyProxy(anyArgs, domain, config, paths, elysia)
-      }
-
-      if (typeof anyArgs[0] === 'object') {
-        paths.push(Object.values(anyArgs[0])[0])
-      }
-
-      return innerProxy
+    apply: (_, __, args) => {
+      return resolveQueryTreatyProxy(args, domain, config, [...paths], elysia)
     },
   })
 
@@ -362,7 +353,9 @@ export function createTreatyQueryProxy(
     /**
      * @remarks Since {@link topLevelProperties.context} may be undefined, the default handler may be invoked instead of returning undefined.
      */
-    get: (_, path) => topLevelProperties[path as keyof {}] ?? defaultHandler(path),
+    get: (_, path) => {
+      return topLevelProperties[path as keyof {}] ?? defaultHandler(path)
+    },
   })
 
   return outerProxy

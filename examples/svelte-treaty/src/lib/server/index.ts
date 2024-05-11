@@ -16,6 +16,15 @@ export const app = elysia
   .get('/count', () => {
     return db.count
   })
+  .delete('/count', () => {
+    db.count = 0
+    return db.count
+  })
+  .get('/wait', async () => {
+    // Waits 10 seconds before resolving, test abortOnUnmount.
+    await new Promise((resolve) => setTimeout(resolve, 10_000))
+    return 'OK'
+  })
   .put(
     '/count',
     (context) => {

@@ -5,13 +5,13 @@ import { Elysia } from 'elysia'
 import { getContext, setContext } from 'svelte'
 
 import { EDEN_CONTEXT_KEY } from '../constants'
-import type { SvelteQueryProxyConfig } from '../internal/options'
+import type { EdenQueryProxyConfig } from '../internal/options'
 import type { TreatyToPath } from '../internal/treaty-to-path'
 import type { IsOptional } from '../utils/is-optional'
 import { createContext, type EdenFetchQueryContext } from './context'
 import { createHooks, type EdenFetchQueryHooks } from './hooks'
 
-export type EdenFetchQueryConfig = EdenFetch.Config & SvelteQueryProxyConfig
+export type EdenFetchQueryConfig = EdenFetch.Config & EdenQueryProxyConfig
 
 export type EdenFetchQuery<
   TSchema extends Record<string, any>,
