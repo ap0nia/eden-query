@@ -1,14 +1,140 @@
+import type {
+  CreateInfiniteQueryOptions,
+  CreateInfiniteQueryResult,
+  CreateMutationOptions,
+  CreateMutationResult,
+  CreateQueryOptions,
+  CreateQueryResult,
+  InfiniteData,
+  StoreOrVal,
+} from '@tanstack/svelte-query'
 import type { QueryClient } from '@tanstack/svelte-query'
 import type { Elysia } from 'elysia'
+import type { Prettify, RouteSchema } from 'elysia/types'
 import { getContext, setContext } from 'svelte'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
-import { isFetchCall, resolveFetchOrigin } from '../internal/http'
+import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
+import { isFetchCall } from '../internal/http'
+import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
+import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
+import type { EdenQueryParams } from '../internal/params'
 import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
+import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { resolveQueryTreatyProxy } from './resolve'
-import type { EdenTreatyQueryConfig, EdenTreatyQueryHooks } from './types'
+import type { EdenTreatyQueryConfig, TreatyBaseOptions, TreatyQueryKey } from './types'
+import { resolveFetchOrigin } from './utils'
+
+/**
+ * Map {@link Elysia._routes} to svelte-query hooks.
+ */
+export type EdenTreatyQueryHooks<TSchema extends Record<string, any>, TPath extends any[] = []> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? TreatyQueryHooksMapping<TSchema[K], K, TPath>
+    : EdenTreatyQueryHooks<TSchema[K], [...TPath, K]>
+}
+
+/**
+ * Map a {@link RouteSchema} to an object with hooks.
+ * @example { createQuery: ..., createInfiniteQuery: ... }
+ */
+export type TreatyQueryHooksMapping<
+  TRoute extends RouteSchema,
+  TMethod,
+  TPath extends any[] = [],
+> = TMethod extends HttpQueryMethod
+  ? TreatyCreateQuery<TRoute, TPath>
+  : TMethod extends HttpMutationMethod
+  ? TreatyCreateMutation<TRoute, TPath>
+  : TMethod extends HttpSubscriptionMethod
+  ? TreatyCreateSubscription<TRoute, TPath>
+  : never
+
+/**
+ * Hooks for a query procedure.
+ */
+export type TreatyCreateQuery<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+  TInput = InferRouteInput<TRoute, ReservedInfiniteQueryKeys>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  TEndpoint = TreatyQueryKey<TPath>,
+> = {
+  createQuery: (
+    options: StoreOrVal<
+      TParams & {
+        queryOptions?: Omit<
+          CreateQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+          'queryKey'
+        >
+      }
+    >,
+  ) => CreateQueryResult<TOutput, TError>
+} & (InfiniteCursorKey extends keyof (TParams['params'] & TParams['query'])
+  ? TreatyCreateInfiniteQuery<TRoute, TPath>
+  : {})
+
+/**
+ * Hooks for an infinite-query procedure.
+ */
+export type TreatyCreateInfiniteQuery<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TParams extends EdenQueryParams<any, TRoute, ReservedInfiniteQueryKeys> = EdenQueryParams<
+    any,
+    TRoute
+  >,
+  TInput = InferRouteInput<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  TEndpoint = TreatyQueryKey<TPath>,
+> = {
+  createInfiniteQuery: (
+    options: StoreOrVal<
+      TParams & {
+        queryOptions: Omit<
+          CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+          'queryKey'
+        >
+      }
+    >,
+  ) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
+}
+
+/**
+ * Hooks for a mutation procedure.
+ */
+export type TreatyCreateMutation<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = EdenQueryParams<any, TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  /**
+   * TODO: what is TContext for a fetch request mutation?
+   */
+  TContext = unknown,
+> = {
+  createMutation: (
+    options?: CreateMutationOptions<TOutput, TError, TInput, TContext>,
+  ) => CreateMutationResult<TOutput, TError, TInput, TContext>
+}
+
+/**
+ * TODO: Hooks for a subscription procedure.
+ */
+export type TreatyCreateSubscription<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+> = {
+  options: Prettify<TreatyBaseOptions & TParams>
+  queryKey: TreatyQueryKey<TPath>
+}
 
 export type EdenTreatyQuery<
   TSchema extends Record<string, any>,
@@ -17,20 +143,21 @@ export type EdenTreatyQuery<
   (IsOptional<TConfig, 'queryClient'> extends true
     ? {
         /**
-         * i.e. "utils". Only guaranteed to be defined if {@link EdenTreatyQuery.config}
+         * Only guaranteed to be defined if {@link EdenTreatyQuery.config}
          * is invoked with a defined queryClient.
          */
         context?: EdenTreatyQueryContext<TSchema>
       }
     : {
         /**
-         * i.e. "utils". Only guaranteed to be defined if {@link EdenTreatyQuery.config}
+         * Only guaranteed to be defined if {@link EdenTreatyQuery.config}
          * is invoked with a defined queryClient.
          */
         context: EdenTreatyQueryContext<TSchema>
       }) & {
     /**
      * Builder utility to strongly define the config in a second step.
+     * Call this with a queryClient to assert that {@link EdenTreatyQuery.context} is defined.
      */
     config: <TNewConfig extends EdenTreatyQueryConfig>(
       newConfig: TNewConfig,
@@ -48,14 +175,48 @@ export type EdenTreatyQuery<
   }
 
 /**
- * Proxy with svelte-query integration.
+ * Inner proxy. __Does not recursively create more proxies!__
  *
- * Inner proxy builder.
+ * Once the first property has been decided from the top-level proxy,
+ * future property accesses will mutate a locally scoped array.
+ */
+export function createInnerTreatyQueryProxy(
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
+  elysia?: Elysia<any, any, any, any, any, any>,
+): any {
+  const paths: any[] = []
+
+  const innerProxy: any = new Proxy(() => {}, {
+    get(_, path: string): any {
+      if (path !== 'index') {
+        paths.push(path)
+      }
+      return innerProxy
+    },
+    apply(_, __, [body, options]) {
+      if (isFetchCall(body, options, paths)) {
+        return resolveQueryTreatyProxy(body, options, domain, config, paths, elysia)
+      }
+
+      if (typeof body === 'object') {
+        paths.push(Object.values(body)[0])
+      }
+
+      return innerProxy
+    },
+  })
+
+  return innerProxy
+}
+
+/**
+ * Top-level proxy. Exposes top-level properties or initializes a new inner proxy based on
+ * the first property access.
  */
 export function createTreatyQueryProxy(
   domain?: string,
   config: EdenTreatyQueryConfig = {},
-  paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {
   /**
@@ -66,7 +227,7 @@ export function createTreatyQueryProxy(
 
   const context =
     config?.queryClient != null
-      ? createContext(domain, config, config.queryClient, paths, elysia)
+      ? createContext(domain, config, config.queryClient, elysia)
       : undefined
 
   const getContextThunk = () => {
@@ -78,63 +239,41 @@ export function createTreatyQueryProxy(
       domain,
       { ...config, ...configOverride },
       queryClient,
-      paths,
       elysia,
     )
     setContext(EDEN_CONTEXT_KEY, contextProxy)
   }
 
-  return new Proxy(() => {}, {
-    get(_, path: string): any {
-      switch (path) {
-        case 'config': {
-          return configBuilder
-        }
+  const topLevelProperties = {
+    config: configBuilder,
+    context,
+    getContext: getContextThunk,
+    setContext: setContextHelper,
+  }
 
-        case 'context': {
-          return context
-        }
+  const defaultHandler = (path: string | symbol) => {
+    const innerProxy = createInnerTreatyQueryProxy(domain, config, elysia)
+    return innerProxy[path]
+  }
 
-        case 'getContext': {
-          return getContextThunk
-        }
-
-        case 'setContext': {
-          return setContextHelper
-        }
-
-        default: {
-          return createTreatyQueryProxy(
-            domain,
-            config,
-            path === 'index' ? paths : [...paths, path],
-            elysia,
-          )
-        }
-      }
-    },
-    apply(_, __, [body, options]) {
-      if (isFetchCall(body, options, paths)) {
-        return resolveQueryTreatyProxy(body, options, domain, config, paths, elysia)
-      }
-
-      if (typeof body === 'object')
-        return createTreatyQueryProxy(
-          domain,
-          config,
-          [...paths, Object.values(body)[0] as string],
-          elysia,
-        )
-
-      return createTreatyQueryProxy(domain, config, paths, elysia)
-    },
+  const outerProxy = new Proxy(noop, {
+    /**
+     * @remarks Since {@link topLevelProperties.context} may be undefined, the default handler may be invoked instead of returning undefined.
+     */
+    get: (_, path) => topLevelProperties[path as keyof {}] ?? defaultHandler(path),
   })
+
+  return outerProxy
 }
 
 export function createEdenTreatyQuery<
   T extends Elysia<any, any, any, any, any, any, any, any>,
   TConfig extends EdenTreatyQueryConfig = EdenTreatyQueryConfig,
 >(
+  /**
+   * URL to server for client-side usage, {@link Elysia} instance for server-side usage,
+   * or undefined for relative URLs.
+   */
   domain?: string | T,
   config: EdenTreatyQueryConfig = {},
 ): T extends {
@@ -143,12 +282,12 @@ export function createEdenTreatyQuery<
   ? EdenTreatyQuery<TSchema, TConfig>
   : 'Please install Elysia before using Eden' {
   if (domain == null) {
-    return createTreatyQueryProxy(domain, config, [])
+    return createTreatyQueryProxy(domain, config)
   }
 
   if (typeof domain === 'string') {
     const resolvedDomain = resolveFetchOrigin(domain, config)
-    return createTreatyQueryProxy(resolvedDomain, config, [])
+    return createTreatyQueryProxy(resolvedDomain, config)
   }
 
   if (isBrowser()) {
@@ -157,5 +296,5 @@ export function createEdenTreatyQuery<
     )
   }
 
-  return createTreatyQueryProxy(SAMPLE_DOMAIN, config, [], domain)
+  return createTreatyQueryProxy(SAMPLE_DOMAIN, config, domain)
 }
