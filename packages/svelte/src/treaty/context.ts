@@ -23,6 +23,7 @@ import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/i
 import type { EdenQueryParams } from '../internal/params'
 import { getQueryKey } from '../internal/query'
 import type { DeepPartial } from '../utils/deep-partial'
+import { noop } from '../utils/noop'
 import type { Override } from '../utils/override'
 import { resolveTreaty } from './resolve'
 import type { EdenTreatyQueryConfig, TreatyQueryKey } from './types'
@@ -32,24 +33,31 @@ import type { EdenTreatyQueryConfig, TreatyQueryKey } from './types'
 export type EdenTreatyQueryContext<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
-> = {
+> = RootContext & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? TreatyContextHooksMapping<TSchema[K], [...TPath, K]>
     : InnerContextProxy<TSchema[K]>
-} & RootContext
+}
 
 /**
  * Almost the same as {@link EdenTreatyQueryContext}, but extends {@link SharedContext}
  * instead of {@link RootContext}.
  */
-type InnerContextProxy<TSchema extends Record<string, any>, TPath extends any[] = []> = {
+export type InnerContextProxy<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = SharedContext & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? TreatyContextHooksMapping<TSchema[K], [...TPath, K]>
     : InnerContextProxy<TSchema[K]>
-} & SharedContext
+}
 
-type RootContext = { queryClient: QueryClient } & SharedContext
+/**
+ */
+type RootContext = SharedContext & { queryClient: QueryClient }
 
+/**
+ */
 type SharedContext = {
   invalidate: (filters?: InvalidateQueryFilters, opts?: InvalidateOptions) => Promise<void>
 }
@@ -163,28 +171,30 @@ type TreatyInfiniteQueryContext<
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>
 }
 
-export function createInnerContext(
+/**
+ * Inner proxy. __Does not recursively create more proxies!__
+ *
+ * Once the first property has been decided from the top-level proxy,
+ * future property accesses will mutate a locally scoped array.
+ */
+export function createInnerContextProxy(
   domain?: string,
   config: EdenTreatyQueryConfig = {},
   queryClient = useQueryClient(),
-  paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
-) {
-  const proxy = new Proxy(() => {}, {
+): any {
+  const paths: any[] = []
+
+  const innerProxy = new Proxy(() => {}, {
     get(_, path: string): any {
-      switch (path) {
-        default: {
-          return createInnerContext(
-            domain,
-            config,
-            queryClient,
-            path === 'index' ? paths : [...paths, path],
-            elysia,
-          )
-        }
+      if (path !== 'index') {
+        paths.push(path)
       }
+      return innerProxy
     },
     apply(_, __, anyArgs) {
+      /**
+       */
       const pathsCopy = [...paths]
 
       /**
@@ -197,8 +207,12 @@ export function createInnerContext(
        */
       const method = pathsCopy.pop() ?? ''
 
+      /**
+       */
       const endpoint = '/' + pathsCopy.join('/')
 
+      /**
+       */
       const abortOnUnmount =
         Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
 
@@ -253,7 +267,9 @@ export function createInnerContext(
         ...anyArgs[1],
       } satisfies FetchInfiniteQueryOptions
 
-      // general query key used for invalidations, etc.
+      /**
+       * General query key used for invalidations, etc.
+       */
       const queryKey = getQueryKey(endpoint, anyArgs[0], 'any')
 
       switch (hook) {
@@ -310,32 +326,31 @@ export function createInnerContext(
       }
     },
   })
-  return proxy as any
+
+  return innerProxy
 }
 
 /**
- * Creates query utilities.
+ * Top-level proxy that exposes utilities.
  */
 export function createContext<TSchema extends Record<string, any>>(
   domain?: string,
   config: EdenTreatyQueryConfig = {},
   queryClient = useQueryClient(),
-  paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ): EdenTreatyQueryContext<TSchema> {
-  const innerProxy = createInnerContext(domain, config, queryClient, paths, elysia)
+  const topLevelProperties = {
+    queryClient,
+  }
 
-  const proxy = new Proxy(() => {}, {
-    get(_, path: string): any {
-      switch (path) {
-        case 'queryClient': {
-          return queryClient
-        }
-        default: {
-          return innerProxy[path]
-        }
-      }
-    },
+  const defaultHandler = (path: string | symbol) => {
+    const innerProxy = createInnerContextProxy(domain, config, queryClient, elysia)
+    return innerProxy[path]
+  }
+
+  const context: any = new Proxy(noop, {
+    get: (_, path) => topLevelProperties[path as keyof {}] ?? defaultHandler(path),
   })
-  return proxy as any
+
+  return context
 }

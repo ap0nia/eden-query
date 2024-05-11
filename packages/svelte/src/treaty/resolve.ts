@@ -98,12 +98,14 @@ export async function resolveTreaty(
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
-  const methodPaths = [...paths]
+  const pathsCopy = [...paths]
 
-  // Pop the hook, e.g. "createQuery".
-  methodPaths.pop()
+  /**
+   * Pop the hook, e.g. "createQuery".
+   */
+  pathsCopy.pop()
 
-  const method = methodPaths.pop()
+  const method = pathsCopy.pop()
 
   const fetcher = config.fetcher ?? globalThis.fetch
 
@@ -111,13 +113,13 @@ export async function resolveTreaty(
 
   const options = isGetOrHead ? bodyOrOptions : optionsOrUndefined
 
-  const suffix = methodPaths[methodPaths.length - 1] === 'index' ? '/' : ''
+  const suffix = pathsCopy[pathsCopy.length - 1] === 'index' ? '/' : ''
 
   if (suffix !== '') {
-    methodPaths.pop()
+    pathsCopy.pop()
   }
 
-  let endpoint = '/' + methodPaths.filter((p) => p !== 'index').join('/') + suffix
+  let endpoint = '/' + pathsCopy.filter((p) => p !== 'index').join('/') + suffix
 
   if (options?.params != null) {
     Object.entries(options.params).forEach(([key, value]) => {
@@ -333,30 +335,30 @@ export async function resolveTreaty(
 export function resolveQueryTreatyProxy(
   options: any,
   additionalOptions: any,
-  domain: string,
-  config: EdenTreatyQueryConfig,
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
   /**
    * @example ['api', 'hello', 'get', 'createQuery']
    */
-  const methodPaths = [...paths]
+  const pathsCopy = [...paths]
 
   /**
    * @example 'createQuery'
    */
-  const hook = methodPaths.pop() ?? ''
+  const hook = pathsCopy.pop() ?? ''
 
   /**
    * @example 'get'
    */
-  const method = methodPaths.pop() ?? ''
+  const method = pathsCopy.pop() ?? ''
 
   /**
    * @example '/api/hello'
    */
-  const endpoint = '/' + methodPaths.join('/')
+  const endpoint = '/' + pathsCopy.join('/')
 
   switch (hook) {
     case 'createQuery': {
