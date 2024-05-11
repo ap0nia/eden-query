@@ -40,9 +40,13 @@ export type EdenQueryParams<
         headers: TRoute['headers']
       }) &
   (IsUnknown<TRoute['body']> extends false
-    ? {
-        body: ReplaceBlobWithFiles<Omit<TRoute['body'], TOmitInput>>
-      }
+    ? undefined extends TRoute['body']
+      ? {
+          body?: ReplaceBlobWithFiles<Omit<TRoute['body'], TOmitInput>>
+        }
+      : {
+          body: ReplaceBlobWithFiles<Omit<TRoute['body'], TOmitInput>>
+        }
     : {
         body?: unknown
       }) & {

@@ -1,8 +1,6 @@
 import type {
   CreateInfiniteQueryOptions,
   CreateInfiniteQueryResult,
-  CreateMutationOptions,
-  CreateMutationResult,
   CreateQueryOptions,
   CreateQueryResult,
   InfiniteData,
@@ -23,6 +21,7 @@ import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
 import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
+import type { EdenTreatyCreateMutation } from './mutation'
 import { resolveQueryTreatyProxy } from './resolve'
 import type { EdenTreatyQueryConfig, TreatyBaseOptions, TreatyQueryKey } from './types'
 import { resolveFetchOrigin } from './utils'
@@ -108,20 +107,8 @@ export type TreatyCreateInfiniteQuery<
 /**
  * Hooks for a mutation procedure.
  */
-export type TreatyCreateMutation<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput = EdenQueryParams<any, TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  /**
-   * TODO: what is TContext for a fetch request mutation?
-   */
-  TContext = unknown,
-> = {
-  createMutation: (
-    options?: CreateMutationOptions<TOutput, TError, TInput, TContext>,
-  ) => CreateMutationResult<TOutput, TError, TInput, TContext>
+export type TreatyCreateMutation<TRoute extends RouteSchema, TPath extends any[] = []> = {
+  createMutation: EdenTreatyCreateMutation<TRoute, TPath>
 }
 
 /**
