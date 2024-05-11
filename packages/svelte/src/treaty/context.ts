@@ -2,7 +2,6 @@ import {
   type CancelOptions,
   type CreateInfiniteQueryOptions,
   type CreateQueryOptions,
-  type FetchInfiniteQueryOptions,
   type FetchQueryOptions,
   type InfiniteData,
   type InvalidateOptions,
@@ -18,16 +17,18 @@ import {
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
-import { httpMethods } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import type { EdenQueryParams } from '../internal/params'
-import { getQueryKey, type QueryType } from '../internal/query'
 import type { DeepPartial } from '../utils/deep-partial'
 import { noop } from '../utils/noop'
 import type { Override } from '../utils/override'
-import { resolveTreaty } from './resolve'
 import type { EdenTreatyQueryConfig, TreatyQueryKey } from './types'
+import {
+  createTreatyInfiniteQueryOptions,
+  createTreatyQueryKey,
+  createTreatyQueryOptions,
+} from './utils'
 
 /**
  */
@@ -172,134 +173,6 @@ type TreatyInfiniteQueryContext<
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>
 }
 
-export function createTreatyQueryOptions(
-  paths: string[],
-  anyArgs: any,
-  domain?: string,
-  config: EdenTreatyQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
-): FetchQueryOptions {
-  /**
-   */
-  const pathsCopy: any[] = [...paths]
-
-  /**
-   * Only sometimes method, i.e. since invalidations can be partial and not include it.
-   * @example 'get'
-   */
-  const method = pathsCopy[pathsCopy.length - 1]
-
-  if (httpMethods.includes(method)) {
-    pathsCopy.pop()
-  }
-
-  const abortOnUnmount =
-    Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
-
-  const queryOptions = {
-    queryKey: getQueryKey(pathsCopy, anyArgs[0], 'query'),
-    queryFn: async (context) => {
-      const result = await resolveTreaty(
-        {
-          ...anyArgs[0],
-          method,
-          signal: abortOnUnmount ? context.signal : undefined,
-        },
-        undefined,
-        domain,
-        config,
-        paths,
-        elysia,
-      )
-      return result
-    },
-    ...anyArgs[1],
-  } satisfies FetchQueryOptions
-
-  return queryOptions
-}
-
-export function createTreatyInfiniteQueryOptions(
-  paths: string[],
-  anyArgs: any,
-  domain?: string,
-  config: EdenTreatyQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
-): FetchInfiniteQueryOptions {
-  /**
-   */
-  const pathsCopy: any[] = [...paths]
-
-  /**
-   * Only sometimes method, i.e. since invalidations can be partial and not include it.
-   * @example 'get'
-   */
-  const method = pathsCopy[pathsCopy.length - 1]
-
-  if (httpMethods.includes(method)) {
-    pathsCopy.pop()
-  }
-
-  const abortOnUnmount =
-    Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
-
-  const infiniteQueryOptions = {
-    queryKey: getQueryKey(pathsCopy, anyArgs[0], 'infinite'),
-    queryFn: async (context) => {
-      const options = { ...anyArgs[0] }
-
-      // FIXME: scuffed way to set cursor.
-      if (options.query) {
-        options.query['cursor'] = context.pageParam
-      }
-
-      if (options.params) {
-        options.params['cursor'] = context.pageParam
-      }
-
-      const result = await resolveTreaty(
-        {
-          ...options,
-          method,
-          signal: abortOnUnmount ? context.signal : undefined,
-        },
-        undefined,
-        domain,
-        config,
-        paths,
-        elysia,
-      )
-      return result
-    },
-    ...anyArgs[1],
-  } satisfies FetchInfiniteQueryOptions
-
-  return infiniteQueryOptions
-}
-
-export function createTreatyQueryKey(paths: string[], anyArgs: any, type: QueryType = 'any') {
-  const pathsCopy: any[] = [...paths]
-
-  /**
-   * Pop the hook.
-   * @example 'fetch', 'invalidate'
-   */
-  pathsCopy.pop() ?? ''
-
-  /**
-   * Only sometimes method, i.e. since invalidations can be partial and not include it.
-   * @example 'get'
-   */
-  const method = pathsCopy[pathsCopy.length - 1]
-
-  if (httpMethods.includes(method)) {
-    pathsCopy.pop()
-  }
-
-  const queryKey = getQueryKey(pathsCopy, anyArgs[0], type)
-  return queryKey
-}
-
 /**
  * Inner proxy. __Does not recursively create more proxies!__
  *
@@ -314,7 +187,7 @@ export function createInnerContextProxy(
 ): any {
   const paths: any[] = []
 
-  const innerProxy = new Proxy(() => {}, {
+  const innerProxy = new Proxy(noop, {
     get(_, path: string): any {
       if (path !== 'index') {
         paths.push(path)
@@ -326,6 +199,7 @@ export function createInnerContextProxy(
        * @example 'fetch', 'invalidate'
        */
       const hook = paths[paths.length - 1]
+
       switch (hook) {
         case 'options': {
           const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
