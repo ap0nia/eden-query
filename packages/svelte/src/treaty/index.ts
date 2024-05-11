@@ -110,8 +110,6 @@ export function resolveQueryTreatyProxy(
 
       const mutationOptions = createTreatyMutationOptions(paths, args, domain, config, elysia)
 
-      console.log({ mutationOptions })
-
       if (!isStore(typedOptions)) {
         return createTreatyMutation(mutationOptions)
       }
@@ -156,16 +154,26 @@ export type TreatyQueryHooksMapping<
   TMethod,
   TPath extends any[] = [],
 > = TMethod extends HttpQueryMethod
-  ? TreatyCreateQuery<TRoute, TPath>
+  ? TreatyQueryMapping<TRoute, TPath>
   : TMethod extends HttpMutationMethod
-  ? TreatyCreateMutation<TRoute, TPath>
+  ? TreatyMutationMapping<TRoute, TPath>
   : TMethod extends HttpSubscriptionMethod
-  ? TreatyCreateSubscription<TRoute, TPath>
+  ? TreatySubscriptionMapping<TRoute, TPath>
   : never
 
 /**
  * Hooks for a query procedure.
  */
+export type TreatyQueryMapping<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+> = {
+  createQuery: TreatyCreateQuery<TRoute, TPath>
+} & (InfiniteCursorKey extends keyof (TParams['params'] & TParams['query'])
+  ? TreatyInfiniteQueryMapping<TRoute, TPath>
+  : {})
+
 export type TreatyCreateQuery<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
@@ -174,61 +182,56 @@ export type TreatyCreateQuery<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TEndpoint = TreatyQueryKey<TPath>,
-> = {
-  createQuery: (
-    options: StoreOrVal<
-      TParams & {
-        eden?: EdenQueryProxyConfig
-        queryOptions?: Omit<
-          CreateQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-          'queryKey'
-        >
-      }
-    >,
-  ) => CreateQueryResult<TOutput, TError>
-} & (InfiniteCursorKey extends keyof (TParams['params'] & TParams['query'])
-  ? TreatyCreateInfiniteQuery<TRoute, TPath>
-  : {})
+> = (
+  options: StoreOrVal<
+    TParams & {
+      eden?: EdenQueryProxyConfig
+      queryOptions?: Omit<
+        CreateQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+        'queryKey'
+      >
+    }
+  >,
+) => CreateQueryResult<TOutput, TError>
 
 /**
  * Hooks for an infinite-query procedure.
  */
+export type TreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
+  createInfiniteQuery: TreatyCreateInfiniteQuery<TRoute, TPath>
+}
+
 export type TreatyCreateInfiniteQuery<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute, ReservedInfiniteQueryKeys> = EdenQueryParams<
-    any,
-    TRoute
-  >,
-  TInput = InferRouteInput<TRoute>,
+  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+  TInput = InferRouteInput<TRoute, ReservedInfiniteQueryKeys>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TEndpoint = TreatyQueryKey<TPath>,
-> = {
-  createInfiniteQuery: (
-    options: StoreOrVal<
-      TParams & {
-        eden?: EdenQueryProxyConfig
-        queryOptions: Omit<
-          CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-          'queryKey'
-        >
-      }
-    >,
-  ) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
-}
+> = (
+  options: StoreOrVal<
+    TParams & {
+      eden?: EdenQueryProxyConfig
+      queryOptions: Omit<
+        CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+        'queryKey'
+      >
+    }
+  >,
+) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
 
 /**
  * Hooks for a mutation procedure.
  */
-export type TreatyCreateMutation<TRoute extends RouteSchema, TPath extends any[] = []> = {
+export type TreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
   createMutation: EdenTreatyCreateMutation<TRoute, TPath>
 }
 
 /**
  * TODO: Hooks for a subscription procedure.
  */
-export type TreatyCreateSubscription<
+export type TreatySubscriptionMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
