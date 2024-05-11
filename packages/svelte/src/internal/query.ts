@@ -20,3 +20,16 @@ export function getQueryKey(
   const input = { body: options?.body, params: options?.params, query: options?.query }
   return [path, { ...(hasInput && { input }), ...(hasType && { type }) }]
 }
+
+export function getMutationKey(
+  pathOrEndpoint: string | string[],
+  options?: EdenRequestOptions,
+): QueryKey {
+  const path = Array.isArray(pathOrEndpoint) ? pathOrEndpoint : pathOrEndpoint.split('/')
+  const hasInput = options?.body || options?.params || options?.query
+
+  if (!hasInput) return [path]
+
+  const input = { body: options?.body, params: options?.params, query: options?.query }
+  return [path, { ...(hasInput && { input }) }]
+}
