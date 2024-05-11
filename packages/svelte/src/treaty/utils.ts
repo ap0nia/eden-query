@@ -19,24 +19,6 @@ import type {
   TreatyConfig,
 } from './types'
 
-export function resolveFetchOrigin(domain: string, config: TreatyConfig) {
-  if (!config.keepDomain) {
-    if (!domain.includes('://')) {
-      return (
-        (LOCAL_ADDRESSES.find((address) => (domain as string).includes(address))
-          ? 'http://'
-          : 'https://') + domain
-      )
-    }
-
-    if (domain.endsWith('/')) {
-      return domain.slice(0, -1)
-    }
-  }
-
-  return domain
-}
-
 export function createTreatyQueryOptions(
   paths: string[],
   args: any,
@@ -45,17 +27,15 @@ export function createTreatyQueryOptions(
   elysia?: Elysia<any, any, any, any, any, any>,
 ): FetchQueryOptions {
   /**
-   */
-  const pathsCopy: any[] = [...paths]
-
-  /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
    */
-  const method = pathsCopy[pathsCopy.length - 1]
+  let method = paths[paths.length - 1]
 
-  if (httpMethods.includes(method)) {
-    pathsCopy.pop()
+  if (httpMethods.includes(method as any)) {
+    paths.pop()
+  } else {
+    method = 'get'
   }
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(args[1]?.eden?.abortOnUnmount)
@@ -68,10 +48,14 @@ export function createTreatyQueryOptions(
 
   const { queryOptions, ...rest } = optionsValue
 
+  const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
+
   const baseQueryOptions = {
-    queryKey: getQueryKey(pathsCopy, optionsValue, 'query'),
+    queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
       const result = await resolveTreaty(
+        endpoint,
+        method,
         {
           ...rest,
           method,
@@ -80,7 +64,6 @@ export function createTreatyQueryOptions(
         additionalOptions,
         domain,
         config,
-        paths,
         elysia,
       )
       return result
@@ -99,17 +82,15 @@ export function createTreatyInfiniteQueryOptions(
   elysia?: Elysia<any, any, any, any, any, any>,
 ): FetchInfiniteQueryOptions {
   /**
-   */
-  const pathsCopy: any[] = [...paths]
-
-  /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
    */
-  const method = pathsCopy[pathsCopy.length - 1]
+  let method = paths[paths.length - 1]
 
-  if (httpMethods.includes(method)) {
-    pathsCopy.pop()
+  if (httpMethods.includes(method as any)) {
+    paths.pop()
+  } else {
+    method = 'get'
   }
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(args[1]?.eden?.abortOnUnmount)
@@ -122,8 +103,10 @@ export function createTreatyInfiniteQueryOptions(
 
   const additionalOptions = args[1]
 
+  const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
+
   const infiniteQueryOptions = {
-    queryKey: getQueryKey(pathsCopy, args[0], 'infinite'),
+    queryKey: getQueryKey(paths, args[0], 'infinite'),
     queryFn: async (context) => {
       const options = { ...optionsValue }
 
@@ -137,6 +120,8 @@ export function createTreatyInfiniteQueryOptions(
       }
 
       const result = await resolveTreaty(
+        endpoint,
+        method,
         {
           ...rest,
           method,
@@ -145,7 +130,6 @@ export function createTreatyInfiniteQueryOptions(
         additionalOptions,
         domain,
         config,
-        paths,
         elysia,
       )
 
@@ -165,28 +149,28 @@ export function createTreatyMutationOptions(
   elysia?: Elysia<any, any, any, any, any, any>,
 ): CreateMutationOptions {
   /**
-   */
-  const pathsCopy: any[] = [...paths]
-
-  /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
    */
-  const method = pathsCopy[pathsCopy.length - 1]
+  let method = paths[paths.length - 1]
 
-  if (httpMethods.includes(method)) {
-    pathsCopy.pop()
+  if (httpMethods.includes(method as any)) {
+    paths.pop()
+  } else {
+    method = 'get'
   }
 
   const typedOptions = args[0] as CreateMutationOptions
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
+  const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
+
   const mutationOptions = {
-    mutationKey: getMutationKey(pathsCopy, optionsValue as any),
+    mutationKey: getMutationKey(paths, optionsValue as any),
     mutationFn: async (customVariables: any = {}) => {
       const { variables, options } = customVariables
-      return await resolveTreaty(variables, options, domain, config, paths, elysia)
+      return await resolveTreaty(endpoint, method, variables, options, domain, config, elysia)
     },
     onSuccess(data, variables, context) {
       const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
@@ -225,4 +209,22 @@ export function createTreatyQueryKey(paths: string[], anyArgs: any, type: QueryT
   const queryKey = getQueryKey(pathsCopy, anyArgs[0], type)
 
   return queryKey
+}
+
+export function resolveFetchOrigin(domain: string, config: TreatyConfig) {
+  if (!config.keepDomain) {
+    if (!domain.includes('://')) {
+      return (
+        (LOCAL_ADDRESSES.find((address) => (domain as string).includes(address))
+          ? 'http://'
+          : 'https://') + domain
+      )
+    }
+
+    if (domain.endsWith('/')) {
+      return domain.slice(0, -1)
+    }
+  }
+
+  return domain
 }
