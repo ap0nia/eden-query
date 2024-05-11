@@ -198,7 +198,7 @@ export function createInnerContextProxy(
       /**
        * @example 'fetch', 'invalidate'
        */
-      const hook = paths[paths.length - 1]
+      const hook = paths.pop()
 
       switch (hook) {
         case 'options': {
