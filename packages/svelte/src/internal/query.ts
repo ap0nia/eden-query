@@ -4,18 +4,19 @@ export type KnownQueryType = 'query' | 'infinite'
 
 export type QueryType = KnownQueryType | 'any'
 
-export type QueryKey = [string?, { input?: unknown; type?: KnownQueryType }?]
+export type QueryKey = [key?: string[], metadata?: { input?: unknown; type?: KnownQueryType }]
 
 export function getQueryKey(
-  endpoint: string,
-  options: EdenRequestOptions,
+  pathOrEndpoint: string | string[],
+  options?: EdenRequestOptions,
   type?: QueryType,
 ): QueryKey {
-  const hasInput = options.body || options.params || options.query
+  const path = Array.isArray(pathOrEndpoint) ? pathOrEndpoint : pathOrEndpoint.split('/')
+  const hasInput = options?.body || options?.params || options?.query
   const hasType = Boolean(type) && type !== 'any'
 
-  if (!hasInput && !hasType) return [endpoint]
+  if (!hasInput && !hasType) return [path]
 
-  const input = { body: options.body, params: options.params, query: options.query }
-  return [endpoint, { ...(hasInput && { input }), ...(hasType && { type }) }]
+  const input = { body: options?.body, params: options?.params, query: options?.query }
+  return [path, { ...(hasInput && { input }), ...(hasType && { type }) }]
 }

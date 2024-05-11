@@ -378,7 +378,7 @@ export function resolveQueryTreatyProxy(
       const { queryOptions, ...rest } = optionsValue
 
       const baseQueryOptions = {
-        queryKey: getQueryKey(endpoint, optionsValue, 'query'),
+        queryKey: getQueryKey(pathsCopy, optionsValue, 'query'),
         queryFn: async (context) => {
           return await resolveTreaty(
             {
@@ -406,7 +406,7 @@ export function resolveQueryTreatyProxy(
 
           set({
             ...baseQueryOptions,
-            queryKey: getQueryKey(endpoint, newInput, 'query'),
+            queryKey: getQueryKey(pathsCopy, newInput, 'query'),
             queryFn: async (context) => {
               return await resolveTreaty(
                 {
@@ -448,7 +448,7 @@ export function resolveQueryTreatyProxy(
       const { queryOptions, ...rest } = optionsValue
 
       const baseQueryOptions = {
-        queryKey: getQueryKey(endpoint, optionsValue, 'infinite'),
+        queryKey: getQueryKey(pathsCopy, optionsValue, 'infinite'),
         queryFn: async (context) => {
           // FIXME: scuffed way to set cursor.
           if (rest.query) {
@@ -485,7 +485,7 @@ export function resolveQueryTreatyProxy(
 
           set({
             ...baseQueryOptions,
-            queryKey: getQueryKey(endpoint, newInput, 'infinite'),
+            queryKey: getQueryKey(pathsCopy, newInput, 'infinite'),
             queryFn: async (context) => {
               // FIXME: scuffed way to set cursor.
               if (rest.query) {
