@@ -1,10 +1,10 @@
 import type { CreateInfiniteQueryOptions, CreateQueryOptions } from '@tanstack/svelte-query'
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
-import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
+import type { EdenQueryProxyConfig, EdenRequestOptions } from '../internal/options'
 import type { Join, Stringable } from '../utils/join'
 
-export type EdenTreatyQueryConfig = TreatyConfig & SvelteQueryProxyConfig
+export type EdenTreatyQueryConfig = TreatyConfig & EdenQueryProxyConfig
 
 /**
  * Additional options available for the `treaty` variant of eden.
@@ -62,9 +62,11 @@ export type TreatyError<TResponse extends Record<number, unknown>> = {
 }
 
 export type EdenCreateQueryOptions = EdenRequestOptions & {
+  eden?: EdenQueryProxyConfig
   queryOptions?: Partial<CreateQueryOptions>
 }
 
 export type EdenCreateInfiniteQueryOptions = EdenRequestOptions & {
+  eden?: EdenQueryProxyConfig
   queryOptions: Omit<CreateInfiniteQueryOptions, 'queryKey'>
 }

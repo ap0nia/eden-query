@@ -4,7 +4,7 @@ import type { IsNever } from '../utils/is-never'
 import type { IsUnknown } from '../utils/is-unknown'
 import type { MaybePromise } from '../utils/promise'
 
-export interface SvelteQueryProxyConfig {
+export interface EdenQueryProxyConfig {
   overrides?: {
     createMutation?: Partial<CreateMutationOverride>
   }
@@ -62,5 +62,5 @@ export type EdenRequestOptions<
     : {
         body?: unknown
       }) & {
-    eden?: SvelteQueryProxyConfig
+    eden?: EdenQueryProxyConfig
   }

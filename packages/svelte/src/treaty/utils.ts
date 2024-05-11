@@ -38,15 +38,13 @@ export function createTreatyQueryOptions(
     method = 'get'
   }
 
-  const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(args[1]?.eden?.abortOnUnmount)
-
   const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions>
-
-  const additionalOptions = args[1]
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-  const { queryOptions, ...rest } = optionsValue
+  const { queryOptions, eden, ...rest } = optionsValue
+
+  const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
   const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
 
@@ -58,10 +56,11 @@ export function createTreatyQueryOptions(
         method,
         {
           ...rest,
-          method,
-          signal: abortOnUnmount ? context.signal : undefined,
+          fetch: {
+            signal: abortOnUnmount ? context.signal : undefined,
+          },
         },
-        additionalOptions,
+        undefined,
         domain,
         config,
         elysia,
@@ -124,8 +123,9 @@ export function createTreatyInfiniteQueryOptions(
         method,
         {
           ...rest,
-          method,
-          signal: abortOnUnmount ? context.signal : undefined,
+          fetch: {
+            signal: abortOnUnmount ? context.signal : undefined,
+          },
         },
         additionalOptions,
         domain,

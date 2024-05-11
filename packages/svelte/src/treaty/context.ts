@@ -188,13 +188,13 @@ export function createInnerContextProxy(
   const paths: any[] = []
 
   const innerProxy = new Proxy(noop, {
-    get(_, path: string): any {
+    get: (_, path: string): any => {
       if (path !== 'index') {
         paths.push(path)
       }
       return innerProxy
     },
-    apply(_, __, anyArgs) {
+    apply: (_, __, anyArgs) => {
       /**
        * @example 'fetch', 'invalidate'
        */
@@ -345,7 +345,9 @@ export function createContext<TSchema extends Record<string, any>>(
   }
 
   const context: any = new Proxy(noop, {
-    get: (_, path) => topLevelProperties[path as keyof {}] ?? defaultHandler(path),
+    get: (_, path) => {
+      return topLevelProperties[path as keyof {}] ?? defaultHandler(path)
+    },
   })
 
   return context

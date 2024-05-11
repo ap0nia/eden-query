@@ -12,7 +12,7 @@ import type { Elysia } from 'elysia'
 import type { HttpQueryMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteRoutes } from '../internal/infinite'
-import type { EdenRequestOptions, SvelteQueryProxyConfig } from '../internal/options'
+import type { EdenQueryProxyConfig, EdenRequestOptions } from '../internal/options'
 import { getQueryKey } from '../internal/query'
 import type { Filter } from '../utils/filter'
 
@@ -59,7 +59,7 @@ export type EdenFetchQueryContext<TSchema extends Record<string, any>> = {
  */
 export function createContext<T extends Elysia<any, any, any, any, any, any, any, any>>(
   fetch: EdenFetch.Create<T>,
-  config?: SvelteQueryProxyConfig,
+  config?: EdenQueryProxyConfig,
 ) {
   const queryClient = config?.queryClient ?? useQueryClient()
 
