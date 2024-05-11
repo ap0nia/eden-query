@@ -22,7 +22,7 @@ import { httpMethods } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import type { EdenQueryParams } from '../internal/params'
-import { getQueryKey } from '../internal/query'
+import { getQueryKey, type QueryType } from '../internal/query'
 import type { DeepPartial } from '../utils/deep-partial'
 import { noop } from '../utils/noop'
 import type { Override } from '../utils/override'
@@ -172,6 +172,134 @@ type TreatyInfiniteQueryContext<
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>
 }
 
+export function createTreatyQueryOptions(
+  paths: string[],
+  anyArgs: any,
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
+  elysia?: Elysia<any, any, any, any, any, any>,
+): FetchQueryOptions {
+  /**
+   */
+  const pathsCopy: any[] = [...paths]
+
+  /**
+   * Only sometimes method, i.e. since invalidations can be partial and not include it.
+   * @example 'get'
+   */
+  const method = pathsCopy[pathsCopy.length - 1]
+
+  if (httpMethods.includes(method)) {
+    pathsCopy.pop()
+  }
+
+  const abortOnUnmount =
+    Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
+
+  const queryOptions = {
+    queryKey: getQueryKey(pathsCopy, anyArgs[0], 'query'),
+    queryFn: async (context) => {
+      const result = await resolveTreaty(
+        {
+          ...anyArgs[0],
+          method,
+          signal: abortOnUnmount ? context.signal : undefined,
+        },
+        undefined,
+        domain,
+        config,
+        paths,
+        elysia,
+      )
+      return result
+    },
+    ...anyArgs[1],
+  } satisfies FetchQueryOptions
+
+  return queryOptions
+}
+
+export function createTreatyInfiniteQueryOptions(
+  paths: string[],
+  anyArgs: any,
+  domain?: string,
+  config: EdenTreatyQueryConfig = {},
+  elysia?: Elysia<any, any, any, any, any, any>,
+): FetchInfiniteQueryOptions {
+  /**
+   */
+  const pathsCopy: any[] = [...paths]
+
+  /**
+   * Only sometimes method, i.e. since invalidations can be partial and not include it.
+   * @example 'get'
+   */
+  const method = pathsCopy[pathsCopy.length - 1]
+
+  if (httpMethods.includes(method)) {
+    pathsCopy.pop()
+  }
+
+  const abortOnUnmount =
+    Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
+
+  const infiniteQueryOptions = {
+    queryKey: getQueryKey(pathsCopy, anyArgs[0], 'infinite'),
+    queryFn: async (context) => {
+      const options = { ...anyArgs[0] }
+
+      // FIXME: scuffed way to set cursor.
+      if (options.query) {
+        options.query['cursor'] = context.pageParam
+      }
+
+      if (options.params) {
+        options.params['cursor'] = context.pageParam
+      }
+
+      const result = await resolveTreaty(
+        {
+          ...options,
+          method,
+          signal: abortOnUnmount ? context.signal : undefined,
+        },
+        undefined,
+        domain,
+        config,
+        paths,
+        elysia,
+      )
+      return result
+    },
+    ...anyArgs[1],
+  } satisfies FetchInfiniteQueryOptions
+
+  return infiniteQueryOptions
+}
+
+export function createTreatyQueryKey(paths: string[], anyArgs: any, type: QueryType = 'any') {
+  const pathsCopy: any[] = [...paths]
+
+  /**
+   * Pop the hook.
+   * @example 'fetch', 'invalidate'
+   */
+  pathsCopy.pop() ?? ''
+
+  /**
+   * Only sometimes method, i.e. since invalidations can be partial and not include it.
+   * @example 'get'
+   */
+  const method = pathsCopy[pathsCopy.length - 1]
+
+  if (httpMethods.includes(method)) {
+    pathsCopy.pop()
+  }
+
+  const queryKey = getQueryKey(pathsCopy, anyArgs[0], type)
+  return queryKey
+}
+
 /**
  * Inner proxy. __Does not recursively create more proxies!__
  *
@@ -195,133 +323,125 @@ export function createInnerContextProxy(
     },
     apply(_, __, anyArgs) {
       /**
-       */
-      const pathsCopy = [...paths]
-
-      /**
        * @example 'fetch', 'invalidate'
        */
-      const hook = pathsCopy.pop() ?? ''
-
-      /**
-       * Only sometimes method, i.e. since invalidations can be partial and not include it.
-       * @example 'get'
-       */
-      const method = pathsCopy[pathsCopy.length - 1]
-
-      if (httpMethods.includes(method)) {
-        pathsCopy.pop()
-      }
-
-      /**
-       */
-      const abortOnUnmount =
-        Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
-
-      const queryOptions = {
-        queryKey: getQueryKey(pathsCopy, anyArgs[0], 'query'),
-        queryFn: async (context) => {
-          const result = await resolveTreaty(
-            {
-              ...anyArgs[0],
-              method,
-              signal: abortOnUnmount ? context.signal : undefined,
-            },
-            undefined,
-            domain,
-            config,
-            paths,
-            elysia,
-          )
-          return result
-        },
-        ...anyArgs[1],
-      } satisfies FetchQueryOptions
-
-      const infiniteQueryOptions = {
-        queryKey: getQueryKey(pathsCopy, anyArgs[0], 'infinite'),
-        queryFn: async (context) => {
-          const options = { ...anyArgs[0] }
-
-          // FIXME: scuffed way to set cursor.
-          if (options.query) {
-            options.query['cursor'] = context.pageParam
-          }
-
-          if (options.params) {
-            options.params['cursor'] = context.pageParam
-          }
-
-          const result = await resolveTreaty(
-            {
-              ...options,
-              method,
-              signal: abortOnUnmount ? context.signal : undefined,
-            },
-            undefined,
-            domain,
-            config,
-            paths,
-            elysia,
-          )
-          return result
-        },
-        ...anyArgs[1],
-      } satisfies FetchInfiniteQueryOptions
-
-      /**
-       * General query key used for invalidations, etc.
-       */
-      const queryKey = getQueryKey(pathsCopy, anyArgs[0], 'any')
-
+      const hook = paths[paths.length - 1]
       switch (hook) {
-        case 'options':
+        case 'options': {
+          const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
           return queryOptions
+        }
 
-        case 'infiniteOptions':
+        case 'infiniteOptions': {
+          const infiniteQueryOptions = createTreatyInfiniteQueryOptions(
+            paths,
+            anyArgs,
+            domain,
+            config,
+            elysia,
+          )
           return infiniteQueryOptions
+        }
 
-        case 'fetch':
+        case 'fetch': {
+          const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
           return queryClient.fetchQuery(queryOptions)
+        }
 
-        case 'prefetch':
+        case 'prefetch': {
+          const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
           return queryClient.prefetchQuery(queryOptions)
+        }
 
-        case 'getData':
+        case 'getData': {
+          const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
           return queryClient.getQueryData(queryOptions.queryKey)
+        }
 
-        case 'ensureData':
+        case 'ensureData': {
+          const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
           return queryClient.ensureQueryData(queryOptions)
+        }
 
-        case 'setData':
+        case 'setData': {
+          const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
           return queryClient.setQueryData(queryOptions.queryKey, anyArgs[1], anyArgs[2])
+        }
 
-        case 'fetchInfinite':
+        case 'fetchInfinite': {
+          const infiniteQueryOptions = createTreatyInfiniteQueryOptions(
+            paths,
+            anyArgs,
+            domain,
+            config,
+            elysia,
+          )
           return queryClient.fetchInfiniteQuery(infiniteQueryOptions)
+        }
 
-        case 'prefetchInfinite':
+        case 'prefetchInfinite': {
+          const infiniteQueryOptions = createTreatyInfiniteQueryOptions(
+            paths,
+            anyArgs,
+            domain,
+            config,
+            elysia,
+          )
           return queryClient.prefetchInfiniteQuery(infiniteQueryOptions)
+        }
 
-        case 'getInfiniteData':
+        case 'getInfiniteData': {
+          const infiniteQueryOptions = createTreatyInfiniteQueryOptions(
+            paths,
+            anyArgs,
+            domain,
+            config,
+            elysia,
+          )
           return queryClient.getQueryData(infiniteQueryOptions.queryKey)
+        }
 
-        case 'ensureInfiniteData':
+        case 'ensureInfiniteData': {
+          const infiniteQueryOptions = createTreatyInfiniteQueryOptions(
+            paths,
+            anyArgs,
+            domain,
+            config,
+            elysia,
+          )
           return queryClient.ensureQueryData(infiniteQueryOptions)
+        }
 
-        case 'setInfiniteData':
+        case 'setInfiniteData': {
+          const infiniteQueryOptions = createTreatyInfiniteQueryOptions(
+            paths,
+            anyArgs,
+            domain,
+            config,
+            elysia,
+          )
           return queryClient.setQueryData(infiniteQueryOptions.queryKey, anyArgs[0], anyArgs[1])
+        }
 
-        case 'invalidate':
+        case 'invalidate': {
+          const queryKey = createTreatyQueryKey(paths, anyArgs)
           return queryClient.invalidateQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+        }
 
-        case 'refetch':
+        case 'refetch': {
+          const queryKey = createTreatyQueryKey(paths, anyArgs)
           return queryClient.refetchQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+        }
 
-        case 'cancel':
+        case 'cancel': {
+          const queryKey = createTreatyQueryKey(paths, anyArgs)
           return queryClient.cancelQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+        }
 
-        case 'reset':
+        case 'reset': {
+          const queryKey = createTreatyQueryKey(paths, anyArgs)
           return queryClient.resetQueries({ queryKey, ...anyArgs[0] }, anyArgs[1])
+        }
 
         default:
           throw new TypeError(`context.${paths.join('.')}.${hook} is not a function`)
