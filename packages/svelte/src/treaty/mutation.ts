@@ -104,13 +104,13 @@ export function createTreatyMutation<
   const customMutation = derived(mutation, ($mutation) => {
     const originalMutateAsync = $mutation.mutateAsync
 
-    $mutation.mutateAsync = async (variables, options) => {
+    $mutation.mutateAsync = async (variables, options = {}) => {
       return await originalMutateAsync({ variables, options } as any, options)
     }
 
     const originalMutate = $mutation.mutate
 
-    $mutation.mutate = (variables, options) => {
+    $mutation.mutate = (variables, options = {}) => {
       return originalMutate({ variables, options } as any, options)
     }
 

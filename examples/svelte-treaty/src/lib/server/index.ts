@@ -19,12 +19,13 @@ export const app = elysia
   .put(
     '/count',
     (context) => {
-      const increment = context.query.increment ?? 1
+      console.log('context: ', context)
+      const increment = context.body.increment ?? 1
       db.count += increment
       return increment
     },
     {
-      query: t.Object({
+      body: t.Object({
         increment: t.Optional(t.Number()),
       }),
     },

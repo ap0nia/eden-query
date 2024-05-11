@@ -18,6 +18,7 @@ import {
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
+import { httpMethods } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import type { EdenQueryParams } from '../internal/params'
@@ -203,13 +204,14 @@ export function createInnerContextProxy(
       const hook = pathsCopy.pop() ?? ''
 
       /**
+       * Only sometimes method, i.e. since invalidations can be partial and not include it.
        * @example 'get'
        */
-      const method = pathsCopy.pop() ?? ''
+      const method = pathsCopy[pathsCopy.length - 1]
 
-      /**
-       */
-      const endpoint = '/' + pathsCopy.join('/')
+      if (httpMethods.includes(method)) {
+        pathsCopy.pop()
+      }
 
       /**
        */
@@ -217,7 +219,7 @@ export function createInnerContextProxy(
         Boolean(config?.abortOnUnmount) || Boolean(anyArgs[1]?.eden?.abortOnUnmount)
 
       const queryOptions = {
-        queryKey: getQueryKey(endpoint, anyArgs[0], 'query'),
+        queryKey: getQueryKey(pathsCopy, anyArgs[0], 'query'),
         queryFn: async (context) => {
           const result = await resolveTreaty(
             {
@@ -237,7 +239,7 @@ export function createInnerContextProxy(
       } satisfies FetchQueryOptions
 
       const infiniteQueryOptions = {
-        queryKey: getQueryKey(endpoint, anyArgs[0], 'infinite'),
+        queryKey: getQueryKey(pathsCopy, anyArgs[0], 'infinite'),
         queryFn: async (context) => {
           const options = { ...anyArgs[0] }
 
@@ -270,7 +272,7 @@ export function createInnerContextProxy(
       /**
        * General query key used for invalidations, etc.
        */
-      const queryKey = getQueryKey(endpoint, anyArgs[0], 'any')
+      const queryKey = getQueryKey(pathsCopy, anyArgs[0], 'any')
 
       switch (hook) {
         case 'options':
