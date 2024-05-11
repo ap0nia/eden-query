@@ -54,13 +54,18 @@ export function resolveQueryTreatyProxy(
   args: any[],
   domain?: string,
   config: EdenTreatyQueryConfig = {},
-  paths: string[] = [],
+  originalPaths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
   /**
+   * Duplicate the paths array. Nested functions will mutate this for the current resolver.
+   */
+  const paths = [...originalPaths]
+
+  /**
    * @example 'createQuery'
    */
-  const hook = paths[paths.length - 1]
+  const hook = paths.pop()
 
   switch (hook) {
     case 'createQuery': {

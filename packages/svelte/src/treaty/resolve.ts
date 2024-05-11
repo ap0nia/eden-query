@@ -71,6 +71,16 @@ function processHeaders(
  */
 export async function resolveTreaty(
   /**
+   * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
+   */
+  endpoint: string,
+
+  /**
+   * HTTP method.
+   */
+  method = 'get',
+
+  /**
    * Options when first parameter of GET request.
    * Body when first parameter of POST, PUT, etc. request.
    */
@@ -80,33 +90,27 @@ export async function resolveTreaty(
    * Options when second parameter of POST, PUT, etc. request.
    */
   optionsOrUndefined: any,
-  domain = '',
-  config: TreatyConfig = {},
-  paths: string[] = [],
-  elysia?: Elysia<any, any, any, any, any, any>,
-) {
-  const pathsCopy = [...paths]
 
   /**
-   * Pop the hook, e.g. "createQuery".
+   * Domain. Can be undefined if relative endpoint.
+   *
+   * @example localhost:3000
    */
-  pathsCopy.pop()
+  domain: string = '',
 
-  const method = pathsCopy.pop()
+  /**
+   */
+  config: TreatyConfig = {},
 
+  /**
+   */
+  elysia?: Elysia<any, any, any, any, any, any>,
+) {
   const fetcher = config.fetcher ?? globalThis.fetch
 
   const isGetOrHead = method === 'get' || method === 'head' || method === 'subscribe'
 
   const options = isGetOrHead ? bodyOrOptions : optionsOrUndefined
-
-  const suffix = pathsCopy[pathsCopy.length - 1] === 'index' ? '/' : ''
-
-  if (suffix !== '') {
-    pathsCopy.pop()
-  }
-
-  let endpoint = '/' + pathsCopy.filter((p) => p !== 'index').join('/') + suffix
 
   if (options?.params != null) {
     Object.entries(options.params).forEach(([key, value]) => {
