@@ -176,13 +176,11 @@ export function createTreatyQueryOptions(
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
-  const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
-
   const baseQueryOptions = {
     queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
       const result = await fetchTreaty(
-        endpoint,
+        paths,
         method,
         {
           ...rest,
@@ -232,8 +230,6 @@ export function createTreatyInfiniteQueryOptions(
 
   const additionalOptions = args[1]
 
-  const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
-
   const infiniteQueryOptions = {
     queryKey: getQueryKey(paths, args[0], 'infinite'),
     queryFn: async (context) => {
@@ -249,7 +245,7 @@ export function createTreatyInfiniteQueryOptions(
       }
 
       const result = await fetchTreaty(
-        endpoint,
+        paths,
         method,
         {
           ...rest,
@@ -294,13 +290,11 @@ export function createTreatyMutationOptions(
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-  const endpoint = '/' + paths.filter((p) => p !== 'index').join('/')
-
   const mutationOptions = {
     mutationKey: getMutationKey(paths, optionsValue as any),
     mutationFn: async (customVariables: any = {}) => {
       const { variables, options } = customVariables
-      return await fetchTreaty(endpoint, method, variables, options, domain, config, elysia)
+      return await fetchTreaty(paths, method, variables, options, domain, config, elysia)
     },
     onSuccess(data, variables, context) {
       const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)

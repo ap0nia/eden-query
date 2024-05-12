@@ -71,8 +71,12 @@ function processHeaders(
 export async function fetchTreaty(
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
+   *
+   * @example
+   * '/api/a/b'
+   * ['api', 'a', 'b']
    */
-  endpoint: string,
+  endpointsOrPaths: string | string[],
 
   /**
    * HTTP method.
@@ -105,6 +109,10 @@ export async function fetchTreaty(
    */
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
+  let endpoint = Array.isArray(endpointsOrPaths)
+    ? '/' + endpointsOrPaths.filter((p) => p !== 'index').join('/')
+    : endpointsOrPaths
+
   const fetcher = config.fetcher ?? globalThis.fetch
 
   const isGetOrHead = method === 'get' || method === 'head' || method === 'subscribe'
