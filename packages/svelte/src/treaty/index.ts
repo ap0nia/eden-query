@@ -1,14 +1,5 @@
 import type { CreateMutationOptions, QueryClient } from '@tanstack/svelte-query'
-import {
-  createInfiniteQuery,
-  type CreateInfiniteQueryOptions,
-  type CreateInfiniteQueryResult,
-  createQuery,
-  type CreateQueryOptions,
-  type CreateQueryResult,
-  type InfiniteData,
-  type StoreOrVal,
-} from '@tanstack/svelte-query'
+import { createInfiniteQuery, createQuery, type StoreOrVal } from '@tanstack/svelte-query'
 import type { Elysia } from 'elysia'
 import type { Prettify, RouteSchema } from 'elysia/types'
 import { getContext, setContext } from 'svelte'
@@ -16,16 +7,18 @@ import { writable } from 'svelte/store'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
-import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
-import type { EdenQueryProxyConfig } from '../internal/options'
+import type { InfiniteCursorKey } from '../internal/infinite'
 import type { EdenQueryParams } from '../internal/params'
 import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
 import { isStore } from '../utils/is-store'
 import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
-import { createTreatyMutation, type EdenTreatyCreateMutation } from './mutation'
+import type {
+  EdenTreatyCreateMutation,
+  TreatyCreateInfiniteQuery,
+  TreatyCreateQuery,
+} from './overrides'
 import type {
   EdenCreateInfiniteQueryOptions,
   EdenCreateQueryOptions,
@@ -35,6 +28,7 @@ import type {
 } from './types'
 import {
   createTreatyInfiniteQueryOptions,
+  createTreatyMutation,
   createTreatyMutationOptions,
   createTreatyQueryOptions,
   resolveFetchOrigin,
@@ -174,52 +168,12 @@ export type TreatyQueryMapping<
   ? TreatyInfiniteQueryMapping<TRoute, TPath>
   : {})
 
-export type TreatyCreateQuery<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
-  TInput = InferRouteInput<TRoute, ReservedInfiniteQueryKeys>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  TEndpoint = TreatyQueryKey<TPath>,
-> = (
-  options: StoreOrVal<
-    TParams & {
-      eden?: EdenQueryProxyConfig
-      queryOptions?: Omit<
-        CreateQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-        'queryKey'
-      >
-    }
-  >,
-) => CreateQueryResult<TOutput, TError>
-
 /**
  * Hooks for an infinite-query procedure.
  */
 export type TreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
   createInfiniteQuery: TreatyCreateInfiniteQuery<TRoute, TPath>
 }
-
-export type TreatyCreateInfiniteQuery<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
-  TInput = InferRouteInput<TRoute, ReservedInfiniteQueryKeys>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  TEndpoint = TreatyQueryKey<TPath>,
-> = (
-  options: StoreOrVal<
-    TParams & {
-      eden?: EdenQueryProxyConfig
-      queryOptions: Omit<
-        CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-        'queryKey'
-      >
-    }
-  >,
-) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
 
 /**
  * Hooks for a mutation procedure.

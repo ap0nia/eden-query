@@ -1,11 +1,15 @@
-import type {
-  CreateMutationOptions,
-  FetchInfiniteQueryOptions,
-  FetchQueryOptions,
-  StoreOrVal,
+import {
+  createMutation,
+  type CreateMutationOptions,
+  type CreateMutationResult,
+  type DefaultError,
+  type FetchInfiniteQueryOptions,
+  type FetchQueryOptions,
+  type QueryClient,
+  type StoreOrVal,
 } from '@tanstack/svelte-query'
 import type { Elysia } from 'elysia'
-import { get } from 'svelte/store'
+import { derived, get } from 'svelte/store'
 
 import { LOCAL_ADDRESSES } from '../constants'
 import { httpMethods } from '../internal/http'
@@ -18,6 +22,42 @@ import type {
   EdenTreatyQueryConfig,
   TreatyConfig,
 } from './types'
+
+/**
+ * In order to extend the {@link createMutation} API to allow query/headers to be
+ * passed in and forwarded properly, create custom wrapper.
+ */
+export function createTreatyMutation<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TContext = unknown,
+>(
+  options: CreateMutationOptions<TData, TError, TVariables, TContext>,
+  queryClient?: QueryClient,
+): CreateMutationResult<TData, TError, TVariables, TContext> {
+  const mutation = createMutation(options, queryClient)
+
+  const customMutation = derived(mutation, ($mutation) => {
+    const originalMutateAsync = $mutation.mutateAsync
+
+    $mutation.mutateAsync = async (variables, options = {}) => {
+      return await originalMutateAsync({ variables, options } as any, options)
+    }
+
+    const originalMutate = $mutation.mutate
+
+    $mutation.mutate = (variables, options = {}) => {
+      return originalMutate({ variables, options } as any, options)
+    }
+
+    return {
+      ...$mutation,
+    }
+  })
+
+  return customMutation
+}
 
 export function createTreatyQueryOptions(
   paths: string[],
