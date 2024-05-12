@@ -9,6 +9,7 @@ import {
   Query,
   QueryClient,
   type QueryFilters,
+  type QueryKey,
   type RefetchOptions,
   type ResetOptions,
   type SetDataOptions,
@@ -17,18 +18,18 @@ import {
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
+import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
-import type { EdenQueryParams } from '../internal/params'
-import type { DeepPartial } from '../utils/deep-partial'
-import { noop } from '../utils/noop'
-import type { Override } from '../utils/override'
-import type { EdenTreatyQueryConfig, TreatyQueryKey } from './types'
 import {
   createTreatyInfiniteQueryOptions,
   createTreatyQueryKey,
   createTreatyQueryOptions,
-} from './utils'
+  type EdenQueryKey,
+} from '../internal/query'
+import type { DeepPartial } from '../utils/deep-partial'
+import { noop } from '../utils/noop'
+import type { Override } from '../utils/override'
 
 /**
  */
@@ -70,9 +71,9 @@ type SharedContext = {
 type TreatyContextHooksMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
+  TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
 > = TreatyQueryContext<TRoute, TPath> &
-  (InfiniteCursorKey extends keyof (TParams['params'] & TParams['query'])
+  (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
     ? TreatyInfiniteQueryContext<TRoute, TPath>
     : {})
 
@@ -82,41 +83,40 @@ type TreatyContextHooksMapping<
 type TreatyQueryContext<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
   TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  TEndpoint = TreatyQueryKey<TPath>,
+  TKey extends QueryKey = EdenQueryKey<TPath>,
 > = {
   fetch: (
-    input: TParams,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+    input: TInput,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
   ) => Promise<TOutput>
 
   prefetch: (
-    input: TParams,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+    input: TInput,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
   ) => Promise<void>
 
   ensureData: (
-    input: TParams,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+    input: TInput,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
   ) => Promise<TOutput>
 
-  getData: (input: TParams) => TOutput | undefined
+  getData: (input: TInput) => TOutput | undefined
 
   setData: (
-    input: TParams,
+    input: TInput,
     updater: Updater<TOutput | undefined, TOutput | undefined>,
     options?: SetDataOptions,
   ) => void
 
   invalidate: (
-    input?: DeepPartial<TParams>,
+    input?: DeepPartial<TInput>,
     filters?: Override<
       InvalidateQueryFilters,
       {
-        predicate?: (query: Query<TOutput, TError, TOutput, [TEndpoint, TInput]>) => boolean
+        predicate?: (query: Query<TOutput, TError, TOutput, TKey>) => boolean
       }
     >,
     options?: InvalidateOptions,
@@ -140,37 +140,33 @@ type TreatyQueryContext<
 type TreatyInfiniteQueryContext<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute, ReservedInfiniteQueryKeys> = EdenQueryParams<
-    any,
-    TRoute
-  >,
-  TInput = InferRouteInput<TRoute>,
+  TInput = InferRouteInput<TRoute, any, ReservedInfiniteQueryKeys>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  TEndpoint = TreatyQueryKey<TPath>,
+  TKey extends QueryKey = EdenQueryKey<TPath>,
 > = {
   fetchInfinite: (
-    input: TParams,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+    input: TInput,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
   ) => Promise<InfiniteData<TOutput>>
 
   prefetchInfinite: (
-    input: TParams,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
+    input: TInput,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
   ) => Promise<void>
 
   getInfiniteData: (input: TInput) => InfiniteData<TOutput> | undefined
 
   setInfiniteData: (
-    input: TParams,
+    input: TInput,
     updater: Updater<InfiniteData<TOutput> | undefined, InfiniteData<TOutput> | undefined>,
     options?: SetDataOptions,
   ) => void
 
   infiniteOptions: (
-    input: TParams,
-    options?: CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>,
-  ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, [TEndpoint, TInput]>
+    input: TInput,
+    options?: CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>,
+  ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>
 }
 
 /**
@@ -181,7 +177,7 @@ type TreatyInfiniteQueryContext<
  */
 export function createInnerContextProxy(
   domain?: string,
-  config: EdenTreatyQueryConfig = {},
+  config: EdenQueryConfig = {},
   queryClient = useQueryClient(),
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {
@@ -331,7 +327,7 @@ export function createInnerContextProxy(
  */
 export function createContext<TSchema extends Record<string, any>>(
   domain?: string,
-  config: EdenTreatyQueryConfig = {},
+  config: EdenQueryConfig = {},
   queryClient = useQueryClient(),
   elysia?: Elysia<any, any, any, any, any, any>,
 ): EdenTreatyQueryContext<TSchema> {

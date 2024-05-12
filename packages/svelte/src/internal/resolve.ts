@@ -7,18 +7,18 @@ import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
-import type { TreatyConfig } from './types'
+import type { EdenResolveOptions } from './config'
 
 function processHeaders(
-  h: TreatyConfig['headers'],
+  rawHeaders: EdenResolveOptions['headers'],
   path: string,
   options: RequestInit = {},
   headers: Record<string, string> = {},
 ): Record<string, string> {
-  if (!h) return headers
+  if (!rawHeaders) return headers
 
-  if (Array.isArray(h)) {
-    for (const value of h) {
+  if (Array.isArray(rawHeaders)) {
+    for (const value of rawHeaders) {
       if (!Array.isArray(value)) {
         headers = processHeaders(value, path, options, headers)
         continue
@@ -39,21 +39,21 @@ function processHeaders(
     return headers
   }
 
-  switch (typeof h) {
+  switch (typeof rawHeaders) {
     case 'function': {
-      const v = h(path, options)
+      const v = rawHeaders(path, options)
       return v ? processHeaders(v, path, options, headers) : headers
     }
 
     case 'object': {
-      if (h instanceof Headers) {
-        h.forEach((value, key) => {
+      if (rawHeaders instanceof Headers) {
+        rawHeaders.forEach((value, key) => {
           headers[key.toLowerCase()] = value
         })
         return headers
       }
 
-      for (const [key, value] of Object.entries(h)) {
+      for (const [key, value] of Object.entries(rawHeaders)) {
         headers[key.toLowerCase()] = value as string
       }
 
@@ -67,9 +67,8 @@ function processHeaders(
 }
 
 /**
- * Resolve a treaty request.
  */
-export async function resolveTreaty(
+export async function fetchTreaty(
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    */
@@ -100,7 +99,7 @@ export async function resolveTreaty(
 
   /**
    */
-  config: TreatyConfig = {},
+  config: EdenResolveOptions = {},
 
   /**
    */

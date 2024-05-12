@@ -1,38 +1,26 @@
 import type { CreateMutationOptions, QueryClient } from '@tanstack/svelte-query'
 import { createInfiniteQuery, createQuery, type StoreOrVal } from '@tanstack/svelte-query'
 import type { Elysia } from 'elysia'
-import type { Prettify, RouteSchema } from 'elysia/types'
 import { getContext, setContext } from 'svelte'
 import { writable } from 'svelte/store'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
-import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
-import type { InfiniteCursorKey } from '../internal/infinite'
-import type { EdenQueryParams } from '../internal/params'
-import { isBrowser } from '../utils/is-browser'
-import type { IsOptional } from '../utils/is-optional'
-import { isStore } from '../utils/is-store'
-import { noop } from '../utils/noop'
-import { createContext, type EdenTreatyQueryContext } from './context'
-import type {
-  EdenTreatyCreateMutation,
-  TreatyCreateInfiniteQuery,
-  TreatyCreateQuery,
-} from './overrides'
-import type {
-  EdenCreateInfiniteQueryOptions,
-  EdenCreateQueryOptions,
-  EdenTreatyQueryConfig,
-  TreatyBaseOptions,
-  TreatyQueryKey,
-} from './types'
+import type { EdenQueryConfig } from '../internal/config'
 import {
   createTreatyInfiniteQueryOptions,
   createTreatyMutation,
   createTreatyMutationOptions,
   createTreatyQueryOptions,
-  resolveFetchOrigin,
-} from './utils'
+  type EdenCreateInfiniteQueryOptions,
+  type EdenCreateQueryOptions,
+} from '../internal/query'
+import { isBrowser } from '../utils/is-browser'
+import type { IsOptional } from '../utils/is-optional'
+import { isStore } from '../utils/is-store'
+import { noop } from '../utils/noop'
+import { createContext, type EdenTreatyQueryContext } from './context'
+import type { EdenTreatyQueryRoot } from './root'
+import { resolveFetchOrigin } from './utils'
 
 /**
  * GET hooks will only have one parameter: options.
@@ -47,7 +35,7 @@ import {
 export function resolveQueryTreatyProxy(
   args: any[],
   domain?: string,
-  config: EdenTreatyQueryConfig = {},
+  config: EdenQueryConfig = {},
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
@@ -58,7 +46,7 @@ export function resolveQueryTreatyProxy(
 
   switch (hook) {
     case 'createQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions>
+      const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
 
       const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
 
@@ -79,7 +67,7 @@ export function resolveQueryTreatyProxy(
     }
 
     case 'createInfiniteQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions>
+      const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any>>
 
       const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
 
@@ -130,74 +118,11 @@ export function resolveQueryTreatyProxy(
     }
   }
 }
-/**
- * Map {@link Elysia._routes} to svelte-query hooks.
- */
-export type EdenTreatyQueryHooks<TSchema extends Record<string, any>, TPath extends any[] = []> = {
-  [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? TreatyQueryHooksMapping<TSchema[K], K, TPath>
-    : EdenTreatyQueryHooks<TSchema[K], [...TPath, K]>
-}
-
-/**
- * Map a {@link RouteSchema} to an object with hooks.
- * @example { createQuery: ..., createInfiniteQuery: ... }
- */
-export type TreatyQueryHooksMapping<
-  TRoute extends RouteSchema,
-  TMethod,
-  TPath extends any[] = [],
-> = TMethod extends HttpQueryMethod
-  ? TreatyQueryMapping<TRoute, TPath>
-  : TMethod extends HttpMutationMethod
-  ? TreatyMutationMapping<TRoute, TPath>
-  : TMethod extends HttpSubscriptionMethod
-  ? TreatySubscriptionMapping<TRoute, TPath>
-  : never
-
-/**
- * Hooks for a query procedure.
- */
-export type TreatyQueryMapping<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
-> = {
-  createQuery: TreatyCreateQuery<TRoute, TPath>
-} & (InfiniteCursorKey extends keyof (TParams['params'] & TParams['query'])
-  ? TreatyInfiniteQueryMapping<TRoute, TPath>
-  : {})
-
-/**
- * Hooks for an infinite-query procedure.
- */
-export type TreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  createInfiniteQuery: TreatyCreateInfiniteQuery<TRoute, TPath>
-}
-
-/**
- * Hooks for a mutation procedure.
- */
-export type TreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  createMutation: EdenTreatyCreateMutation<TRoute, TPath>
-}
-
-/**
- * TODO: Hooks for a subscription procedure.
- */
-export type TreatySubscriptionMapping<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TParams extends EdenQueryParams<any, TRoute> = EdenQueryParams<any, TRoute>,
-> = {
-  options: Prettify<TreatyBaseOptions & TParams>
-  queryKey: TreatyQueryKey<TPath>
-}
 
 export type EdenTreatyQuery<
   TSchema extends Record<string, any>,
-  TConfig extends EdenTreatyQueryConfig = EdenTreatyQueryConfig,
-> = EdenTreatyQueryHooks<TSchema> &
+  TConfig extends EdenQueryConfig = EdenQueryConfig,
+> = EdenTreatyQueryRoot<TSchema> &
   (IsOptional<TConfig, 'queryClient'> extends true
     ? {
         /**
@@ -217,14 +142,14 @@ export type EdenTreatyQuery<
      * Builder utility to strongly define the config in a second step.
      * Call this with a queryClient to assert that {@link EdenTreatyQuery.context} is defined.
      */
-    config: <TNewConfig extends EdenTreatyQueryConfig>(
+    config: <TNewConfig extends EdenQueryConfig>(
       newConfig: TNewConfig,
     ) => EdenTreatyQuery<TSchema, TNewConfig>
 
     /**
      * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
      */
-    setContext: (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => void
+    setContext: (queryClient: QueryClient, configOverride?: EdenQueryConfig) => void
 
     /**
      * Get the utilities saved by {@link EdenFetchQuery.setContext}.
@@ -240,7 +165,7 @@ export type EdenTreatyQuery<
  */
 export function createInnerTreatyQueryProxy(
   domain?: string,
-  config: EdenTreatyQueryConfig = {},
+  config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {
   const paths: any[] = []
@@ -266,12 +191,12 @@ export function createInnerTreatyQueryProxy(
  */
 export function createTreatyQueryProxy(
   domain?: string,
-  config: EdenTreatyQueryConfig = {},
+  config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {
   /**
    */
-  const configBuilder = (newConfig: EdenTreatyQueryConfig) => {
+  const configBuilder = (newConfig: EdenQueryConfig) => {
     return createEdenTreatyQuery(domain, { ...config, ...newConfig })
   }
 
@@ -284,7 +209,7 @@ export function createTreatyQueryProxy(
     return getContext(EDEN_CONTEXT_KEY)
   }
 
-  const setContextHelper = (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => {
+  const setContextHelper = (queryClient: QueryClient, configOverride?: EdenQueryConfig) => {
     const contextProxy = createContext(
       domain,
       { ...config, ...configOverride },
@@ -320,14 +245,14 @@ export function createTreatyQueryProxy(
 
 export function createEdenTreatyQuery<
   T extends Elysia<any, any, any, any, any, any, any, any>,
-  TConfig extends EdenTreatyQueryConfig = EdenTreatyQueryConfig,
+  TConfig extends EdenQueryConfig = EdenQueryConfig,
 >(
   /**
    * URL to server for client-side usage, {@link Elysia} instance for server-side usage,
    * or undefined for relative URLs.
    */
   domain?: string | T,
-  config: EdenTreatyQueryConfig = {},
+  config: EdenQueryConfig = {},
 ): T extends {
   _routes: infer TSchema extends Record<string, any>
 }
@@ -351,11 +276,5 @@ export function createEdenTreatyQuery<
   return createTreatyQueryProxy(SAMPLE_DOMAIN, config, domain)
 }
 
-export type {
-  EdenTreatyQueryConfig,
-  TreatyBaseOptions,
-  TreatyConfig,
-  TreatyData,
-  TreatyError,
-} from './types'
+// export type * from './types'
 export type { InferTreatyQueryInput, InferTreatyQueryIO, InferTreatyQueryOutput } from './utils'
