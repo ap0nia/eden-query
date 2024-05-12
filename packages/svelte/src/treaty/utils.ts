@@ -8,11 +8,13 @@ import {
   type QueryClient,
   type StoreOrVal,
 } from '@tanstack/svelte-query'
-import type { Elysia } from 'elysia'
+import type { Elysia, RouteSchema } from 'elysia'
 import { derived, get } from 'svelte/store'
 
 import { LOCAL_ADDRESSES } from '../constants'
 import { httpMethods } from '../internal/http'
+import type { InferRouteOutput } from '../internal/infer'
+import type { EdenQueryParams } from '../internal/params'
 import { getMutationKey, getQueryKey, type QueryType } from '../internal/query'
 import { isStore } from '../utils/is-store'
 import { resolveTreaty } from './resolve'
@@ -267,4 +269,55 @@ export function resolveFetchOrigin(domain: string, config: TreatyConfig) {
   }
 
   return domain
+}
+
+export type InferTreatyQueryIO<T extends Elysia<any, any, any, any, any, any, any, any>> =
+  T extends {
+    _routes: infer TSchema extends Record<string, any>
+  }
+    ? InferTreatyQueryIOMapping<TSchema>
+    : 'Please install Elysia before using Eden'
+
+export type InferTreatyQueryIOMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? {
+        input: EdenQueryParams<Extract<K, string>, TSchema[K]>
+        output: InferRouteOutput<TSchema[K]>
+      }
+    : InferTreatyQueryIOMapping<TSchema[K], [...TPath, K]>
+}
+
+export type InferTreatyQueryInput<T extends Elysia<any, any, any, any, any, any, any, any>> =
+  T extends {
+    _routes: infer TSchema extends Record<string, any>
+  }
+    ? InferTreatyQueryInputMapping<TSchema>
+    : 'Please install Elysia before using Eden'
+
+export type InferTreatyQueryInputMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? EdenQueryParams<Extract<K, string>, TSchema[K]>
+    : InferTreatyQueryInputMapping<TSchema[K], [...TPath, K]>
+}
+
+export type InferTreatyQueryOutput<T extends Elysia<any, any, any, any, any, any, any, any>> =
+  T extends {
+    _routes: infer TSchema extends Record<string, any>
+  }
+    ? InferTreatyQueryOutputMapping<TSchema>
+    : 'Please install Elysia before using Eden'
+
+export type InferTreatyQueryOutputMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? InferRouteOutput<TSchema[K]>
+    : InferTreatyQueryOutputMapping<TSchema[K], [...TPath, K]>
 }

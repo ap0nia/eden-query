@@ -350,3 +350,12 @@ export function createEdenTreatyQuery<
 
   return createTreatyQueryProxy(SAMPLE_DOMAIN, config, domain)
 }
+
+export type {
+  EdenTreatyQueryConfig,
+  TreatyBaseOptions,
+  TreatyConfig,
+  TreatyData,
+  TreatyError,
+} from './types'
+export type { InferTreatyQueryInput, InferTreatyQueryIO, InferTreatyQueryOutput } from './utils'
