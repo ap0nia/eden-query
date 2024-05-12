@@ -21,14 +21,12 @@ export const app = elysia
     return db.count
   })
   .get('/wait', async () => {
-    // Waits 10 seconds before resolving, test abortOnUnmount.
-    await new Promise((resolve) => setTimeout(resolve, 10_000))
+    await new Promise((resolve) => setTimeout(resolve, 5000))
     return 'OK'
   })
   .put(
     '/count',
     (context) => {
-      console.log('context: ', context)
       const increment = context.body.increment ?? 1
       db.count += increment
       return increment
