@@ -20,12 +20,13 @@ import type { Elysia, RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type { InfiniteCursorKey, ReservedInfiniteQueryKeys } from '../internal/infinite'
 import {
   createTreatyInfiniteQueryOptions,
   createTreatyQueryKey,
   createTreatyQueryOptions,
   type EdenQueryKey,
+  type InfiniteCursorKey,
+  type ReservedInfiniteQueryKeys,
 } from '../internal/query'
 import type { DeepPartial } from '../utils/deep-partial'
 import { noop } from '../utils/noop'

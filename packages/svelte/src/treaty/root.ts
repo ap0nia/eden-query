@@ -13,12 +13,12 @@ import type { Readable } from 'svelte/store'
 import type { EdenResolveOptions } from '../internal/config'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type { InfiniteCursorKey } from '../internal/infinite'
 import type {
   EdenCreateInfiniteQueryOptions,
   EdenCreateMutationOptions,
   EdenCreateQueryOptions,
   EdenQueryKey,
+  InfiniteCursorKey,
 } from '../internal/query'
 import type { Override } from '../utils/override'
 
