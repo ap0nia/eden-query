@@ -1,3 +1,5 @@
+import type { RouteSchema } from 'elysia'
+
 import type { EdenFetchError, MapError } from '../internal/error'
 import type { IsNever } from '../utils/is-never'
 import type { IsUnknown } from '../utils/is-unknown'
@@ -13,7 +15,7 @@ type ReplaceBlobWithFiles<in out RecordType extends Record<string, unknown>> = {
  * Transforms a raw route definition into a more semantically accurate params object.
  */
 export type InferRouteInput<
-  TRoute extends Record<string, any> = any,
+  TRoute extends RouteSchema = any,
   _TMethod extends string = any,
   /**
    * Utility generic for filtering out certain properties from all input sources.
@@ -65,3 +67,5 @@ export type InferRouteError<T extends Record<string, any>> = MapError<
     ? EdenFetchError<number, string>
     : Errors
   : EdenFetchError<number, string>
+
+export type RouteOutputSchema = InferRouteInput & { data?: unknown }
