@@ -9,22 +9,21 @@ import {
   type CreateMutationResult,
   type CreateQueryOptions,
   type DefaultError,
-  type FetchInfiniteQueryOptions,
-  type FetchQueryOptions,
   type MutationObserverOptions,
   type OmitKeyof,
   type QueryClient,
   type QueryKey,
   type StoreOrVal,
+  type UndefinedInitialDataOptions,
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 import { derived, get } from 'svelte/store'
 
 import { isStore } from '../utils/is-store'
 import type { EdenQueryConfig } from './config'
-import { httpMethods } from './http'
+import { httpMethods, isHttpMethod } from './http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from './infer'
-import { fetchTreaty } from './resolve'
+import { resolveTreatyRequest } from './resolve'
 
 export type GetRequestInput<T extends { params?: any; query?: any }> = T
 
@@ -155,14 +154,14 @@ export function createTreatyQueryOptions(
   domain?: string,
   config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
-): FetchQueryOptions {
+): UndefinedInitialDataOptions {
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
    */
   let method = paths[paths.length - 1]
 
-  if (httpMethods.includes(method as any)) {
+  if (isHttpMethod(method)) {
     paths.pop()
   } else {
     method = 'get'
@@ -179,7 +178,7 @@ export function createTreatyQueryOptions(
   const baseQueryOptions = {
     queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
-      const result = await fetchTreaty(
+      const result = await resolveTreatyRequest(
         paths,
         method,
         {
@@ -196,7 +195,7 @@ export function createTreatyQueryOptions(
       return result
     },
     ...queryOptions,
-  } as FetchQueryOptions
+  } as UndefinedInitialDataOptions
 
   return baseQueryOptions
 }
@@ -207,14 +206,14 @@ export function createTreatyInfiniteQueryOptions(
   domain?: string,
   config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
-): FetchInfiniteQueryOptions {
+): CreateInfiniteQueryOptions {
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
    */
   let method = paths[paths.length - 1]
 
-  if (httpMethods.includes(method as any)) {
+  if (isHttpMethod(method)) {
     paths.pop()
   } else {
     method = 'get'
@@ -244,7 +243,7 @@ export function createTreatyInfiniteQueryOptions(
         options.params['cursor'] = context.pageParam
       }
 
-      const result = await fetchTreaty(
+      const result = await resolveTreatyRequest(
         paths,
         method,
         {
@@ -262,7 +261,7 @@ export function createTreatyInfiniteQueryOptions(
       return result
     },
     ...queryOptions,
-  } as FetchInfiniteQueryOptions
+  } as CreateInfiniteQueryOptions
 
   return infiniteQueryOptions
 }
@@ -280,7 +279,7 @@ export function createTreatyMutationOptions(
    */
   let method = paths[paths.length - 1]
 
-  if (httpMethods.includes(method as any)) {
+  if (isHttpMethod(method)) {
     paths.pop()
   } else {
     method = 'get'
@@ -294,7 +293,7 @@ export function createTreatyMutationOptions(
     mutationKey: getMutationKey(paths, optionsValue as any),
     mutationFn: async (customVariables: any = {}) => {
       const { variables, options } = customVariables
-      return await fetchTreaty(paths, method, variables, options, domain, config, elysia)
+      return await resolveTreatyRequest(paths, method, variables, options, domain, config, elysia)
     },
     onSuccess(data, variables, context) {
       const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)

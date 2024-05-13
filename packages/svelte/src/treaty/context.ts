@@ -53,7 +53,7 @@ export type InnerContextProxy<
 > = SharedContext & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? TreatyContextHooksMapping<TSchema[K], [...TPath, K]>
-    : InnerContextProxy<TSchema[K]>
+    : InnerContextProxy<TSchema[K], [...TPath, K]>
 }
 
 /**
@@ -87,7 +87,7 @@ type TreatyQueryContext<
   TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  TKey extends QueryKey = EdenQueryKey<TPath>,
+  TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
   fetch: (
     input: TInput,

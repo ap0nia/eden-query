@@ -1,123 +1,17 @@
-import type { CreateMutationOptions, QueryClient } from '@tanstack/svelte-query'
-import { createInfiniteQuery, createQuery, type StoreOrVal } from '@tanstack/svelte-query'
+import type { QueryClient } from '@tanstack/svelte-query'
+import { createQueries } from '@tanstack/svelte-query'
 import type { Elysia } from 'elysia'
 import { getContext, setContext } from 'svelte'
-import { writable } from 'svelte/store'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import type { EdenQueryConfig } from '../internal/config'
-import {
-  createTreatyInfiniteQueryOptions,
-  createTreatyMutation,
-  createTreatyMutationOptions,
-  createTreatyQueryOptions,
-  type EdenCreateInfiniteQueryOptions,
-  type EdenCreateQueryOptions,
-} from '../internal/query'
 import { isBrowser } from '../utils/is-browser'
 import type { IsOptional } from '../utils/is-optional'
-import { isStore } from '../utils/is-store'
 import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
-import type { EdenTreatyQueryRoot } from './root'
+import { createEdenCreateQueriesProxy, type EdenCreateQueries } from './create-queries'
+import { createEdenTreatyQueryProxyRoot, type EdenTreatyQueryRoot } from './root'
 import { resolveFetchOrigin } from './utils'
-
-/**
- * GET hooks will only have one parameter: options.
- * eden.api.hello.get.createQuery(options)
- *
- * POST, etc. hooks will also only have one parameter: options.
- * They add body when calling `mutate` or `mutateAsync`
- *
- * const mutation = eden.api.hello.post.createMutation(options)
- * mutation.mutate(body)
- */
-export function resolveQueryTreatyProxy(
-  args: any[],
-  domain?: string,
-  config: EdenQueryConfig = {},
-  paths: string[] = [],
-  elysia?: Elysia<any, any, any, any, any, any>,
-) {
-  /**
-   * @example 'createQuery'
-   */
-  const hook = paths.pop()
-
-  switch (hook) {
-    case 'createQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
-
-      const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
-
-      if (!isStore(typedOptions)) {
-        return createQuery(queryOptions as any)
-      }
-
-      const optionsStore = writable(queryOptions, (set) => {
-        const unsubscribe = typedOptions.subscribe((newInput) => {
-          args[0] = newInput
-          const newQueryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
-          set({ ...queryOptions, ...newQueryOptions })
-        })
-        return unsubscribe
-      })
-
-      return createQuery(optionsStore as any)
-    }
-
-    case 'createInfiniteQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any>>
-
-      const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
-
-      if (!isStore(typedOptions)) {
-        return createInfiniteQuery(queryOptions as any)
-      }
-
-      const optionsStore = writable(queryOptions, (set) => {
-        const unsubscribe = typedOptions.subscribe((newInput) => {
-          args[0] = newInput
-          const newOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
-          set({ ...queryOptions, ...newOptions })
-        })
-        return unsubscribe
-      })
-
-      return createInfiniteQuery(optionsStore as any)
-    }
-
-    case 'createMutation': {
-      const typedOptions = args[0] as CreateMutationOptions
-
-      const mutationOptions = createTreatyMutationOptions(paths, args, domain, config, elysia)
-
-      if (!isStore(typedOptions)) {
-        return createTreatyMutation(mutationOptions)
-      }
-
-      const optionsStore = writable(mutationOptions, (set) => {
-        const unsubscribe = typedOptions.subscribe((newInput) => {
-          args[0] = newInput
-          const newOptions = createTreatyMutationOptions(paths, args, domain, config, elysia)
-          set({ ...mutationOptions, ...newOptions })
-        })
-        return unsubscribe
-      })
-
-      return createTreatyMutation(optionsStore as any)
-    }
-
-    // TODO: not sure how to handle subscriptions.
-    // case 'createSubscription': {
-    //   return client.subscription(path, anyArgs[0], anyArgs[1])
-    // }
-
-    default: {
-      throw new TypeError(`eden.${paths.join('.')} is not a function`)
-    }
-  }
-}
 
 export type EdenTreatyQuery<
   TSchema extends Record<string, any>,
@@ -139,6 +33,10 @@ export type EdenTreatyQuery<
         context: EdenTreatyQueryContext<TSchema>
       }) & {
     /**
+     */
+    createQueries: EdenCreateQueries<TSchema>
+
+    /**
      * Builder utility to strongly define the config in a second step.
      * Call this with a queryClient to assert that {@link EdenTreatyQuery.context} is defined.
      */
@@ -158,42 +56,12 @@ export type EdenTreatyQuery<
   }
 
 /**
- * Inner proxy. __Does not recursively create more proxies!__
- *
- * Once the first property has been decided from the top-level proxy,
- * future property accesses will mutate a locally scoped array.
- */
-export function createInnerTreatyQueryProxy(
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
-): any {
-  const paths: any[] = []
-
-  const innerProxy: any = new Proxy(() => {}, {
-    get: (_, path: string): any => {
-      if (path !== 'index') {
-        paths.push(path)
-      }
-      return innerProxy
-    },
-    apply: (_, __, args) => {
-      return resolveQueryTreatyProxy(args, domain, config, [...paths], elysia)
-    },
-  })
-
-  return innerProxy
-}
-
-/**
  * Top-level proxy. Exposes top-level properties or initializes a new inner proxy based on
  * the first property access.
  */
-export function createTreatyQueryProxy(
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
-): any {
+export function createTreatyQueryProxy<
+  T extends Elysia<any, any, any, any, any, any> = Elysia<any, any, any, any, any, any>,
+>(domain?: string, config: EdenQueryConfig = {}, elysia?: T): any {
   /**
    */
   const configBuilder = (newConfig: EdenQueryConfig) => {
@@ -219,15 +87,22 @@ export function createTreatyQueryProxy(
     setContext(EDEN_CONTEXT_KEY, contextProxy)
   }
 
+  const createQueriesProxy = createEdenCreateQueriesProxy<T>(domain, config, elysia)
+
+  const edenCreateQueries: EdenCreateQueries<T['_routes']> = (callback) => {
+    return createQueries(callback(createQueriesProxy))
+  }
+
   const topLevelProperties = {
     config: configBuilder,
     context,
     getContext: getContextThunk,
     setContext: setContextHelper,
+    createQueries: edenCreateQueries,
   }
 
   const defaultHandler = (path: string | symbol) => {
-    const innerProxy = createInnerTreatyQueryProxy(domain, config, elysia)
+    const innerProxy = createEdenTreatyQueryProxyRoot(domain, config, elysia)
     return innerProxy[path]
   }
 
@@ -276,5 +151,4 @@ export function createEdenTreatyQuery<
   return createTreatyQueryProxy(SAMPLE_DOMAIN, config, domain)
 }
 
-// export type * from './types'
 export type { InferTreatyQueryInput, InferTreatyQueryIO, InferTreatyQueryOutput } from './utils'

@@ -41,3 +41,7 @@ export function isFetchCall(body: any, options: any, paths: string[]) {
     httpMethods.includes(paths.at(-1) as any)
   )
 }
+
+export function isHttpMethod(value: any) {
+  return httpMethods.includes(value)
+}

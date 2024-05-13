@@ -68,7 +68,7 @@ function processHeaders(
 
 /**
  */
-export async function fetchTreaty(
+export async function resolveTreatyRequest(
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    *
@@ -207,7 +207,7 @@ export async function fetchTreaty(
 
       if (field instanceof FileList) {
         for (const file of field) {
-          formData.append(key as any, await createNewFile(file))
+          formData.append(key, await createNewFile(file))
         }
         continue
       }

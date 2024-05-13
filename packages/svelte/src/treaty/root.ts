@@ -1,25 +1,33 @@
-import type {
-  CreateBaseMutationResult,
-  CreateInfiniteQueryResult,
-  CreateQueryResult,
-  InfiniteData,
-  MutateOptions,
-  StoreOrVal,
+import {
+  type CreateBaseMutationResult,
+  createInfiniteQuery,
+  type CreateInfiniteQueryResult,
+  type CreateMutationOptions,
+  createQuery,
+  type CreateQueryResult,
+  type InfiniteData,
+  type MutateOptions,
+  type StoreOrVal,
 } from '@tanstack/svelte-query'
-import type { RouteSchema } from 'elysia'
+import type { Elysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
-import type { Readable } from 'svelte/store'
+import { derived, type Readable } from 'svelte/store'
 
-import type { EdenResolveOptions } from '../internal/config'
+import type { EdenQueryConfig, EdenResolveOptions } from '../internal/config'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
-import type {
-  EdenCreateInfiniteQueryOptions,
-  EdenCreateMutationOptions,
-  EdenCreateQueryOptions,
-  EdenQueryKey,
-  InfiniteCursorKey,
+import {
+  createTreatyInfiniteQueryOptions,
+  createTreatyMutation,
+  createTreatyMutationOptions,
+  createTreatyQueryOptions,
+  type EdenCreateInfiniteQueryOptions,
+  type EdenCreateMutationOptions,
+  type EdenCreateQueryOptions,
+  type EdenQueryKey,
+  type InfiniteCursorKey,
 } from '../internal/query'
+import { isStore } from '../utils/is-store'
 import type { Override } from '../utils/override'
 
 /**
@@ -80,7 +88,7 @@ export type TreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[
 export type TreatySubscriptionMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
+  TInput = InferRouteInput<TRoute>,
 > = {
   options: Prettify<EdenResolveOptions & TInput>
   queryKey: EdenQueryKey<TPath>
@@ -161,3 +169,116 @@ export type EdenTreatyMutationFunction<
     ? [options?: TParams & MutateOptions<TOutput, TError, TBody, TContext>]
     : [options: TParams & MutateOptions<TOutput, TError, TBody, TContext>]
 ) => void
+
+/**
+ * Inner proxy. __Does not recursively create more proxies!__
+ *
+ * Once the first property has been decided from the top-level proxy,
+ * future property accesses will mutate a locally scoped array.
+ */
+export function createEdenTreatyQueryProxyRoot(
+  domain?: string,
+  config: EdenQueryConfig = {},
+  elysia?: Elysia<any, any, any, any, any, any>,
+): any {
+  const paths: any[] = []
+
+  const innerProxy: any = new Proxy(() => {}, {
+    get: (_, path: string): any => {
+      if (path !== 'index') {
+        paths.push(path)
+      }
+      return innerProxy
+    },
+    apply: (_, __, args) => {
+      return resolveEdenTreatyQueryProxy(args, domain, config, [...paths], elysia)
+    },
+  })
+
+  return innerProxy
+}
+
+/**
+ * GET hooks will only have one parameter: options.
+ * eden.api.hello.get.createQuery(options)
+ *
+ * POST, etc. hooks will also only have one parameter: options.
+ * They add body when calling `mutate` or `mutateAsync`
+ *
+ * const mutation = eden.api.hello.post.createMutation(options)
+ * mutation.mutate(body)
+ */
+export function resolveEdenTreatyQueryProxy(
+  args: any[],
+  domain?: string,
+  config: EdenQueryConfig = {},
+  paths: string[] = [],
+  elysia?: Elysia<any, any, any, any, any, any>,
+) {
+  /**
+   * @example 'createQuery'
+   */
+  const hook = paths.pop()
+
+  switch (hook) {
+    case 'createQuery': {
+      const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
+
+      if (!isStore(typedOptions)) {
+        const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+        return createQuery(queryOptions)
+      }
+
+      const optionsStore = derived(typedOptions, ($typedOptions) => {
+        args[0] = $typedOptions
+        const newQueryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+        return { ...$typedOptions, ...newQueryOptions }
+      })
+
+      return createQuery(optionsStore)
+    }
+
+    case 'createInfiniteQuery': {
+      const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any>>
+
+      if (!isStore(typedOptions)) {
+        const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+        return createInfiniteQuery(queryOptions)
+      }
+
+      const optionsStore = derived(typedOptions, ($typedOptions) => {
+        args[0] = $typedOptions
+        const newOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+        return { ...$typedOptions, ...newOptions }
+      })
+
+      return createInfiniteQuery(optionsStore)
+    }
+
+    case 'createMutation': {
+      const typedOptions = args[0] as CreateMutationOptions
+
+      if (!isStore(typedOptions)) {
+        const mutationOptions = createTreatyMutationOptions(paths, args, domain, config, elysia)
+        return createTreatyMutation(mutationOptions)
+      }
+
+      const optionsStore = derived(typedOptions, ($typedOptions) => {
+        args[0] = $typedOptions
+        const newOptions = createTreatyMutationOptions(paths, args, domain, config, elysia)
+        return { ...$typedOptions, ...newOptions }
+      })
+
+      return createTreatyMutation(optionsStore)
+    }
+
+    // TODO: not sure how to handle subscriptions.
+    // case 'createSubscription': {
+    //   return client.subscription(path, anyArgs[0], anyArgs[1])
+    // }
+
+    default: {
+      throw new TypeError(`eden.${paths.join('.')} is not a function`)
+    }
+  }
+}
