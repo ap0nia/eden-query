@@ -18,6 +18,7 @@ import {
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
+import { LOCALS_SSR_KEY } from '../constants'
 import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
@@ -91,17 +92,17 @@ type TreatyQueryContext<
 > = {
   fetch: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
   ) => Promise<TOutput>
 
   prefetch: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
   ) => Promise<void>
 
   ensureData: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
   ) => Promise<TOutput>
 
   getData: (input: TInput) => TOutput | undefined
@@ -109,7 +110,7 @@ type TreatyQueryContext<
   setData: (
     input: TInput,
     updater: Updater<TOutput | undefined, TOutput | undefined>,
-    options?: SetDataOptions,
+    options?: SetDataOptions & EdenQueryConfig,
   ) => void
 
   invalidate: (
@@ -120,18 +121,30 @@ type TreatyQueryContext<
         predicate?: (query: Query<TOutput, TError, TOutput, TKey>) => boolean
       }
     >,
-    options?: InvalidateOptions,
+    options?: InvalidateOptions & EdenQueryConfig,
   ) => Promise<void>
 
-  refetch: (input?: TInput, filters?: QueryFilters, options?: RefetchOptions) => Promise<void>
+  refetch: (
+    input?: TInput,
+    filters?: QueryFilters,
+    options?: RefetchOptions & EdenQueryConfig,
+  ) => Promise<void>
 
-  cancel: (input?: TInput, filters?: QueryFilters, options?: CancelOptions) => Promise<void>
+  cancel: (
+    input?: TInput,
+    filters?: QueryFilters,
+    options?: CancelOptions & EdenQueryConfig,
+  ) => Promise<void>
 
-  reset: (input?: TInput, filters?: QueryFilters, options?: ResetOptions) => Promise<void>
+  reset: (
+    input?: TInput,
+    filters?: QueryFilters,
+    options?: ResetOptions & EdenQueryConfig,
+  ) => Promise<void>
 
   options: (
     input: TInput,
-    options?: CreateQueryOptions<TOutput, TError>,
+    options?: CreateQueryOptions<TOutput, TError> & EdenQueryConfig,
   ) => CreateQueryOptions<TOutput, TError>
 }
 
@@ -148,12 +161,12 @@ type TreatyInfiniteQueryContext<
 > = {
   fetchInfinite: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
   ) => Promise<InfiniteData<TOutput>>
 
   prefetchInfinite: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey>,
+    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
   ) => Promise<void>
 
   getInfiniteData: (input: TInput) => InfiniteData<TOutput> | undefined
@@ -161,12 +174,12 @@ type TreatyInfiniteQueryContext<
   setInfiniteData: (
     input: TInput,
     updater: Updater<InfiniteData<TOutput> | undefined, InfiniteData<TOutput> | undefined>,
-    options?: SetDataOptions,
+    options?: SetDataOptions & EdenQueryConfig,
   ) => void
 
   infiniteOptions: (
     input: TInput,
-    options?: CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>,
+    options?: CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>
 }
 
@@ -216,7 +229,13 @@ export function createInnerContextProxy(
 
         case 'fetch': {
           const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
-          return queryClient.fetchQuery(queryOptions)
+          return queryClient.fetchQuery(queryOptions).then((result) => {
+            if (config.event?.locals != null) {
+              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
+              config.event.locals[LOCALS_SSR_KEY].set(queryOptions.queryKey, result)
+            }
+            return result
+          })
         }
 
         case 'prefetch': {
@@ -231,7 +250,13 @@ export function createInnerContextProxy(
 
         case 'ensureData': {
           const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
-          return queryClient.ensureQueryData(queryOptions)
+          return queryClient.ensureQueryData(queryOptions).then((result) => {
+            if (config.event?.locals != null) {
+              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
+              config.event.locals[LOCALS_SSR_KEY].set(queryOptions.queryKey, result)
+            }
+            return result
+          })
         }
 
         case 'setData': {
@@ -258,7 +283,13 @@ export function createInnerContextProxy(
             config,
             elysia,
           )
-          return queryClient.prefetchInfiniteQuery(infiniteQueryOptions)
+          return queryClient.prefetchInfiniteQuery(infiniteQueryOptions).then((result) => {
+            if (config.event?.locals != null) {
+              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
+              config.event.locals[LOCALS_SSR_KEY].set(infiniteQueryOptions.queryKey, result)
+            }
+            return result
+          })
         }
 
         case 'getInfiniteData': {
@@ -280,7 +311,14 @@ export function createInnerContextProxy(
             config,
             elysia,
           )
-          return queryClient.ensureQueryData(infiniteQueryOptions)
+
+          return queryClient.ensureQueryData(infiniteQueryOptions).then((result) => {
+            if (config.event?.locals != null) {
+              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
+              config.event.locals[LOCALS_SSR_KEY].set(infiniteQueryOptions.queryKey, result)
+            }
+            return result
+          })
         }
 
         case 'setInfiniteData': {

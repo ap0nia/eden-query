@@ -44,4 +44,4 @@ export type EdenSsrOptions = {
 /**
  * All configuration options available to the fetch or treaty integrations.
  */
-export type EdenQueryConfig = EdenResolveOptions & EdenQueryRequestOptions
+export type EdenQueryConfig = EdenResolveOptions & EdenQueryRequestOptions & EdenSsrOptions
