@@ -6,54 +6,27 @@ import { getContext, setContext } from 'svelte'
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import type { EdenQueryConfig } from '../internal/config'
 import { isBrowser } from '../utils/is-browser'
-import type { IsOptional } from '../utils/is-optional'
 import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { createEdenCreateQueriesProxy, type EdenCreateQueries } from './create-queries'
 import { createEdenTreatyQueryProxyRoot, type EdenTreatyQueryRoot } from './root'
 import { resolveFetchOrigin } from './utils'
 
-export type EdenTreatyQuery<
-  TSchema extends Record<string, any>,
-  TConfig extends EdenQueryConfig = EdenQueryConfig,
-> = EdenTreatyQueryRoot<TSchema> &
-  (IsOptional<TConfig, 'queryClient'> extends true
-    ? {
-        /**
-         * Only guaranteed to be defined if {@link EdenTreatyQuery.config}
-         * is invoked with a defined queryClient.
-         */
-        context?: EdenTreatyQueryContext<TSchema>
-      }
-    : {
-        /**
-         * Only guaranteed to be defined if {@link EdenTreatyQuery.config}
-         * is invoked with a defined queryClient.
-         */
-        context: EdenTreatyQueryContext<TSchema>
-      }) & {
-    /**
-     */
-    createQueries: EdenCreateQueries<TSchema>
+export type EdenTreatyQuery<TSchema extends Record<string, any>> = EdenTreatyQueryRoot<TSchema> & {
+  /**
+   */
+  createQueries: EdenCreateQueries<TSchema>
 
-    /**
-     * Builder utility to strongly define the config in a second step.
-     * Call this with a queryClient to assert that {@link EdenTreatyQuery.context} is defined.
-     */
-    config: <TNewConfig extends EdenQueryConfig>(
-      newConfig: TNewConfig,
-    ) => EdenTreatyQuery<TSchema, TNewConfig>
+  /**
+   * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
+   */
+  setContext: (queryClient: QueryClient, configOverride?: EdenQueryConfig) => void
 
-    /**
-     * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
-     */
-    setContext: (queryClient: QueryClient, configOverride?: EdenQueryConfig) => void
-
-    /**
-     * Get the utilities saved by {@link EdenFetchQuery.setContext}.
-     */
-    getContext: () => EdenTreatyQueryContext<TSchema>
-  }
+  /**
+   * Get the utilities saved by {@link EdenFetchQuery.setContext}.
+   */
+  getContext: () => EdenTreatyQueryContext<TSchema>
+}
 
 /**
  * Top-level proxy. Exposes top-level properties or initializes a new inner proxy based on
@@ -62,28 +35,13 @@ export type EdenTreatyQuery<
 export function createTreatyQueryProxy<
   T extends Elysia<any, any, any, any, any, any> = Elysia<any, any, any, any, any, any>,
 >(domain?: string, config: EdenQueryConfig = {}, elysia?: T): any {
-  /**
-   */
-  const configBuilder = (newConfig: EdenQueryConfig) => {
-    return createEdenTreatyQuery(domain, { ...config, ...newConfig })
-  }
-
-  const context =
-    config?.queryClient != null
-      ? createContext(domain, config, config.queryClient, elysia)
-      : undefined
-
   const getContextThunk = () => {
     return getContext(EDEN_CONTEXT_KEY)
   }
 
   const setContextHelper = (queryClient: QueryClient, configOverride?: EdenQueryConfig) => {
-    const contextProxy = createContext(
-      domain,
-      { ...config, ...configOverride },
-      queryClient,
-      elysia,
-    )
+    const resolvedConfig = { ...config, ...configOverride, queryClient }
+    const contextProxy = createContext(domain, resolvedConfig, elysia)
     setContext(EDEN_CONTEXT_KEY, contextProxy)
   }
 
@@ -94,8 +52,6 @@ export function createTreatyQueryProxy<
   }
 
   const topLevelProperties = {
-    config: configBuilder,
-    context,
     getContext: getContextThunk,
     setContext: setContextHelper,
     createQueries: edenCreateQueries,
@@ -118,10 +74,7 @@ export function createTreatyQueryProxy<
   return outerProxy
 }
 
-export function createEdenTreatyQuery<
-  T extends Elysia<any, any, any, any, any, any, any, any>,
-  TConfig extends EdenQueryConfig = EdenQueryConfig,
->(
+export function createEdenTreatyQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
   /**
    * URL to server for client-side usage, {@link Elysia} instance for server-side usage,
    * or undefined for relative URLs.
@@ -131,7 +84,7 @@ export function createEdenTreatyQuery<
 ): T extends {
   _routes: infer TSchema extends Record<string, any>
 }
-  ? EdenTreatyQuery<TSchema, TConfig>
+  ? EdenTreatyQuery<TSchema>
   : 'Please install Elysia before using Eden' {
   if (domain == null) {
     return createTreatyQueryProxy(domain, config)

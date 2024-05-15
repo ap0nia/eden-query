@@ -18,7 +18,6 @@ import {
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
-import { LOCALS_SSR_KEY } from '../constants'
 import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
@@ -229,13 +228,7 @@ export function createInnerContextProxy(
 
         case 'fetch': {
           const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
-          return queryClient.fetchQuery(queryOptions).then((result) => {
-            if (config.event?.locals != null) {
-              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
-              config.event.locals[LOCALS_SSR_KEY].set(queryOptions.queryKey, result)
-            }
-            return result
-          })
+          return queryClient.fetchQuery(queryOptions)
         }
 
         case 'prefetch': {
@@ -250,13 +243,7 @@ export function createInnerContextProxy(
 
         case 'ensureData': {
           const queryOptions = createTreatyQueryOptions(paths, anyArgs, domain, config, elysia)
-          return queryClient.ensureQueryData(queryOptions).then((result) => {
-            if (config.event?.locals != null) {
-              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
-              config.event.locals[LOCALS_SSR_KEY].set(queryOptions.queryKey, result)
-            }
-            return result
-          })
+          return queryClient.ensureQueryData(queryOptions)
         }
 
         case 'setData': {
@@ -283,13 +270,7 @@ export function createInnerContextProxy(
             config,
             elysia,
           )
-          return queryClient.prefetchInfiniteQuery(infiniteQueryOptions).then((result) => {
-            if (config.event?.locals != null) {
-              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
-              config.event.locals[LOCALS_SSR_KEY].set(infiniteQueryOptions.queryKey, result)
-            }
-            return result
-          })
+          return queryClient.prefetchInfiniteQuery(infiniteQueryOptions)
         }
 
         case 'getInfiniteData': {
@@ -312,13 +293,7 @@ export function createInnerContextProxy(
             elysia,
           )
 
-          return queryClient.ensureQueryData(infiniteQueryOptions).then((result) => {
-            if (config.event?.locals != null) {
-              config.event.locals[LOCALS_SSR_KEY] ??= new Map()
-              config.event.locals[LOCALS_SSR_KEY].set(infiniteQueryOptions.queryKey, result)
-            }
-            return result
-          })
+          return queryClient.ensureQueryData(infiniteQueryOptions)
         }
 
         case 'setInfiniteData': {
@@ -367,9 +342,10 @@ export function createInnerContextProxy(
 export function createContext<TSchema extends Record<string, any>>(
   domain?: string,
   config: EdenQueryConfig = {},
-  queryClient = useQueryClient(),
   elysia?: Elysia<any, any, any, any, any, any>,
 ): EdenTreatyQueryContext<TSchema> {
+  const queryClient = config.queryClient ?? new QueryClient()
+
   const topLevelProperties = {
     queryClient,
   }

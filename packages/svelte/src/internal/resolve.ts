@@ -314,8 +314,8 @@ export async function resolveTreatyRequest(
   return {
     data,
     error,
-    response,
+    // response,
     status: response.status,
-    headers: response.headers,
+    // headers: response.headers,
   }
 }
