@@ -28,13 +28,23 @@ import {
   type InfiniteCursorKey,
   type ReservedInfiniteQueryKeys,
 } from '../internal/query'
+import type { AnyElysia, InstallMessage } from '../types'
 import type { DeepPartial } from '../utils/deep-partial'
 import { noop } from '../utils/noop'
 import type { Override } from '../utils/override'
 
 /**
  */
-export type EdenTreatyQueryContext<
+export type EdenTreatyQueryContext<T extends AnyElysia> = T extends {
+  _routes: infer TSchema extends Record<string, any>
+}
+  ? EdenTreatyQueryContextMapping<TSchema>
+  : InstallMessage
+
+/**
+ * Implementation.
+ */
+export type EdenTreatyQueryContextMapping<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
 > = RootContext & {
@@ -339,11 +349,11 @@ export function createInnerContextProxy(
 /**
  * Top-level proxy that exposes utilities.
  */
-export function createContext<TSchema extends Record<string, any>>(
+export function createContext<T extends AnyElysia>(
   domain?: string,
   config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
-): EdenTreatyQueryContext<TSchema> {
+): EdenTreatyQueryContext<T> {
   const queryClient = config.queryClient ?? new QueryClient()
 
   const topLevelProperties = {

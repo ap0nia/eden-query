@@ -27,16 +27,29 @@ import {
   type EdenQueryKey,
   type InfiniteCursorKey,
 } from '../internal/query'
+import type { AnyElysia, InstallMessage } from '../types'
 import { isStore } from '../utils/is-store'
 import type { Override } from '../utils/override'
 
 /**
  * The root proxy maps Elysia._routes to svelte-query hooks.
  */
-export type EdenTreatyQueryRoot<TSchema extends Record<string, any>, TPath extends any[] = []> = {
+export type EdenTreatyQueryRoot<T extends AnyElysia> = T extends {
+  _routes: infer TSchema extends Record<string, any>
+}
+  ? EdenTreatyQueryRootMapping<TSchema>
+  : InstallMessage
+
+/**
+ * Implementation.
+ */
+export type EdenTreatyQueryRootMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? TreatyQueryRootMapping<TSchema[K], K, TPath>
-    : EdenTreatyQueryRoot<TSchema[K], [...TPath, K]>
+    : EdenTreatyQueryRootMapping<TSchema[K], [...TPath, K]>
 }
 
 /**

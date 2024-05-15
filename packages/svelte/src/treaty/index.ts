@@ -1,10 +1,10 @@
 import type { QueryClient } from '@tanstack/svelte-query'
 import { createQueries } from '@tanstack/svelte-query'
-import type { Elysia } from 'elysia'
 import { getContext, setContext } from 'svelte'
 
 import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
 import type { EdenQueryConfig } from '../internal/config'
+import type { AnyElysia } from '../types'
 import { isBrowser } from '../utils/is-browser'
 import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
@@ -12,10 +12,10 @@ import { createEdenCreateQueriesProxy, type EdenCreateQueries } from './create-q
 import { createEdenTreatyQueryProxyRoot, type EdenTreatyQueryRoot } from './root'
 import { resolveFetchOrigin } from './utils'
 
-export type EdenTreatyQuery<TSchema extends Record<string, any>> = EdenTreatyQueryRoot<TSchema> & {
+export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
   /**
    */
-  createQueries: EdenCreateQueries<TSchema>
+  createQueries: EdenCreateQueries<T>
 
   /**
    * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
@@ -25,16 +25,18 @@ export type EdenTreatyQuery<TSchema extends Record<string, any>> = EdenTreatyQue
   /**
    * Get the utilities saved by {@link EdenFetchQuery.setContext}.
    */
-  getContext: () => EdenTreatyQueryContext<TSchema>
+  getContext: () => EdenTreatyQueryContext<T>
 }
 
 /**
  * Top-level proxy. Exposes top-level properties or initializes a new inner proxy based on
  * the first property access.
  */
-export function createTreatyQueryProxy<
-  T extends Elysia<any, any, any, any, any, any> = Elysia<any, any, any, any, any, any>,
->(domain?: string, config: EdenQueryConfig = {}, elysia?: T): any {
+export function createTreatyQueryProxy<T extends AnyElysia>(
+  domain?: string,
+  config: EdenQueryConfig = {},
+  elysia?: T,
+): any {
   const getContextThunk = () => {
     return getContext(EDEN_CONTEXT_KEY)
   }
@@ -74,18 +76,14 @@ export function createTreatyQueryProxy<
   return outerProxy
 }
 
-export function createEdenTreatyQuery<T extends Elysia<any, any, any, any, any, any, any, any>>(
+export function createEdenTreatyQuery<T extends AnyElysia>(
   /**
    * URL to server for client-side usage, {@link Elysia} instance for server-side usage,
    * or undefined for relative URLs.
    */
   domain?: string | T,
   config: EdenQueryConfig = {},
-): T extends {
-  _routes: infer TSchema extends Record<string, any>
-}
-  ? EdenTreatyQuery<TSchema>
-  : 'Please install Elysia before using Eden' {
+): EdenTreatyQuery<T> {
   if (domain == null) {
     return createTreatyQueryProxy(domain, config)
   }
@@ -104,4 +102,7 @@ export function createEdenTreatyQuery<T extends Elysia<any, any, any, any, any, 
   return createTreatyQueryProxy(SAMPLE_DOMAIN, config, domain)
 }
 
-export type { InferTreatyQueryInput, InferTreatyQueryIO, InferTreatyQueryOutput } from './utils'
+export * from './context'
+export * from './create-queries'
+export * from './root'
+export * from './utils'

@@ -25,6 +25,7 @@ import {
   type EdenCreateQueryOptions,
   type EdenQueryKey,
 } from '../internal/query'
+import type { AnyElysia, InstallMessage } from '../types'
 import { isStore } from '../utils/is-store'
 
 type MAXIMUM_DEPTH = 20
@@ -182,11 +183,11 @@ type QueriesResults<
  * A function that accepts a callback that's called with a proxy object.
  * Invoking the proxy object returns strongly typed query options.
  */
-export type EdenCreateQueries<TSchema extends Record<string, any>> = <
+export type EdenCreateQueries<T extends AnyElysia> = <
   TData extends any[],
   TCombinedResult = QueriesResults<TData>,
 >(
-  callback: (t: EdenCreateQueriesProxy<TSchema>) => {
+  callback: (t: EdenCreateQueriesProxy<T>) => {
     queries: StoreOrVal<[...QueriesOptions<TData>]>
     combine?: (result: QueriesResults<TData>) => TCombinedResult
   },
@@ -196,13 +197,22 @@ export type EdenCreateQueries<TSchema extends Record<string, any>> = <
  * A proxy object that returns {@link CreateQueryOptions} (instead of an actual create query result).
  * Passed to `createQueries` caller to use.
  */
-export type EdenCreateQueriesProxy<
+export type EdenCreateQueriesProxy<T extends AnyElysia> = T extends {
+  _routes: infer TSchema extends Record<string, any>
+}
+  ? EdenCreateQueriesProxyMapping<TSchema>
+  : InstallMessage
+
+/**
+ * Implementation.
+ */
+export type EdenCreateQueriesProxyMapping<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
 > = {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? CreateQueriesHook<TSchema[K], [...TPath, K]>
-    : EdenCreateQueriesProxy<TSchema[K], [...TPath, K]>
+    : EdenCreateQueriesProxyMapping<TSchema[K], [...TPath, K]>
 }
 
 /**
@@ -220,14 +230,11 @@ export type CreateQueriesHook<
   opts?: Partial<EdenCreateQueryOptions<TRoute, TPath>>,
 ) => CreateQueryOptions<TOutput, TError, TOutput, TKey>
 
-export function createEdenCreateQueriesProxy<
-  TSchema extends Record<string, any>,
-  TPath extends any[] = [],
->(
+export function createEdenCreateQueriesProxy<T extends AnyElysia>(
   domain?: string,
   config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
-): EdenCreateQueriesProxy<TSchema, TPath> {
+): EdenCreateQueriesProxy<T> {
   const paths: any[] = []
 
   const innerProxy: any = new Proxy(() => {}, {
