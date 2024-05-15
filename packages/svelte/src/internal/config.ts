@@ -1,3 +1,4 @@
+import type { RequestEvent } from '@sveltejs/kit'
 import type { QueryClient, StoreOrVal } from '@tanstack/svelte-query'
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
@@ -31,6 +32,13 @@ export type EdenResolveOptions = {
   onRequest?: MaybeArray<(path: string, options: RequestInit) => MaybePromise<RequestInit | void>>
   onResponse?: MaybeArray<(response: Response) => MaybePromise<unknown>>
   keepDomain?: boolean
+}
+
+/**
+ * Options available when targetting SSR.
+ */
+export type EdenSsrOptions = {
+  event?: RequestEvent
 }
 
 /**

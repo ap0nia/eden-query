@@ -90,7 +90,7 @@ export function createTreatyQueryProxy<
   const createQueriesProxy = createEdenCreateQueriesProxy<T>(domain, config, elysia)
 
   const edenCreateQueries: EdenCreateQueries<T['_routes']> = (callback) => {
-    return createQueries(callback(createQueriesProxy))
+    return createQueries(callback(createQueriesProxy) as any)
   }
 
   const topLevelProperties = {

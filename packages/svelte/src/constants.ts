@@ -14,3 +14,5 @@ export const SAMPLE_DOMAIN = 'http://i.love.ely'
 export const IS_SERVER = typeof FileList === 'undefined'
 
 export const EDEN_CONTEXT_KEY = Symbol('EDEN_CONTEXT_KEY')
+
+export const PARTIAL_ROUTE_PLACEHOLDER = Symbol('PARTIAL_ROUTE_PLACEHOLDER')
