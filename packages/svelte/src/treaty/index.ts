@@ -26,6 +26,15 @@ export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
    * Get the utilities saved by {@link EdenFetchQuery.setContext}.
    */
   getContext: () => EdenTreatyQueryContext<T>
+
+  /**
+   * Create utilities.
+   */
+  createContext: (
+    domain?: string,
+    config?: EdenQueryConfig,
+    elysia?: T,
+  ) => EdenTreatyQueryContext<T>
 }
 
 /**
@@ -54,6 +63,7 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
   }
 
   const topLevelProperties = {
+    createContext,
     getContext: getContextThunk,
     setContext: setContextHelper,
     createQueries: edenCreateQueries,

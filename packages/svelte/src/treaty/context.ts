@@ -14,7 +14,6 @@ import {
   type ResetOptions,
   type SetDataOptions,
   type Updater,
-  useQueryClient,
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 
@@ -201,7 +200,7 @@ type TreatyInfiniteQueryContext<
 export function createInnerContextProxy(
   domain?: string,
   config: EdenQueryConfig = {},
-  queryClient = useQueryClient(),
+  queryClient = new QueryClient(),
   elysia?: Elysia<any, any, any, any, any, any>,
 ): any {
   const paths: any[] = []

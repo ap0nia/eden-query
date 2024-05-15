@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css'
 
-  import { QueryClientProvider } from '@tanstack/svelte-query'
+  import { QueryClientProvider, hydrate } from '@tanstack/svelte-query'
 
   import { eden } from '$lib/eden'
 
@@ -10,6 +10,8 @@
   export let data: LayoutData
 
   eden.setContext(data.queryClient)
+
+  $: hydrate(data.queryClient, data.ssrCache)
 </script>
 
 <QueryClientProvider client={data.queryClient}>

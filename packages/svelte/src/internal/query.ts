@@ -175,6 +175,14 @@ export function createTreatyQueryOptions(
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
+  /**
+   * Resolve the config, and handle platform specific variables before resolving.
+   */
+  const resolvedConfig = {
+    ...config,
+    fetcher: config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
+  }
+
   const baseQueryOptions = {
     queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
@@ -189,7 +197,7 @@ export function createTreatyQueryOptions(
         },
         undefined,
         domain,
-        config,
+        resolvedConfig,
         elysia,
       )
       return result
@@ -229,6 +237,14 @@ export function createTreatyInfiniteQueryOptions(
 
   const additionalOptions = args[1]
 
+  /**
+   * Resolve the config, and handle platform specific variables before resolving.
+   */
+  const resolvedConfig = {
+    ...config,
+    fetcher: config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
+  }
+
   const infiniteQueryOptions = {
     queryKey: getQueryKey(paths, args[0], 'infinite'),
     queryFn: async (context) => {
@@ -254,7 +270,7 @@ export function createTreatyInfiniteQueryOptions(
         },
         additionalOptions,
         domain,
-        config,
+        resolvedConfig,
         elysia,
       )
 

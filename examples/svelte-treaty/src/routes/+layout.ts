@@ -1,7 +1,6 @@
-import { createEdenTreatyQuery } from '@ap0nia/eden-svelte-query'
 import { QueryClient } from '@tanstack/svelte-query'
 
-import type { App } from '$lib/server'
+import { eden } from '$lib/eden'
 
 import type { LayoutLoad } from './$types'
 
@@ -14,7 +13,11 @@ export const load: LayoutLoad = async (event) => {
     },
   })
 
-  const eden = createEdenTreatyQuery<App>(undefined).config({ queryClient, fetcher: event.fetch })
+  const edenUtils = eden.createContext(undefined, { queryClient, fetcher: event.fetch })
 
-  return { queryClient, eden }
+  return {
+    queryClient,
+    eden: edenUtils,
+    ssrCache: event.data.ssrCache,
+  }
 }
