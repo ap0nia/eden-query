@@ -211,9 +211,8 @@ export function createInnerContextProxy(
   config?: EdenQueryConfig,
   queryClient = config?.queryClient ?? new QueryClient(),
   elysia?: Elysia<any, any, any, any, any, any>,
+  paths: any[] = [],
 ): any {
-  const paths: any[] = []
-
   const dehydrated =
     config?.dehydrated != null && typeof config.dehydrated !== 'boolean'
       ? config.dehydrated
@@ -228,10 +227,8 @@ export function createInnerContextProxy(
 
   const innerProxy = new Proxy(noop, {
     get: (_, path: string): any => {
-      if (path !== 'index') {
-        paths.push(path)
-      }
-      return innerProxy
+      const nextPaths = path === 'index' ? [...paths] : [...paths, path]
+      return createInnerContextProxy(domain, config, queryClient, elysia, nextPaths)
     },
     apply: (_, __, args) => {
       /**

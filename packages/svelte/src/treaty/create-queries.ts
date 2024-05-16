@@ -234,15 +234,12 @@ export function createEdenCreateQueriesProxy<T extends AnyElysia>(
   domain?: string,
   config: EdenQueryConfig = {},
   elysia?: Elysia<any, any, any, any, any, any>,
+  paths: any[] = [],
 ): EdenCreateQueriesProxy<T> {
-  const paths: any[] = []
-
   const innerProxy: any = new Proxy(() => {}, {
     get: (_, path: string): any => {
-      if (path !== 'index') {
-        paths.push(path)
-      }
-      return innerProxy
+      const nextPaths = path === 'index' ? [...paths] : [...paths, path]
+      return createEdenCreateQueriesProxy(domain, config, elysia, nextPaths)
     },
     apply: (_, __, args) => {
       return resolveEdenCreateQueriesProxy(args, domain, config, [...paths], elysia)
