@@ -14,10 +14,17 @@ export type EdenRequestParams = {
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    *
    * @example
-   * '/api/a/b'
    * ['api', 'a', 'b']
    */
-  endpointsOrPaths: string | string[]
+  paths?: string[]
+
+  /**
+   * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
+   *
+   * @example
+   * '/api/a/b'
+   */
+  endpoint?: string
 
   /**
    * HTTP method.
@@ -50,6 +57,15 @@ export type EdenRequestParams = {
    */
   elysia?: Elysia<any, any, any, any, any, any>
 }
+
+export type EdenRequestResolver = (params: EdenRequestParams) => Promise<
+  | EdenWS
+  | {
+      data: any
+      error: EdenFetchError<any, any> | null
+      status: number
+    }
+>
 
 function processHeaders(
   rawHeaders: EdenResolveConfig['headers'],
@@ -110,56 +126,22 @@ function processHeaders(
 
 /**
  */
-export async function resolveEdenRequest(
-  /**
-   * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
-   *
-   * @example
-   * '/api/a/b'
-   * ['api', 'a', 'b']
-   */
-  endpointsOrPaths: string | string[],
+export const resolveEdenRequest: EdenRequestResolver = async (params: EdenRequestParams) => {
+  params.config ??= {}
 
-  /**
-   * HTTP method.
-   */
-  method = 'get',
+  const rawEndpoint = params.paths?.filter((p) => p !== 'index').join('/') ?? params.endpoint ?? ''
 
-  /**
-   * Options when first parameter of GET request.
-   * Body when first parameter of POST, PUT, etc. request.
-   */
-  bodyOrOptions: any,
+  let endpoint = '/' + rawEndpoint
 
-  /**
-   * Options when second parameter of POST, PUT, etc. request.
-   */
-  optionsOrUndefined: any,
+  const fetcher = params.config.fetcher ?? globalThis.fetch
 
-  /**
-   * Domain. Can be undefined if relative endpoint.
-   *
-   * @example localhost:3000
-   */
-  domain: string = '',
+  const isGetOrHead =
+    params.method == null ||
+    params.method === 'get' ||
+    params.method === 'head' ||
+    params.method === 'subscribe'
 
-  /**
-   */
-  config: EdenResolveConfig = {},
-
-  /**
-   */
-  elysia?: Elysia<any, any, any, any, any, any>,
-) {
-  let endpoint = Array.isArray(endpointsOrPaths)
-    ? '/' + endpointsOrPaths.filter((p) => p !== 'index').join('/')
-    : endpointsOrPaths
-
-  const fetcher = config.fetcher ?? globalThis.fetch
-
-  const isGetOrHead = method === 'get' || method === 'head' || method === 'subscribe'
-
-  const options = isGetOrHead ? bodyOrOptions : optionsOrUndefined
+  const options = isGetOrHead ? params.bodyOrOptions : params.optionsOrUndefined
 
   if (options?.params != null) {
     Object.entries(options.params).forEach(([key, value]) => {
@@ -168,24 +150,24 @@ export async function resolveEdenRequest(
   }
 
   // Signal. Add to links interface if it exists.
-  config.fetch?.signal
+  params.config.fetch?.signal
 
-  const headers = processHeaders(config.headers, endpoint, options)
+  const headers = processHeaders(params.config.headers, endpoint, options)
 
-  const rawQuery = isGetOrHead ? bodyOrOptions?.['query'] : options?.query
+  const rawQuery = isGetOrHead ? params.bodyOrOptions['query'] : options?.query
 
   const query = buildQuery(rawQuery)
 
-  if (method === 'subscribe') {
-    const wsOrigin = resolveWsOrigin(domain)
+  if (params.method === 'subscribe') {
+    const wsOrigin = resolveWsOrigin(params.domain)
     const url = wsOrigin + endpoint + query
     return new EdenWS(url)
   }
 
   let fetchInit = {
-    method: method?.toUpperCase(),
-    body: bodyOrOptions,
-    ...config.fetch,
+    method: params.method?.toUpperCase(),
+    body: params.bodyOrOptions,
+    ...params.config.fetch,
     headers,
   } satisfies RequestInit
 
@@ -195,9 +177,9 @@ export async function resolveEdenRequest(
   }
 
   const fetchOpts =
-    isGetOrHead && typeof bodyOrOptions === 'object'
-      ? bodyOrOptions.fetch
-      : optionsOrUndefined?.fetch
+    isGetOrHead && typeof params.bodyOrOptions === 'object'
+      ? params.bodyOrOptions.fetch
+      : params.optionsOrUndefined?.fetch
 
   fetchInit = {
     ...fetchInit,
@@ -208,13 +190,13 @@ export async function resolveEdenRequest(
     delete fetchInit.body
   }
 
-  config.onRequest ??= []
+  params.config.onRequest ??= []
 
-  if (!Array.isArray(config.onRequest)) {
-    config.onRequest = [config.onRequest]
+  if (!Array.isArray(params.config.onRequest)) {
+    params.config.onRequest = [params.config.onRequest]
   }
 
-  for (const value of config.onRequest) {
+  for (const value of params.config.onRequest) {
     const temp = await value(endpoint, fetchInit)
 
     if (typeof temp === 'object')
@@ -235,7 +217,7 @@ export async function resolveEdenRequest(
     delete fetchInit.body
   }
 
-  if (hasFile(bodyOrOptions)) {
+  if (hasFile(params.bodyOrOptions)) {
     const formData = new FormData()
 
     // FormData is 1 level deep
@@ -266,10 +248,10 @@ export async function resolveEdenRequest(
 
       formData.append(key, field as string)
     }
-  } else if (typeof bodyOrOptions === 'object') {
+  } else if (typeof params.bodyOrOptions === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
-    fetchInit.body = JSON.stringify(bodyOrOptions)
-  } else if (bodyOrOptions !== undefined && bodyOrOptions !== null) {
+    fetchInit.body = JSON.stringify(params.bodyOrOptions)
+  } else if (params.bodyOrOptions !== null) {
     fetchInit.headers['content-type'] = 'text/plain'
   }
 
@@ -277,7 +259,7 @@ export async function resolveEdenRequest(
     delete fetchInit.body
   }
 
-  for (const value of config.onRequest) {
+  for (const value of params.config.onRequest) {
     const temp = await value(endpoint, fetchInit)
 
     if (typeof temp === 'object')
@@ -291,11 +273,12 @@ export async function resolveEdenRequest(
       }
   }
 
-  const url = domain + endpoint + query
+  const url = (params.domain ?? '') + endpoint + query
 
-  const response = await (elysia?.handle(new Request(url, fetchInit)) ?? fetcher(url, fetchInit))
+  const response = await (params.elysia?.handle(new Request(url, fetchInit)) ??
+    fetcher(url, fetchInit))
 
-  const { data, error, status } = await parseResponse(response, config)
+  const { data, error, status } = await parseResponse(response, params.config)
 
   return {
     data,

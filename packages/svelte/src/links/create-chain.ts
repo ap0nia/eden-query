@@ -1,7 +1,12 @@
 import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryConfig, EdenResolveConfig } from '../internal/config'
-import type { InferRouteError, InferRouteOutput, RouteOutputSchema } from '../internal/infer'
+import type { EdenQueryConfig } from '../internal/config'
+import type { InferRouteError, InferRouteOutput } from '../internal/infer'
+import {
+  type EdenRequestParams,
+  type EdenRequestResolver,
+  resolveEdenRequest,
+} from '../internal/resolve'
 import type { Noop } from '../utils/noop'
 import {
   createObservable,
@@ -9,11 +14,11 @@ import {
   type Observable,
   promisifyObservable,
 } from './observable'
-import type { Operation, OperationLink } from './operation'
+import type { OperationLink } from './operation'
 import { share } from './operators'
 
 export type ChainOptions<TRoute extends RouteSchema> = {
-  operation: Operation<TRoute>
+  operation: EdenRequestParams
   links: OperationLink<TRoute>[]
 }
 
@@ -74,59 +79,39 @@ export type PromiseAndCancel<T> = {
   cancel: Noop
 }
 
-export type Requester = (opts: EdenResolveConfig) => PromiseAndCancel<RouteOutputSchema>
+export type HttpLinkFactoryConfig = {
+  resolver: EdenRequestResolver
+}
 
-export function httpLinkFactory(factoryOpts: { requester: Requester }) {
-  return <T extends RouteSchema>(
-    options: HTTPLinkOptions<T['_def']['_config']['$types']>,
-  ): OperationLink<T> => {
+/**
+ * TODO: link options.
+ */
+export type HttpLinkOptions = {}
+
+export function httpLinkFactory(config: HttpLinkFactoryConfig) {
+  return <T extends RouteSchema>(_options?: HttpLinkOptions): OperationLink<T> => {
     return ({ operation: op }) => {
       const observable = createObservable((observer) => {
-        const { path, input, method } = op
+        const abortController = op.config?.fetch?.signal != null ? new AbortController() : null
 
-        const { promise, cancel } = factoryOpts.requester({
-          ...resolvedOpts,
-          method,
-          path,
-          input,
-          headers: () => {
-            if (!options.headers) {
-              return {}
-            }
-            if (typeof options.headers === 'function') {
-              return options.headers({
-                op,
-              })
-            }
-            return options.headers
-          },
-        })
+        // Create and forward a new AbortController that can be aborted from this parent scope.
+        if (op.config?.fetch?.signal != null) {
+          op.config.fetch.signal = abortController?.signal
+        }
 
-        let meta: HTTPResult['meta'] | undefined = undefined
+        const promise = config.resolver(op)
+
+        const cancel = () => {
+          abortController?.abort()
+        }
 
         promise
-          .then((res) => {
-            meta = res.meta
-            const transformed = transformResult(res.json, resolvedOpts.transformer.output)
-
-            if (!transformed.ok) {
-              observer.error(
-                TRPCClientError.from(transformed.error, {
-                  meta,
-                }),
-              )
-              return
-            }
-
-            observer.next({
-              context: res.meta,
-              result: transformed.result,
-            })
-
+          .then((result) => {
+            observer.next(result)
             observer.complete()
           })
           .catch((cause) => {
-            observer.error(TRPCClientError.from(cause, { meta }))
+            observer.error(cause)
           })
 
         return () => {
@@ -138,3 +123,5 @@ export function httpLinkFactory(factoryOpts: { requester: Requester }) {
     }
   }
 }
+
+export const httpLink = httpLinkFactory({ resolver: resolveEdenRequest })

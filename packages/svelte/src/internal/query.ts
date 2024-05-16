@@ -171,9 +171,9 @@ export function createTreatyQueryOptions(
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-  const { queryOptions, eden, ...rest } = optionsValue
+  const { queryOptions, eden, ...bodyOrOptions } = optionsValue
 
-  const additionalOptions = args[1]
+  const optionsOrUndefined = args[1]
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
@@ -189,13 +189,13 @@ export function createTreatyQueryOptions(
   const baseQueryOptions = {
     queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
-      const result = await resolveEdenRequest(
+      const result = await resolveEdenRequest({
         paths,
         method,
-        rest,
-        additionalOptions,
+        bodyOrOptions,
+        optionsOrUndefined,
         domain,
-        {
+        config: {
           ...resolvedConfig,
           fetch: {
             ...resolvedConfig.fetch,
@@ -203,7 +203,7 @@ export function createTreatyQueryOptions(
           },
         },
         elysia,
-      )
+      })
       return result
     },
     ...queryOptions,
@@ -237,7 +237,7 @@ export function createTreatyInfiniteQueryOptions(
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
-  const additionalOptions = args[1]
+  const optionsOrUndefined = args[1]
 
   /**
    * Resolve the config, and handle platform specific variables before resolving.
@@ -251,24 +251,24 @@ export function createTreatyInfiniteQueryOptions(
   const infiniteQueryOptions = {
     queryKey: getQueryKey(paths, args[0], 'infinite'),
     queryFn: async (context) => {
-      const options = { ...rest }
+      const bodyOrOptions = { ...rest }
 
       // FIXME: scuffed way to set cursor.
-      if (options.query) {
-        options.query['cursor'] = context.pageParam
+      if (bodyOrOptions.query) {
+        bodyOrOptions.query['cursor'] = context.pageParam
       }
 
-      if (options.params) {
-        options.params['cursor'] = context.pageParam
+      if (bodyOrOptions.params) {
+        bodyOrOptions.params['cursor'] = context.pageParam
       }
 
-      const result = await resolveEdenRequest(
+      const result = await resolveEdenRequest({
         paths,
         method,
-        options,
-        additionalOptions,
+        bodyOrOptions,
+        optionsOrUndefined,
         domain,
-        {
+        config: {
           ...resolvedConfig,
           fetch: {
             ...resolvedConfig.fetch,
@@ -276,7 +276,7 @@ export function createTreatyInfiniteQueryOptions(
           },
         },
         elysia,
-      )
+      })
 
       return result
     },
@@ -310,8 +310,15 @@ export function createTreatyMutationOptions(
   const mutationOptions = {
     mutationKey: getMutationKey(paths, optionsValue as any),
     mutationFn: async (customVariables: any = {}) => {
-      const { variables, options } = customVariables
-      return await resolveEdenRequest(paths, method, variables, options, domain, config, elysia)
+      return await resolveEdenRequest({
+        paths,
+        method,
+        bodyOrOptions: customVariables.variables,
+        optionsOrUndefined: customVariables.options,
+        domain,
+        config,
+        elysia,
+      })
     },
     onSuccess(data, variables, context) {
       const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)

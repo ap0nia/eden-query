@@ -1,6 +1,7 @@
 import type { RouteSchema } from 'elysia'
 
-import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
+import type { InferRouteError, InferRouteOutput } from '../internal/infer'
+import type { EdenRequestParams } from '../internal/resolve'
 import type { Observable } from './observable'
 
 /**
@@ -8,27 +9,15 @@ import type { Observable } from './observable'
  */
 export type OperationLink<
   TRoute extends RouteSchema,
-  TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-> = (options: OperationLinkOptions<TRoute, TInput, TOutput, TError>) => Observable<TOutput, TError>
+> = (options: OperationLinkOptions<TRoute, TOutput, TError>) => Observable<TOutput, TError>
 
 export type OperationLinkOptions<
   TRoute extends RouteSchema,
-  TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = {
-  operation: Operation<TRoute, TInput>
-  next: (operation: Operation<TRoute, TInput>) => Observable<TOutput, TError>
-}
-
-/**
- * @internal
- */
-export type Operation<TRoute extends RouteSchema, TInput = InferRouteInput<TRoute>> = {
-  id: number
-  path: string
-  method: string
-  input: TInput
+  operation: EdenRequestParams
+  next: (operation: EdenRequestParams) => Observable<TOutput, TError>
 }

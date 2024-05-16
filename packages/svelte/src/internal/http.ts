@@ -20,7 +20,7 @@ export type HttpSubscriptionMethod = (typeof httpSubscriptionMethods)[number]
 
 export type HttpMethod = (typeof httpMethods)[number]
 
-export function resolveWsOrigin(domain: string) {
+export function resolveWsOrigin(domain = '') {
   return domain.replace(
     /^([^]+):\/\//,
     domain.startsWith('https://')
