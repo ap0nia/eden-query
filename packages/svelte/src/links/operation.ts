@@ -19,6 +19,16 @@ export type OperationLinkOptions<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = {
+  operation: Operation<TRoute, TInput>
+  next: (operation: Operation<TRoute, TInput>) => Observable<TOutput, TError>
+}
+
+/**
+ * @internal
+ */
+export type Operation<TRoute extends RouteSchema, TInput = InferRouteInput<TRoute>> = {
+  id: number
+  path: string
+  method: string
   input: TInput
-  next: (op: TInput) => Observable<TOutput, TError>
 }

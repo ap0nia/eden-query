@@ -1,18 +1,19 @@
 import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryConfig } from '..'
-import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
+import type { EdenQueryConfig, EdenResolveConfig } from '../internal/config'
+import type { InferRouteError, InferRouteOutput, RouteOutputSchema } from '../internal/infer'
+import type { Noop } from '../utils/noop'
 import {
   createObservable,
   type InferObservableValue,
   type Observable,
   promisifyObservable,
 } from './observable'
-import type { OperationLink } from './operation'
+import type { Operation, OperationLink } from './operation'
 import { share } from './operators'
 
 export type ChainOptions<TRoute extends RouteSchema> = {
-  input: InferRouteInput<TRoute>
+  operation: Operation<TRoute>
   links: OperationLink<TRoute>[]
 }
 
@@ -25,7 +26,7 @@ export function createChain<
   TError = InferRouteError<TRoute>,
 >(options: ChainOptions<TRoute>): Observable<TOutput, TError> {
   const chain = createObservable((observer) => {
-    const execute = (index = 0, input = options.input) => {
+    const execute = (index = 0, operation = options.operation) => {
       const nextOperationLink = options.links[index]
 
       if (nextOperationLink == null) {
@@ -33,7 +34,7 @@ export function createChain<
       }
 
       const subscription = nextOperationLink({
-        input,
+        operation,
         next: (nextOperation) => {
           const nextObserver = execute(index + 1, nextOperation)
           return nextObserver
@@ -49,7 +50,7 @@ export function createChain<
 }
 
 export function request(options?: EdenQueryConfig) {
-  const requestChain = createChain({ links: [], input: {} }).pipe(share())
+  const requestChain = createChain({ links: [], operation: {} as any }).pipe(share())
 
   type TValue = InferObservableValue<typeof requestChain>
 
@@ -63,4 +64,77 @@ export function request(options?: EdenQueryConfig) {
   })
 
   return abortablePromise
+}
+
+/**
+ * @internal
+ */
+export type PromiseAndCancel<T> = {
+  promise: Promise<T>
+  cancel: Noop
+}
+
+export type Requester = (opts: EdenResolveConfig) => PromiseAndCancel<RouteOutputSchema>
+
+export function httpLinkFactory(factoryOpts: { requester: Requester }) {
+  return <T extends RouteSchema>(
+    options: HTTPLinkOptions<T['_def']['_config']['$types']>,
+  ): OperationLink<T> => {
+    return ({ operation: op }) => {
+      const observable = createObservable((observer) => {
+        const { path, input, method } = op
+
+        const { promise, cancel } = factoryOpts.requester({
+          ...resolvedOpts,
+          method,
+          path,
+          input,
+          headers: () => {
+            if (!options.headers) {
+              return {}
+            }
+            if (typeof options.headers === 'function') {
+              return options.headers({
+                op,
+              })
+            }
+            return options.headers
+          },
+        })
+
+        let meta: HTTPResult['meta'] | undefined = undefined
+
+        promise
+          .then((res) => {
+            meta = res.meta
+            const transformed = transformResult(res.json, resolvedOpts.transformer.output)
+
+            if (!transformed.ok) {
+              observer.error(
+                TRPCClientError.from(transformed.error, {
+                  meta,
+                }),
+              )
+              return
+            }
+
+            observer.next({
+              context: res.meta,
+              result: transformed.result,
+            })
+
+            observer.complete()
+          })
+          .catch((cause) => {
+            observer.error(TRPCClientError.from(cause, { meta }))
+          })
+
+        return () => {
+          cancel()
+        }
+      })
+
+      return observable
+    }
+  }
 }
