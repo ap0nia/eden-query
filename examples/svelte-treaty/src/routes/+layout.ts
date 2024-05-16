@@ -18,6 +18,6 @@ export const load: LayoutLoad = async (event) => {
   return {
     queryClient,
     eden: edenUtils,
-    ssrCache: event.data.ssrCache,
+    dehydrated: event.data.dehydrated,
   }
 }

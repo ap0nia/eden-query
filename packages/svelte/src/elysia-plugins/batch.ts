@@ -1,14 +1,13 @@
 import { Elysia } from 'elysia'
 
 import { parseResponse } from '../internal/resolve'
-import type { AnyElysia } from '../types'
 
 export type BatchedRequestData = {
   method: string
   path: string
 }
 
-export function batchPlugin<T extends AnyElysia>(elysia: T) {
+export function batchPlugin(elysia: Elysia) {
   const instance = new Elysia().post(
     '/batch',
     async (context) => {

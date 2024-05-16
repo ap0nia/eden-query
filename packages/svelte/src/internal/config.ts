@@ -1,5 +1,5 @@
 import type { RequestEvent } from '@sveltejs/kit'
-import type { QueryClient, StoreOrVal } from '@tanstack/svelte-query'
+import type { DehydratedState, QueryClient, StoreOrVal } from '@tanstack/svelte-query'
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
 /**
@@ -39,6 +39,12 @@ export type EdenResolveOptions = {
  */
 export type EdenSsrOptions = {
   event?: RequestEvent
+
+  /**
+   * Dehydrate the SSR queryClient, and pass a pointer to the object or `true` to initialize a new one.
+   * Completed queries will be merged with this dehdrated state.
+   */
+  dehydrated?: DehydratedState | true
 }
 
 /**

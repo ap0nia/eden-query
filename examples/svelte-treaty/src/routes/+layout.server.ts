@@ -1,5 +1,3 @@
-import { dehydrate } from '@tanstack/svelte-query'
-
 import type { LayoutServerLoad } from './$types'
 
 export const load: LayoutServerLoad = async (event) => {
@@ -11,6 +9,6 @@ export const load: LayoutServerLoad = async (event) => {
      *
      * Append to the SSR cache by running `mergeDehydrated` in the +page.server.ts
      */
-    ssrCache: dehydrate(event.locals.eden.queryClient),
+    dehydrated: event.locals.dehydrated,
   }
 }

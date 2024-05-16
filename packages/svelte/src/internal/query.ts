@@ -9,6 +9,8 @@ import {
   type CreateMutationResult,
   type CreateQueryOptions,
   type DefaultError,
+  dehydrate,
+  type DehydratedState,
   type MutationObserverOptions,
   type OmitKeyof,
   type QueryClient,
@@ -348,4 +350,14 @@ export function createTreatyQueryKey(paths: string[], anyArgs: any, type: EdenQu
   const queryKey = getQueryKey(pathsCopy, anyArgs[0], type)
 
   return queryKey
+}
+
+export function mergeDyhdrated(
+  source: DehydratedState | QueryClient,
+  destination: DehydratedState,
+): DehydratedState {
+  const dehydratedSource = 'mount' in source ? dehydrate(source) : source
+  destination.queries.push(...dehydratedSource.queries)
+  destination.mutations.push(...dehydratedSource.mutations)
+  return destination
 }

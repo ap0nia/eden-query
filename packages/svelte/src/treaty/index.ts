@@ -30,11 +30,11 @@ export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
   /**
    * Create utilities.
    */
-  createContext: (
+  createContext: <TConfig extends EdenQueryConfig = EdenQueryConfig>(
     domain?: string,
-    config?: EdenQueryConfig,
+    config?: TConfig,
     elysia?: T,
-  ) => EdenTreatyQueryContext<T>
+  ) => EdenTreatyQueryContext<T, TConfig>
 }
 
 /**

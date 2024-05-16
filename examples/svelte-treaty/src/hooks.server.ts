@@ -17,8 +17,20 @@ const contentTypeHandle: Handle = async ({ event, resolve }) => {
 const edenHandle: Handle = async ({ event, resolve }) => {
   /**
    * SSR eden utilities for this request.
+   *
+   * Cannot be passed between server load functions because it is a non-POJO.
+   *
+   * Passing a value to "dehydrated" will cause SSR queries to merge their state with the
+   * dehydrated POJO.
+   *
+   * It can be used in a `hydrate` call in +layout.svelte to initialize a queryClient.
    */
-  event.locals.eden = eden.createContext(undefined, { event })
+  const ssrEdenContext = eden.createContext(undefined, { event, dehydrated: true })
+
+  event.locals.eden = ssrEdenContext
+
+  event.locals.dehydrated = ssrEdenContext.dehydrated
+
   const response = await resolve(event)
   return response
 }
