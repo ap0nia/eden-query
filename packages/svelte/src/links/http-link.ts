@@ -1,6 +1,8 @@
-import type { RouteSchema } from 'elysia'
-
-import { type EdenRequestResolver, resolveEdenRequest } from '../internal/resolve'
+import {
+  type EdenRequestParams,
+  type EdenRequestResolver,
+  resolveEdenRequest,
+} from '../internal/resolve'
 import { createObservable } from './observable'
 import type { OperationLink } from './operation'
 
@@ -14,7 +16,7 @@ export type HttpLinkFactoryConfig = {
 }
 
 export function httpLinkFactory(config: HttpLinkFactoryConfig) {
-  return <T extends RouteSchema>(_options?: HttpLinkOptions): OperationLink<T> => {
+  return (_options?: HttpLinkOptions): OperationLink<EdenRequestParams> => {
     return ({ operation: op }) => {
       const observable = createObservable((observer) => {
         const abortController = op.config?.fetch?.signal != null ? new AbortController() : null

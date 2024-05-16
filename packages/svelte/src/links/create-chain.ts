@@ -1,29 +1,17 @@
-import type { RouteSchema } from 'elysia'
-
-import type { InferRouteError, InferRouteOutput } from '../internal/infer'
-import { type EdenRequestParams } from '../internal/resolve'
-import {
-  createObservable,
-  type InferObservableValue,
-  type Observable,
-  promisifyObservable,
-} from './observable'
+import { createObservable, type Observable } from './observable'
 import type { OperationLink } from './operation'
-import { share } from './operators'
 
-export type ChainOptions<TRoute extends RouteSchema = any> = {
-  operation: EdenRequestParams
-  links: OperationLink<TRoute>[]
+export type ChainOptions<TInput = any, TOutput = any, TError = any> = {
+  operation: TInput
+  links: OperationLink<TInput, TOutput, TError>[]
 }
 
 /**
  * @internal
  */
-export function createChain<
-  TRoute extends RouteSchema,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
->(options: ChainOptions<TRoute>): Observable<TOutput, TError> {
+export function createChain<TInput = any, TOutput = any, TError = any>(
+  options: ChainOptions<TInput, TOutput, TError>,
+): Observable<TOutput, TError> {
   const chain = createObservable((observer) => {
     const execute = (index = 0, operation = options.operation) => {
       const nextOperationLink = options.links[index]
@@ -46,21 +34,4 @@ export function createChain<
   })
 
   return chain
-}
-
-export async function createAndResolveChain(options: ChainOptions) {
-  const requestChain = createChain(options).pipe(share())
-
-  type TValue = InferObservableValue<typeof requestChain>
-
-  const { promise, abortController } = promisifyObservable<TValue>(requestChain)
-
-  const abort = () => abortController.abort()
-
-  const abortablePromise = new Promise((resolve, reject) => {
-    options.operation.config?.fetch?.signal?.addEventListener('abort', abort)
-    promise.then(resolve).catch(reject)
-  })
-
-  return abortablePromise
 }

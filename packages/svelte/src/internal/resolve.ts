@@ -5,6 +5,9 @@ import { isNumericString } from 'elysia/utils'
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
 import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
+import { type ChainOptions, createChain } from '../links/create-chain'
+import { type InferObservableValue, promisifyObservable } from '../links/observable'
+import { share } from '../links/operators'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
 import type { EdenResolveConfig } from './config'
@@ -351,4 +354,21 @@ export async function parseResponse(response: Response, config: EdenResolveConfi
   } else {
     return { data, error: null, status: response.status }
   }
+}
+
+export async function resolveEdenLinks(options: ChainOptions<EdenRequestParams>) {
+  const requestChain = createChain(options).pipe(share())
+
+  type TValue = InferObservableValue<typeof requestChain>
+
+  const { promise, abortController } = promisifyObservable<TValue>(requestChain)
+
+  const abort = () => abortController.abort()
+
+  const abortablePromise = new Promise((resolve, reject) => {
+    options.operation.config?.fetch?.signal?.addEventListener('abort', abort)
+    promise.then(resolve).catch(reject)
+  })
+
+  return abortablePromise
 }
