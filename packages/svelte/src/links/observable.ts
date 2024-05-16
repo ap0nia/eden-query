@@ -92,34 +92,54 @@ export function createObservable<TValue = any, TError = any>(
 ): Observable<TValue, TError> {
   const observable: Observable<TValue, TError> = {
     subscribe: (observer) => {
-      let unsubscribe: Noop | undefined = () => {
-        if (typeof teardown === 'function') {
-          teardown()
-        } else if (teardown) {
-          teardown.unsubscribe()
+      let teardownRef: TeardownLogic | null = null
+      let isDone = false
+      let unsubscribed = false
+      let teardownImmediately = false
+
+      let unsubscribe = () => {
+        if (unsubscribed) return
+
+        if (teardownRef === null) {
+          teardownImmediately = true
+          return
+        }
+
+        unsubscribed = true
+
+        if (typeof teardownRef === 'function') {
+          teardownRef()
+        } else if (teardownRef) {
+          teardownRef.unsubscribe()
         }
       }
 
-      const teardown = subscribe({
+      teardownRef = subscribe({
         next: (value) => {
-          if (unsubscribe == null) return
+          if (isDone) return
           observer.next?.(value)
         },
         error: (err) => {
-          if (unsubscribe == null) return
+          if (isDone) return
+          isDone = true
           observer.error?.(err)
           unsubscribe()
-          unsubscribe = undefined
         },
         complete: () => {
-          if (unsubscribe == null) return
+          if (isDone) return
+          isDone = true
           observer.complete?.()
           unsubscribe()
-          unsubscribe = undefined
         },
       })
 
-      return { unsubscribe }
+      if (teardownImmediately) {
+        unsubscribe()
+      }
+
+      return {
+        unsubscribe,
+      }
     },
     pipe: (...operations: OperatorFunction[]): Observable => {
       return operations.reduce(pipeReducer, observable)
@@ -131,9 +151,7 @@ export function createObservable<TValue = any, TError = any>(
 /**
  * @internal
  */
-export function promisifyObservable<T>(observable: Observable<T, unknown>) {
-  const abortController = new AbortController()
-
+export function promisifyObservable<T>(observable: Observable<T>, signal?: RequestInit['signal']) {
   const promise = new Promise<T>((resolve, reject) => {
     let isDone = false
 
@@ -142,7 +160,6 @@ export function promisifyObservable<T>(observable: Observable<T, unknown>) {
       isDone = true
       reject(new ObservableAbortError('This operation was aborted.'))
       $observable.unsubscribe()
-      abortController.signal.removeEventListener('abort', onAbort)
     }
 
     const $observable = observable.subscribe({
@@ -159,10 +176,10 @@ export function promisifyObservable<T>(observable: Observable<T, unknown>) {
       },
     })
 
-    abortController.signal.addEventListener('abort', onAbort)
+    signal?.addEventListener('abort', onAbort)
   })
 
-  return { promise, abortController }
+  return promise
 }
 
 /**

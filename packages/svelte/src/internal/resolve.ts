@@ -59,16 +59,21 @@ export type EdenRequestParams = {
   /**
    */
   elysia?: Elysia<any, any, any, any, any, any>
+
+  /**
+   */
+  signal?: AbortSignal | null
 }
 
-export type EdenRequestResolver = (params: EdenRequestParams) => Promise<
+export type EdenResponse =
   | EdenWS
   | {
       data: any
       error: EdenFetchError<any, any> | null
       status: number
     }
->
+
+export type EdenRequestResolver = (params: EdenRequestParams) => Promise<EdenResponse>
 
 export function processHeaders(
   rawHeaders: EdenResolveConfig['headers'],
@@ -130,6 +135,12 @@ export function processHeaders(
 /**
  */
 export const resolveEdenRequest: EdenRequestResolver = async (params) => {
+  if (params.config?.links != null) {
+    const links = params.config.links
+    delete params.config.links
+    return await resolveEdenLinks({ operation: params, links })
+  }
+
   params.config ??= {}
 
   const rawEndpoint = params.paths?.filter((p) => p !== 'index').join('/') ?? params.endpoint ?? ''
@@ -170,6 +181,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   let fetchInit = {
     method: params.method?.toUpperCase(),
     body: params.bodyOrOptions,
+    signal: params.signal,
     ...params.config.fetch,
     headers,
   } satisfies RequestInit
@@ -356,17 +368,16 @@ export async function parseResponse(response: Response, config: EdenResolveConfi
   }
 }
 
-export async function resolveEdenLinks(options: ChainOptions<EdenRequestParams>) {
+export async function resolveEdenLinks(options: ChainOptions<EdenRequestParams, EdenResponse>) {
+  const signal = options.operation.signal ?? options.operation.config?.fetch?.signal
+
   const requestChain = createChain(options).pipe(share())
 
   type TValue = InferObservableValue<typeof requestChain>
 
-  const { promise, abortController } = promisifyObservable<TValue>(requestChain)
+  const promise = promisifyObservable<TValue>(requestChain, signal)
 
-  const abort = () => abortController.abort()
-
-  const abortablePromise = new Promise((resolve, reject) => {
-    options.operation.config?.fetch?.signal?.addEventListener('abort', abort)
+  const abortablePromise = new Promise<TValue>((resolve, reject) => {
     promise.then(resolve).catch(reject)
   })
 

@@ -1,5 +1,6 @@
 import {
   createEdenTreatyQuery,
+  httpLink,
   type InferTreatyQueryInput,
   type InferTreatyQueryIO,
   type InferTreatyQueryOutput,
@@ -8,7 +9,9 @@ import { dehydrate, type DehydratedState, type QueryClient } from '@tanstack/sve
 
 import type { App } from '$lib/server'
 
-export const eden = createEdenTreatyQuery<App>()
+export const eden = createEdenTreatyQuery<App>(undefined, {
+  links: [httpLink()],
+})
 
 export type RouterInputs = InferTreatyQueryInput<App>
 

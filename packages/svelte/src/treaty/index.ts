@@ -63,7 +63,12 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
   }
 
   const topLevelProperties = {
-    createContext,
+    createContext: (newDomain?: string, newConfig?: EdenQueryConfig, newElysia?: T) => {
+      const resolvedDomain = newDomain ?? domain
+      const resolvedConfig = { ...newConfig, ...config }
+      const resolvedElysia = newElysia ?? elysia
+      return createContext(resolvedDomain, resolvedConfig, resolvedElysia)
+    },
     getContext: getContextThunk,
     setContext: setContextHelper,
     createQueries: edenCreateQueries,

@@ -195,13 +195,8 @@ export function createTreatyQueryOptions(
         bodyOrOptions,
         optionsOrUndefined,
         domain,
-        config: {
-          ...resolvedConfig,
-          fetch: {
-            ...resolvedConfig.fetch,
-            signal: abortOnUnmount ? context.signal : undefined,
-          },
-        },
+        config: resolvedConfig,
+        signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
       return result
@@ -268,13 +263,8 @@ export function createTreatyInfiniteQueryOptions(
         bodyOrOptions,
         optionsOrUndefined,
         domain,
-        config: {
-          ...resolvedConfig,
-          fetch: {
-            ...resolvedConfig.fetch,
-            signal: abortOnUnmount ? context.signal : undefined,
-          },
-        },
+        config: resolvedConfig,
+        signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
 
