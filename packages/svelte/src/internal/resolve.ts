@@ -67,7 +67,7 @@ export type EdenRequestResolver = (params: EdenRequestParams) => Promise<
     }
 >
 
-function processHeaders(
+export function processHeaders(
   rawHeaders: EdenResolveConfig['headers'],
   path: string,
   options: RequestInit = {},
@@ -126,7 +126,7 @@ function processHeaders(
 
 /**
  */
-export const resolveEdenRequest: EdenRequestResolver = async (params: EdenRequestParams) => {
+export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   params.config ??= {}
 
   const rawEndpoint = params.paths?.filter((p) => p !== 'index').join('/') ?? params.endpoint ?? ''

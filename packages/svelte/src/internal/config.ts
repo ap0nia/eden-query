@@ -2,6 +2,8 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { DehydratedState, QueryClient, StoreOrVal } from '@tanstack/svelte-query'
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
+import type { OperationLink } from '../links/operation'
+
 /**
  * Request options for svelte-query.
  */
@@ -47,9 +49,16 @@ export type EdenSsrOptions = {
   dehydrated?: DehydratedState | true
 }
 
+export type EdenLinksConfig = {
+  links?: OperationLink[]
+}
+
 /**
  * All configuration options available to the fetch or treaty integrations.
  */
-export type EdenQueryConfig = EdenResolveConfig & EdenQueryRequestOptions & EdenSsrOptions
+export type EdenQueryConfig = EdenResolveConfig &
+  EdenQueryRequestOptions &
+  EdenSsrOptions &
+  EdenLinksConfig
 
 export type EdenQueryConfigWithQueryClient = EdenQueryConfig & { queryClient: QueryClient }

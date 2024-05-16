@@ -8,13 +8,13 @@ import type { Observable } from './observable'
  * @internal
  */
 export type OperationLink<
-  TRoute extends RouteSchema,
+  TRoute extends RouteSchema = any,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (options: OperationLinkOptions<TRoute, TOutput, TError>) => Observable<TOutput, TError>
 
 export type OperationLinkOptions<
-  TRoute extends RouteSchema,
+  TRoute extends RouteSchema = any,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = {

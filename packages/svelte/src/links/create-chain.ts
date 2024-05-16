@@ -1,13 +1,7 @@
 import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteOutput } from '../internal/infer'
-import {
-  type EdenRequestParams,
-  type EdenRequestResolver,
-  resolveEdenRequest,
-} from '../internal/resolve'
-import type { Noop } from '../utils/noop'
+import { type EdenRequestParams } from '../internal/resolve'
 import {
   createObservable,
   type InferObservableValue,
@@ -17,7 +11,7 @@ import {
 import type { OperationLink } from './operation'
 import { share } from './operators'
 
-export type ChainOptions<TRoute extends RouteSchema> = {
+export type ChainOptions<TRoute extends RouteSchema = any> = {
   operation: EdenRequestParams
   links: OperationLink<TRoute>[]
 }
@@ -54,8 +48,8 @@ export function createChain<
   return chain
 }
 
-export function request(options?: EdenQueryConfig) {
-  const requestChain = createChain({ links: [], operation: {} as any }).pipe(share())
+export async function createAndResolveChain(options: ChainOptions) {
+  const requestChain = createChain(options).pipe(share())
 
   type TValue = InferObservableValue<typeof requestChain>
 
@@ -64,64 +58,9 @@ export function request(options?: EdenQueryConfig) {
   const abort = () => abortController.abort()
 
   const abortablePromise = new Promise((resolve, reject) => {
-    options?.fetch?.signal?.addEventListener('abort', abort)
+    options.operation.config?.fetch?.signal?.addEventListener('abort', abort)
     promise.then(resolve).catch(reject)
   })
 
   return abortablePromise
 }
-
-/**
- * @internal
- */
-export type PromiseAndCancel<T> = {
-  promise: Promise<T>
-  cancel: Noop
-}
-
-export type HttpLinkFactoryConfig = {
-  resolver: EdenRequestResolver
-}
-
-/**
- * TODO: link options.
- */
-export type HttpLinkOptions = {}
-
-export function httpLinkFactory(config: HttpLinkFactoryConfig) {
-  return <T extends RouteSchema>(_options?: HttpLinkOptions): OperationLink<T> => {
-    return ({ operation: op }) => {
-      const observable = createObservable((observer) => {
-        const abortController = op.config?.fetch?.signal != null ? new AbortController() : null
-
-        // Create and forward a new AbortController that can be aborted from this parent scope.
-        if (op.config?.fetch?.signal != null) {
-          op.config.fetch.signal = abortController?.signal
-        }
-
-        const promise = config.resolver(op)
-
-        const cancel = () => {
-          abortController?.abort()
-        }
-
-        promise
-          .then((result) => {
-            observer.next(result)
-            observer.complete()
-          })
-          .catch((cause) => {
-            observer.error(cause)
-          })
-
-        return () => {
-          cancel()
-        }
-      })
-
-      return observable
-    }
-  }
-}
-
-export const httpLink = httpLinkFactory({ resolver: resolveEdenRequest })
