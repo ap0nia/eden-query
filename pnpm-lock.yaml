@@ -109,6 +109,9 @@ importers:
       elysia:
         specifier: ^1.0.16
         version: 1.0.16(@sinclair/typebox@0.32.29)(typescript@5.1.6)
+      nanoid:
+        specifier: ^5.0.7
+        version: 5.0.7
     devDependencies:
       '@sveltejs/kit':
         specifier: ^2.5.7

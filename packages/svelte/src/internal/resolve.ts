@@ -1,5 +1,5 @@
 import { EdenWS } from '@elysiajs/eden/treaty'
-import type Elysia from 'elysia'
+import type { Elysia } from 'elysia'
 import { isNumericString } from 'elysia/utils'
 
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
@@ -250,9 +250,18 @@ export async function resolveTreatyRequest(
 
   const response = await (elysia?.handle(new Request(url, fetchInit)) ?? fetcher(url, fetchInit))
 
-  let data = null
-  let error = null
+  const { data, error, status } = await parseResponse(response, config)
 
+  return {
+    data,
+    error,
+    status,
+    // response,
+    // headers: response.headers,
+  }
+}
+
+export async function parseResponse(response: Response, config: EdenResolveOptions = {}) {
   if (config.onResponse) {
     if (!Array.isArray(config.onResponse)) {
       config.onResponse = [config.onResponse]
@@ -260,62 +269,58 @@ export async function resolveTreatyRequest(
 
     for (const value of config.onResponse) {
       try {
-        const temp = await value(response.clone())
-        if (temp != null) {
-          data = temp
-          break
+        const data = await value(response.clone())
+        if (data != null) {
+          return { data, error: null, status: response.status }
         }
       } catch (err) {
-        error = err instanceof EdenFetchError ? err : new EdenFetchError(422, err)
-        break
+        const error = err instanceof EdenFetchError ? err : new EdenFetchError(422, err)
+        return { data: null, error, status: response.status }
       }
     }
   }
 
-  if (data === null) {
-    switch (response.headers.get('Content-Type')?.split(';')[0]) {
-      case 'application/json':
-        data = await response.json()
-        break
+  let data: any
 
-      case 'application/octet-stream':
-        data = await response.arrayBuffer()
-        break
-
-      default:
-        data = await response.text().then((data) => {
-          if (isNumericString(data)) return +data
-          if (data === 'true') return true
-          if (data === 'false') return false
-          if (!data) return data
-
-          // Remove quote from stringified date
-          const temp = data.replace(/"/g, '')
-
-          if (
-            ISO8601_REGEX.test(temp) ||
-            FORMAL_DATE_REGEX.test(temp) ||
-            SHORTENED_DATE_REGEX.test(temp)
-          ) {
-            const date = new Date(temp)
-            if (!Number.isNaN(date.getTime())) return date
-          }
-
-          return data
-        })
+  switch (response.headers.get('Content-Type')?.split(';')[0]) {
+    case 'application/json': {
+      data = await response.json()
+      break
     }
 
-    if (response.status >= 300 || response.status < 200) {
-      error = new EdenFetchError(response.status, data)
-      data = null
+    case 'application/octet-stream': {
+      data = await response.arrayBuffer()
+      break
+    }
+
+    default: {
+      data = await response.text().then((data) => {
+        if (isNumericString(data)) return +data
+        if (data === 'true') return true
+        if (data === 'false') return false
+        if (!data) return data
+
+        // Remove quote from stringified date
+        const temp = data.replace(/"/g, '')
+
+        if (
+          ISO8601_REGEX.test(temp) ||
+          FORMAL_DATE_REGEX.test(temp) ||
+          SHORTENED_DATE_REGEX.test(temp)
+        ) {
+          const date = new Date(temp)
+          if (!Number.isNaN(date.getTime())) return date
+        }
+
+        return data
+      })
     }
   }
 
-  return {
-    data,
-    error,
-    // response,
-    status: response.status,
-    // headers: response.headers,
+  if (response.status >= 300 || response.status < 200) {
+    const error = new EdenFetchError(response.status, data)
+    return { data: null, error, status: response.status }
+  } else {
+    return { data, error: null, status: response.status }
   }
 }
