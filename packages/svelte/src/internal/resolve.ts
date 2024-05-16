@@ -125,6 +125,9 @@ export async function resolveTreatyRequest(
     })
   }
 
+  // Signal. Add to links interface if it exists.
+  config.fetch?.signal
+
   const headers = processHeaders(config.headers, endpoint, options)
 
   const rawQuery = isGetOrHead ? bodyOrOptions?.['query'] : options?.query

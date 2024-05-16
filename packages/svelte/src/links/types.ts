@@ -17,7 +17,7 @@ export type PromiseAndCancel<TValue> = {
 /**
  * @internal
  */
-export interface OperationContext extends Record<string, unknown> { }
+export interface OperationContext extends Record<string, unknown> {}
 
 /**
  * @internal
@@ -76,11 +76,15 @@ export type OperationResultObserver<TRoute extends RouteSchema, TOutput> = Obser
 /**
  * @internal
  */
-export type OperationLink<
+export type OperationLink<TRoute extends RouteSchema, TInput = unknown, TOutput = unknown> = (
+  options: OperationLinkOptions<TRoute, TInput, TOutput>,
+) => OperationResultObservable<TRoute, TOutput>
+
+export type OperationLinkOptions<
   TRoute extends RouteSchema,
   TInput = unknown,
   TOutput = unknown,
-> = (opts: {
-  op: Operation<TInput>
+> = {
+  operation: Operation<TInput>
   next: (op: Operation<TInput>) => OperationResultObservable<TRoute, TOutput>
-}) => OperationResultObservable<TRoute, TOutput>
+}
