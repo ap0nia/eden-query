@@ -23,7 +23,7 @@ export interface CreateMutationOverride {
 /**
  * Options for resolving eden requests.
  */
-export type EdenResolveOptions = {
+export type EdenResolveConfig = {
   fetch?: Omit<RequestInit, 'headers' | 'method'>
   fetcher?: typeof fetch
   headers?: MaybeArray<
@@ -50,6 +50,6 @@ export type EdenSsrOptions = {
 /**
  * All configuration options available to the fetch or treaty integrations.
  */
-export type EdenQueryConfig = EdenResolveOptions & EdenQueryRequestOptions & EdenSsrOptions
+export type EdenQueryConfig = EdenResolveConfig & EdenQueryRequestOptions & EdenSsrOptions
 
 export type EdenQueryConfigWithQueryClient = EdenQueryConfig & { queryClient: QueryClient }

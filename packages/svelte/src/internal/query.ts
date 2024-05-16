@@ -165,8 +165,6 @@ export function createTreatyQueryOptions(
 
   if (isHttpMethod(method)) {
     paths.pop()
-  } else {
-    method = 'get'
   }
 
   const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
@@ -175,6 +173,8 @@ export function createTreatyQueryOptions(
 
   const { queryOptions, eden, ...rest } = optionsValue
 
+  const additionalOptions = args[1]
+
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
   /**
@@ -182,7 +182,8 @@ export function createTreatyQueryOptions(
    */
   const resolvedConfig = {
     ...config,
-    fetcher: config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
+    ...eden,
+    fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
   }
 
   const baseQueryOptions = {
@@ -191,15 +192,16 @@ export function createTreatyQueryOptions(
       const result = await resolveEdenRequest(
         paths,
         method,
+        rest,
+        additionalOptions,
+        domain,
         {
-          ...rest,
+          ...resolvedConfig,
           fetch: {
+            ...resolvedConfig.fetch,
             signal: abortOnUnmount ? context.signal : undefined,
           },
         },
-        undefined,
-        domain,
-        resolvedConfig,
         elysia,
       )
       return result
@@ -225,17 +227,15 @@ export function createTreatyInfiniteQueryOptions(
 
   if (isHttpMethod(method)) {
     paths.pop()
-  } else {
-    method = 'get'
   }
-
-  const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(args[1]?.eden?.abortOnUnmount)
 
   const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any>>
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-  const { queryOptions, ...rest } = optionsValue
+  const { queryOptions, eden, ...rest } = optionsValue
+
+  const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
   const additionalOptions = args[1]
 
@@ -244,13 +244,14 @@ export function createTreatyInfiniteQueryOptions(
    */
   const resolvedConfig = {
     ...config,
-    fetcher: config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
+    ...eden,
+    fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
   }
 
   const infiniteQueryOptions = {
     queryKey: getQueryKey(paths, args[0], 'infinite'),
     queryFn: async (context) => {
-      const options = { ...optionsValue }
+      const options = { ...rest }
 
       // FIXME: scuffed way to set cursor.
       if (options.query) {
@@ -264,15 +265,16 @@ export function createTreatyInfiniteQueryOptions(
       const result = await resolveEdenRequest(
         paths,
         method,
+        options,
+        additionalOptions,
+        domain,
         {
-          ...rest,
+          ...resolvedConfig,
           fetch: {
+            ...resolvedConfig.fetch,
             signal: abortOnUnmount ? context.signal : undefined,
           },
         },
-        additionalOptions,
-        domain,
-        resolvedConfig,
         elysia,
       )
 
@@ -299,8 +301,6 @@ export function createTreatyMutationOptions(
 
   if (isHttpMethod(method)) {
     paths.pop()
-  } else {
-    method = 'get'
   }
 
   const typedOptions = args[0] as CreateMutationOptions

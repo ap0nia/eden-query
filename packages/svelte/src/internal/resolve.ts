@@ -7,10 +7,52 @@ import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
-import type { EdenResolveOptions } from './config'
+import type { EdenResolveConfig } from './config'
+
+export type EdenRequestParams = {
+  /**
+   * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
+   *
+   * @example
+   * '/api/a/b'
+   * ['api', 'a', 'b']
+   */
+  endpointsOrPaths: string | string[]
+
+  /**
+   * HTTP method.
+   */
+  method?: string
+
+  /**
+   * Options when first parameter of GET request.
+   * Body when first parameter of POST, PUT, etc. request.
+   */
+  bodyOrOptions: any
+
+  /**
+   * Options when second parameter of POST, PUT, etc. request.
+   */
+  optionsOrUndefined: any
+
+  /**
+   * Domain. Can be undefined if relative endpoint.
+   *
+   * @example localhost:3000
+   */
+  domain?: string
+
+  /**
+   */
+  config?: EdenResolveConfig
+
+  /**
+   */
+  elysia?: Elysia<any, any, any, any, any, any>
+}
 
 function processHeaders(
-  rawHeaders: EdenResolveOptions['headers'],
+  rawHeaders: EdenResolveConfig['headers'],
   path: string,
   options: RequestInit = {},
   headers: Record<string, string> = {},
@@ -103,7 +145,7 @@ export async function resolveEdenRequest(
 
   /**
    */
-  config: EdenResolveOptions = {},
+  config: EdenResolveConfig = {},
 
   /**
    */
@@ -264,7 +306,7 @@ export async function resolveEdenRequest(
   }
 }
 
-export async function parseResponse(response: Response, config: EdenResolveOptions = {}) {
+export async function parseResponse(response: Response, config: EdenResolveConfig = {}) {
   if (config.onResponse) {
     if (!Array.isArray(config.onResponse)) {
       config.onResponse = [config.onResponse]

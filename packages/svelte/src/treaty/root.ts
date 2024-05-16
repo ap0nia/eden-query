@@ -13,7 +13,7 @@ import type { Elysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 import { derived, type Readable } from 'svelte/store'
 
-import type { EdenQueryConfig, EdenResolveOptions } from '../internal/config'
+import type { EdenQueryConfig, EdenResolveConfig } from '../internal/config'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
@@ -103,7 +103,7 @@ export type TreatySubscriptionMapping<
   TPath extends any[] = [],
   TInput = InferRouteInput<TRoute>,
 > = {
-  options: Prettify<EdenResolveOptions & TInput>
+  options: Prettify<EdenResolveConfig & TInput>
   queryKey: EdenQueryKey<TPath>
 }
 

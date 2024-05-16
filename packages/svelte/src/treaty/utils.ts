@@ -1,7 +1,7 @@
 import type { Elysia, RouteSchema } from 'elysia'
 
 import { LOCAL_ADDRESSES } from '../constants'
-import type { EdenResolveOptions } from '../internal/config'
+import type { EdenResolveConfig } from '../internal/config'
 import type { InferRouteInput, InferRouteOutput } from '../internal/infer'
 
 export type InferTreatyQueryIO<T extends Elysia<any, any, any, any, any, any, any, any>> =
@@ -55,7 +55,7 @@ export type InferTreatyQueryOutputMapping<
     : InferTreatyQueryOutputMapping<TSchema[K], [...TPath, K]>
 }
 
-export function resolveFetchOrigin(domain: string, config: EdenResolveOptions) {
+export function resolveFetchOrigin(domain: string, config: EdenResolveConfig) {
   if (!config.keepDomain) {
     if (!domain.includes('://')) {
       return (
