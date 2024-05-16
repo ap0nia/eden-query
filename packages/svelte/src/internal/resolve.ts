@@ -68,7 +68,7 @@ function processHeaders(
 
 /**
  */
-export async function resolveTreatyRequest(
+export async function resolveEdenRequest(
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    *

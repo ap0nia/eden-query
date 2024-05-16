@@ -25,7 +25,7 @@ import { isStore } from '../utils/is-store'
 import type { EdenQueryConfig } from './config'
 import { httpMethods, isHttpMethod } from './http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from './infer'
-import { resolveTreatyRequest } from './resolve'
+import { resolveEdenRequest } from './resolve'
 
 export type GetRequestInput<T extends { params?: any; query?: any }> = T
 
@@ -188,7 +188,7 @@ export function createTreatyQueryOptions(
   const baseQueryOptions = {
     queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
-      const result = await resolveTreatyRequest(
+      const result = await resolveEdenRequest(
         paths,
         method,
         {
@@ -261,7 +261,7 @@ export function createTreatyInfiniteQueryOptions(
         options.params['cursor'] = context.pageParam
       }
 
-      const result = await resolveTreatyRequest(
+      const result = await resolveEdenRequest(
         paths,
         method,
         {
@@ -311,7 +311,7 @@ export function createTreatyMutationOptions(
     mutationKey: getMutationKey(paths, optionsValue as any),
     mutationFn: async (customVariables: any = {}) => {
       const { variables, options } = customVariables
-      return await resolveTreatyRequest(paths, method, variables, options, domain, config, elysia)
+      return await resolveEdenRequest(paths, method, variables, options, domain, config, elysia)
     },
     onSuccess(data, variables, context) {
       const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
