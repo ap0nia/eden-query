@@ -17,7 +17,7 @@ export type HttpLinkFactoryConfig = {
 
 export function httpLinkFactory(config: HttpLinkFactoryConfig) {
   return (_options?: HttpLinkOptions): OperationLink<EdenRequestParams> => {
-    return ({ operation }) => {
+    return ({ params: operation }) => {
       const observable = createObservable((observer) => {
         config
           .resolver(operation)

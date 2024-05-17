@@ -21,7 +21,7 @@ export function createChain<TInput = any, TOutput = any, TError = any>(
       }
 
       const subscription = nextOperationLink({
-        operation,
+        params: operation,
         next: (nextOperation) => {
           const nextObserver = execute(index + 1, nextOperation)
           return nextObserver

@@ -8,6 +8,6 @@ export type OperationLink<TInput = any, TOutput = any, TError = any> = (
 ) => Observable<TOutput, TError>
 
 export type OperationLinkOptions<TInput = any, TOutput = any, TError = any> = {
-  operation: TInput
+  params: TInput
   next: (operation: TInput) => Observable<TOutput, TError>
 }
