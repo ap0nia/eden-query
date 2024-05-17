@@ -9,7 +9,7 @@ import {
 import type { App } from '$lib/server'
 
 export const eden = createEdenTreatyQuery<App>(undefined, {
-  links: [httpBatchLink()],
+  links: [httpBatchLink({ endpoint: '/api/batch' })],
 })
 
 export type RouterInputs = InferTreatyQueryInput<App>

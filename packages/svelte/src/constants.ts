@@ -18,3 +18,5 @@ export const EDEN_CONTEXT_KEY = Symbol('EDEN_CONTEXT')
 export const LOCALS_SSR_KEY = Symbol('EDEN_SSR')
 
 export const PARTIAL_ROUTE_PLACEHOLDER = Symbol('PARTIAL_ROUTE_PLACEHOLDER')
+
+export const BATCH_ENDPOINT = '/batch'

@@ -1,68 +1,81 @@
 import { Elysia } from 'elysia'
 
+import { BATCH_ENDPOINT } from '../constants'
 import { parseResponse } from '../internal/resolve'
 
 export type BatchedRequestData = {
-  method: string
+  method?: string
   path: string
+  body?: any
 }
 
-export function batchPlugin(elysia: Elysia) {
-  const instance = new Elysia().post('/batch', async (context) => {
-    if (context.request.formData == null) return
+export type BatchPluginOptions = {
+  endpoint?: string
+}
 
-    const formData = await context.request.formData()
+export function batchPlugin(options?: BatchPluginOptions) {
+  const endpoint = options?.endpoint ?? BATCH_ENDPOINT
 
-    const batchedRequests: BatchedRequestData[] = []
+  return (elysia: Elysia) => {
+    const instance = new Elysia().post(endpoint, async (context) => {
+      if (context.request.formData == null) return
 
-    for (const [key, value] of formData.entries()) {
-      const [id, property] = key.split('.')
+      const formData = await context.request.formData()
 
-      if (id == null || property == null) return
+      const batchedRequests: BatchedRequestData[] = []
 
-      try {
-        const index = +id
-        batchedRequests[index] ??= {} as any
-        set(batchedRequests[index], property, value)
-      } catch (e) {
-        console.error(`Failed to add request with key: ${id} to batch: `, e)
-      }
-    }
+      for (const [key, value] of formData.entries()) {
+        const [id, property] = key.split('.')
 
-    const originalUrl = new URL(context.request.url)
+        if (id == null || property == null) return
 
-    const batchedResponses = await Promise.allSettled(
-      batchedRequests.map(async (batchedRequest) => {
-        const request = new Request(`${originalUrl.origin}${batchedRequest.path}`)
-        return {
-          request,
-          response: await elysia.handle(request),
+        try {
+          const index = +id
+          batchedRequests[index] ??= {} as any
+          set(batchedRequests[index], property, value)
+        } catch (e) {
+          console.error(`Failed to add request with key: ${id} to batch: `, e)
         }
-      }),
-    ).catch((e) => {
-      console.error('Error occurred while handling batched requests: ', e)
-      return []
+      }
+
+      const originalUrl = new URL(context.request.url)
+
+      const batchedResponses = await Promise.allSettled(
+        batchedRequests.map(async (batchedRequest) => {
+          const request = new Request(`${originalUrl.origin}${batchedRequest.path}`, {
+            method: batchedRequest.method,
+            // TODO: body,
+          })
+          return {
+            request,
+            response: await elysia.handle(request),
+          }
+        }),
+      ).catch((e) => {
+        console.error('Error occurred while handling batched requests: ', e)
+        return []
+      })
+
+      const parsedResponses = await Promise.all(
+        batchedResponses.map(async (handledRequest) => {
+          if (handledRequest.status === 'rejected') {
+            console.error('Failed to handle request: ', handledRequest.reason)
+            return
+          }
+
+          const result = await parseResponse(handledRequest.value.response).catch((e) => {
+            console.error('Failed to parse response: ', e)
+          })
+          return result
+        }),
+      )
+
+      return parsedResponses
     })
 
-    const parsedResponses = await Promise.all(
-      batchedResponses.map(async (handledRequest) => {
-        if (handledRequest.status === 'rejected') {
-          console.error('Failed to handle request: ', handledRequest.reason)
-          return
-        }
-
-        const result = await parseResponse(handledRequest.value.response).catch((e) => {
-          console.error('Failed to parse response: ', e)
-        })
-        return result
-      }),
-    )
-
-    return parsedResponses
-  })
-
-  // Assert that the return type is the same as the input type so this route is hidden.
-  return elysia.use(instance) as typeof elysia
+    // Assert that the return type is the same as the input type so this route is hidden.
+    return elysia.use(instance) as typeof elysia
+  }
 }
 
 /**

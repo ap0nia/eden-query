@@ -11,4 +11,4 @@ export const elysia = new Elysia({ prefix: '/api' })
       event: event as RequestEvent,
     }
   })
-  .use(batchPlugin)
+  .use(batchPlugin())

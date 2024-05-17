@@ -1,3 +1,4 @@
+import { BATCH_ENDPOINT } from '../constants'
 import type { RouteOutputSchema } from '../internal/infer'
 import { type EdenRequestParams, type EdenResponse, resolveEdenRequest } from '../internal/resolve'
 import type { Noop } from '../utils/noop'
@@ -16,6 +17,7 @@ export type BatchRequesterFactory = (options?: BatchRequesterOptions) => BatchRe
 export type BatchValidatorFactory = (options?: BatchRequesterOptions) => BatchValidator
 
 export type BatchRequesterOptions = {
+  endpoint?: string
   method?: string
 }
 
@@ -29,14 +31,47 @@ export type BatchRequester = (
   cancel: Noop
 }
 
-export interface HttpBatchLinkOptions extends HttpLinkOptions {
+export interface HttpBatchLinkOptions extends HttpLinkOptions, BatchRequesterOptions {
   maxURLLength?: number
   method?: string
 }
 
-const postBatchRequesterFactory: BatchRequesterFactory = (_options) => {
+/**
+ */
+const getBatchRequesterFactory: BatchRequesterFactory = (options) => {
+  return (batchParams) => {
+    const endpoint = options?.endpoint ?? BATCH_ENDPOINT
+
+    /**
+     * TODO: resolve root params for the batch request properly.
+     */
+    const resolvedRootParams = { ...batchParams[0] }
+
+    const signal = resolvedRootParams?.signal ?? resolvedRootParams?.config?.fetch?.signal
+
+    const abortController = signal != null ? new AbortController() : null
+
+    signal?.addEventListener('abort', () => {
+      abortController?.abort()
+    })
+
+    const cancel = () => {
+      abortController?.abort()
+    }
+
+    const promise = resolveEdenRequest({ endpoint }).then((result) => {
+      return 'data' in result ? result.data : []
+    })
+
+    return { promise, cancel }
+  }
+}
+
+const postBatchRequesterFactory: BatchRequesterFactory = (options) => {
   return (batchParams) => {
     const body = new FormData()
+
+    const endpoint = options?.endpoint ?? BATCH_ENDPOINT
 
     /**
      * TODO: resolve root params for the batch request properly.
@@ -45,7 +80,11 @@ const postBatchRequesterFactory: BatchRequesterFactory = (_options) => {
 
     batchParams.forEach((params, index) => {
       const path = '/' + (params.endpoint ?? params.paths?.join('/') ?? '')
-      body.append(`${index}.method`, params.method ?? 'GET')
+
+      if (params.method != null) {
+        body.append(`${index}.method`, params.method)
+      }
+
       body.append(`${index}.path`, path)
     })
 
@@ -69,7 +108,7 @@ const postBatchRequesterFactory: BatchRequesterFactory = (_options) => {
 
     const promise = resolveEdenRequest({
       ...resolvedRootParams,
-      endpoint: 'api/batch',
+      endpoint,
       method: 'POST',
       bodyOrOptions: body,
     }).then((result) => {
@@ -87,8 +126,10 @@ const batchRequesterFactory: BatchRequesterFactory = (options) => {
     /**
      * TODO: support GET batch requester.
      */
-    case 'GET':
-    case 'POST':
+    case 'GET': {
+      return getBatchRequesterFactory(options)
+    }
+
     default: {
       return postBatchRequesterFactory(options)
     }
@@ -103,8 +144,10 @@ const batchValidatorFactory: BatchValidatorFactory = (options) => {
       /**
        * TODO: support GET batch validator.
        */
-      case 'GET':
-      case 'POST':
+      case 'GET': {
+        return true
+      }
+
       default: {
         return true
       }

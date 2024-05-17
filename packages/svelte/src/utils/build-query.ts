@@ -1,4 +1,4 @@
-export function buildQuery(query: Record<string, any>): string {
+export function buildQuery(query: Record<string, any> = {}): string {
   let q = ''
 
   if (query) {

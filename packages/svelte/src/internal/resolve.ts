@@ -38,7 +38,7 @@ export type EdenRequestParams = {
    * Options when first parameter of GET request.
    * Body when first parameter of POST, PUT, etc. request.
    */
-  bodyOrOptions: any
+  bodyOrOptions?: any
 
   /**
    * Options when second parameter of POST, PUT, etc. request.
@@ -147,9 +147,8 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
 
   params.config ??= {}
 
-  const rawEndpoint = params.endpoint ?? params.paths?.filter((p) => p !== 'index').join('/') ?? ''
-
-  let endpoint = '/' + rawEndpoint
+  let endpoint =
+    params.endpoint ?? '/' + (params.paths?.filter((p) => p !== 'index').join('/') ?? '')
 
   const fetcher = params.config.fetcher ?? globalThis.fetch
 
