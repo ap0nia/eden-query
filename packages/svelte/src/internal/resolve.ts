@@ -43,7 +43,7 @@ export type EdenRequestParams = {
   /**
    * Options when second parameter of POST, PUT, etc. request.
    */
-  optionsOrUndefined: any
+  optionsOrUndefined?: any
 
   /**
    * Domain. Can be undefined if relative endpoint.

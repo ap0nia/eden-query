@@ -14,7 +14,8 @@
   "dependencies": {
     "@elysiajs/eden": "^1.0.12",
     "@tanstack/svelte-query": "^5.35.1",
-    "elysia": "^1.0.16"
+    "elysia": "^1.0.16",
+    "nanoid": "^5.0.7"
   },
   "devDependencies": {
     "@sveltejs/kit": "^2.5.7",
