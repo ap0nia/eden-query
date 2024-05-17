@@ -62,7 +62,7 @@ export type CreateQueriesHook<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
+  TOutput = InferRouteOutput<TRoute>['data'],
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (

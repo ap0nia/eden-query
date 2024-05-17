@@ -136,12 +136,12 @@ export function processHeaders(
  */
 export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   if (params.config?.links != null) {
+    // Prevent circular reference on links.
     const {
-      config: { links, ...restConfig },
+      config: { links, ...config },
       ...restParams
     } = params
-    // Prevent circular reference on links.
-    const operation = { ...restParams, restConfig }
+    const operation = { ...restParams, config }
     return await resolveEdenLinks({ operation, links })
   }
 
