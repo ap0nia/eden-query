@@ -104,8 +104,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/svelte
       '@tanstack/svelte-query':
-        specifier: ^5.35.1
-        version: 5.35.1(svelte@4.2.13)
+        specifier: ^5.37.0
+        version: 5.37.0(svelte@4.2.13)
       elysia:
         specifier: ^1.0.16
         version: 1.0.16(@sinclair/typebox@0.32.29)(typescript@5.1.6)
@@ -138,14 +138,11 @@ importers:
         specifier: ^1.0.12
         version: 1.0.12(elysia@1.0.16(@sinclair/typebox@0.32.29)(typescript@5.1.6))
       '@tanstack/svelte-query':
-        specifier: ^5.35.1
-        version: 5.35.1(svelte@4.2.13)
+        specifier: ^5.37.0
+        version: 5.37.0(svelte@4.2.13)
       elysia:
         specifier: ^1.0.16
         version: 1.0.16(@sinclair/typebox@0.32.29)(typescript@5.1.6)
-      nanoid:
-        specifier: ^5.0.7
-        version: 5.0.7
     devDependencies:
       '@sveltejs/kit':
         specifier: ^2.5.7
@@ -1110,16 +1107,16 @@ packages:
       svelte: ^4.0.0 || ^5.0.0-next.0
       vite: ^5.0.0
 
-  '@tanstack/query-core@5.35.1':
+  '@tanstack/query-core@5.36.1':
     resolution:
       {
-        integrity: sha512-0Dnpybqb8+ps6WgqBnqFEC+1F/xLvUosRAq+wiGisTgolOZzqZfkE2995dEXmhuzINiTM7/a6xSGznU0NIvBkw==,
+        integrity: sha512-BteWYEPUcucEu3NBcDAgKuI4U25R9aPrHSP6YSf2NvaD2pSlIQTdqOfLRsxH9WdRYg7k0Uom35Uacb6nvbIMJg==,
       }
 
-  '@tanstack/svelte-query@5.35.1':
+  '@tanstack/svelte-query@5.37.0':
     resolution:
       {
-        integrity: sha512-DlgzwhYYN2fUIdE71xh0UWJ8r1VslYBgiP6xcMBPc3YU8eCdiY6fgtBwTkyuNOfaNJlyEiH9X/XxqjjKULp0PQ==,
+        integrity: sha512-+iIYCLRdSNt99zsEX14sDlcxnQq1Qv3KJwR3C1MRInT+FxxwsQRcEhw1J3dyICGHDL5lSCEKS3bDFNa19cv27A==,
       }
     peerDependencies:
       svelte: ^3.54.0 || ^4.0.0 || ^5.0.0-next.0
@@ -6179,11 +6176,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/query-core@5.35.1': {}
+  '@tanstack/query-core@5.36.1': {}
 
-  '@tanstack/svelte-query@5.35.1(svelte@4.2.13)':
+  '@tanstack/svelte-query@5.37.0(svelte@4.2.13)':
     dependencies:
-      '@tanstack/query-core': 5.35.1
+      '@tanstack/query-core': 5.36.1
       svelte: 4.2.13
 
   '@tsconfig/node10@1.0.9': {}
