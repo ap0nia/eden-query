@@ -37,7 +37,7 @@
   <h1 id="title">Count Mutation</h1>
 
   <div>
-    <h2>Current Count: {$query.data?.data}</h2>
+    <h2>Current Count: {$query.data}</h2>
     <p>
       This is the current count and gets invalidated after the count mutation. Try out the different
       mutation options below.

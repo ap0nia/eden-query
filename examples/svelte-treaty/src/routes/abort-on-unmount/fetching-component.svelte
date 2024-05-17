@@ -6,6 +6,6 @@
 </script>
 
 <div>
-  Wait result: {$wait.data?.data}
-  Count result: {$count.data?.data}
+  Wait result: {$wait.data}
+  Count result: {$count.data}
 </div>

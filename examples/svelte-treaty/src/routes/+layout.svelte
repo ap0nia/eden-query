@@ -22,6 +22,9 @@
         <a href="/">Home</a>
       </li>
       <li>
+        <a href="/batch">batch</a>
+      </li>
+      <li>
         <a href="/create-mutation">createMutation</a>
       </li>
       <li>

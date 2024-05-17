@@ -199,7 +199,9 @@ export function createTreatyQueryOptions(
         signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
-      return result
+      if (!('data' in result)) return result
+      if (result.error != null) throw result.error
+      return result.data
     },
     ...queryOptions,
   } as UndefinedInitialDataOptions
@@ -267,8 +269,9 @@ export function createTreatyInfiniteQueryOptions(
         signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
-
-      return result
+      if (!('data' in result)) return result
+      if (result.error != null) throw result.error
+      return result.data
     },
     ...queryOptions,
   } as CreateInfiniteQueryOptions
@@ -300,7 +303,7 @@ export function createTreatyMutationOptions(
   const mutationOptions = {
     mutationKey: getMutationKey(paths, optionsValue as any),
     mutationFn: async (customVariables: any = {}) => {
-      return await resolveEdenRequest({
+      const result = await resolveEdenRequest({
         paths,
         method,
         bodyOrOptions: customVariables.variables,
@@ -309,6 +312,9 @@ export function createTreatyMutationOptions(
         config,
         elysia,
       })
+      if (!('data' in result)) return result
+      if (result.error != null) throw result.error
+      return result.data
     },
     onSuccess(data, variables, context) {
       const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
