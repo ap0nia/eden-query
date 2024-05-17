@@ -1,25 +1,12 @@
 <script lang="ts">
   import { eden } from '$lib/eden'
-  import { onMount } from 'svelte'
 
-  const query = eden.api.index.get.createQuery({})
-
-  onMount(async () => {
-    const body = new FormData()
-
-    body.append(`0.method`, 'GET')
-    body.append(`0.path`, '/api/count')
-
-    body.append(`1.method`, 'GET')
-    body.append(`1.path`, '/api')
-
-    const response = await fetch('/api/batch', { method: 'POST', body })
-
-    console.log('response: ', response)
-  })
+  const index = eden.api.index.get.createQuery({})
+  const count = eden.api.count.get.createQuery({})
 </script>
 
 <div>
   <h1>Home</h1>
-  <pre>{JSON.stringify($query.data, null, 2)}</pre>
+  <pre>{JSON.stringify($index.data, null, 2)}</pre>
+  <pre>{JSON.stringify($count.data, null, 2)}</pre>
 </div>

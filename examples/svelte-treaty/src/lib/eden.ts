@@ -1,6 +1,6 @@
 import {
   createEdenTreatyQuery,
-  httpLink,
+  httpBatchLink,
   type InferTreatyQueryInput,
   type InferTreatyQueryIO,
   type InferTreatyQueryOutput,
@@ -10,7 +10,7 @@ import { dehydrate, type DehydratedState, type QueryClient } from '@tanstack/sve
 import type { App } from '$lib/server'
 
 export const eden = createEdenTreatyQuery<App>(undefined, {
-  links: [httpLink()],
+  links: [httpBatchLink()],
 })
 
 export type RouterInputs = InferTreatyQueryInput<App>

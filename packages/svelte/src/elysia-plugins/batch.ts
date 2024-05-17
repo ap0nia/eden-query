@@ -61,7 +61,8 @@ export function batchPlugin(elysia: Elysia) {
     return parsedResponses
   })
 
-  return elysia.use(instance)
+  // Assert that the return type is the same as the input type so this route is hidden.
+  return elysia.use(instance) as typeof elysia
 }
 
 /**

@@ -12,7 +12,6 @@
   eden.setContext(data.queryClient)
 
   $: hydrate(data.queryClient, data.dehydrated)
-  $: console.log('data: ', data)
 </script>
 
 <QueryClientProvider client={data.queryClient}>

@@ -1,5 +1,3 @@
-import { nanoid } from 'nanoid'
-
 import type { RouteOutputSchema } from '../internal/infer'
 import { type EdenRequestParams, type EdenResponse, resolveEdenRequest } from '../internal/resolve'
 import type { Noop } from '../utils/noop'
@@ -214,12 +212,10 @@ const batchRequester: BatchRequester = (_options) => {
 
     const firstParams = batchParams[0]
 
-    batchParams.forEach((params) => {
-      const id = nanoid()
+    batchParams.forEach((params, index) => {
       const path = '/' + (params.endpoint ?? params.paths?.join('/') ?? '')
-
-      body.append(`${id}.method`, params.method ?? 'GET')
-      body.append(`${id}.path`, path)
+      body.append(`${index}.method`, params.method ?? 'GET')
+      body.append(`${index}.path`, path)
     })
 
     const signal = firstParams?.signal ?? firstParams?.config?.fetch?.signal
@@ -236,11 +232,11 @@ const batchRequester: BatchRequester = (_options) => {
 
     const promise = resolveEdenRequest({
       ...firstParams,
+      endpoint: 'api/batch',
       method: 'POST',
       bodyOrOptions: body,
     }).then((result) => {
-      if (!('data' in result)) return []
-      return Object.entries(result.data).map(([_key, value]) => value as any)
+      return 'data' in result ? result.data : []
     })
 
     return { promise, cancel }
@@ -279,7 +275,7 @@ export function createHTTPBatchLink(requester: BatchRequester) {
 
     return ({ operation }) => {
       return createObservable((observer) => {
-        const { promise, cancel } = loader.load({ id: nanoid(), ...operation })
+        const { promise, cancel } = loader.load(operation)
 
         promise
           .then((result) => {

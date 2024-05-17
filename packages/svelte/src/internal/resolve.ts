@@ -143,7 +143,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
 
   params.config ??= {}
 
-  const rawEndpoint = params.paths?.filter((p) => p !== 'index').join('/') ?? params.endpoint ?? ''
+  const rawEndpoint = params.endpoint ?? params.paths?.filter((p) => p !== 'index').join('/') ?? ''
 
   let endpoint = '/' + rawEndpoint
 
@@ -162,10 +162,6 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
       endpoint = endpoint.replace(`:${key}`, value as string)
     })
   }
-
-  // Signal. Add to links interface if it exists.
-  params.config.fetch?.signal
-
   const headers = processHeaders(params.config.headers, endpoint, options)
 
   const rawQuery = isGetOrHead ? params.bodyOrOptions['query'] : options?.query
@@ -188,7 +184,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
 
   fetchInit.headers = {
     ...headers,
-    ...processHeaders(options.headers, endpoint, fetchInit),
+    ...processHeaders(options?.headers, endpoint, fetchInit),
   }
 
   const fetchOpts =
@@ -263,6 +259,8 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
 
       formData.append(key, field as string)
     }
+  } else if (params.bodyOrOptions instanceof FormData) {
+    // noop.
   } else if (typeof params.bodyOrOptions === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
     fetchInit.body = JSON.stringify(params.bodyOrOptions)
