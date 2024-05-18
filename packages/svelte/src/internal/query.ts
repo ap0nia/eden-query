@@ -27,36 +27,77 @@ import { httpMethods, isHttpMethod } from './http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from './infer'
 import { resolveEdenRequest } from './resolve'
 
-export type GetRequestInput<T extends { params?: any; query?: any }> = T
-
+/**
+ * Key in params or query that indicates GET routes that are eligible for infinite queries.
+ */
 export type InfiniteCursorKey = 'cursor'
 
+/**
+ * When providing request input to infinite queries, omit the "cursor" and "direction" properties
+ * since these will be set by the integration.
+ */
 export type ReservedInfiniteQueryKeys = InfiniteCursorKey | 'direction'
 
-export type InfiniteInput<T extends RouteSchema> = InfiniteCursorKey extends keyof (T['params'] &
-  T['query'])
+/**
+ * Merges the valid input for a GET request (i.e. params and query) into one object.
+ */
+export type MergedGetInput<T extends RouteSchema> = T['params'] & T['query']
+
+/**
+ * GET routes that are eligible for infinite queries must have a "cursor" property in
+ * either the params or query.
+ */
+export type InfiniteInput<T extends RouteSchema> = InfiniteCursorKey extends keyof MergedGetInput<T>
   ? T
   : never
 
+/**
+ * Filters the routes of an {@link Elysia} instance for ones compatible with infinite queries.
+ * i.e. GET routes that have {@link InfiniteCursorKey} in either the params or query.
+ */
 export type InfiniteRoutes<T> = {
   [K in keyof T as T[K] extends {
-    get: GetRequestInput<InfiniteInput<infer _FetchOptions>>
+    get: InfiniteInput<infer _RouteSchema>
   }
     ? K
     : never]: T[K]
 }
 
+/**
+ * A well-defined query type used when creating query keys for a specific type of operation.
+ */
 export type EdenKnownQueryType = 'query' | 'infinite'
 
+/**
+ * Valid query types for creating query keys.
+ */
 export type EdenQueryType = EdenKnownQueryType | 'any'
 
+/**
+ * QueryKey used internally. Consists of a tuple with an array key and metadata.
+ */
 export type EdenQueryKey<
   TKey extends any[] = any[],
   TInput = unknown,
   TType extends EdenKnownQueryType = EdenKnownQueryType,
 > = [key?: TKey, metadata?: { input?: TInput; type?: TType }]
 
+/**
+ * Strongly typed {@link CreateQueryOptions} for a specific Elysia route.
+ */
 export type EdenCreateQueryOptions<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  TKey extends QueryKey = EdenQueryKey<TPath>,
+> = TInput & {
+  eden?: EdenQueryConfig
+  queryOptions?: Omit<CreateQueryOptions<TOutput, TError, TOutput, TKey>, 'queryKey'>
+}
+
+export type EdenDefinedCreateQueryOptions<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
