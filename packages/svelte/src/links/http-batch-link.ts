@@ -1,5 +1,4 @@
 import { BATCH_ENDPOINT } from '../constants'
-import type { RouteOutputSchema } from '../internal/infer'
 import { type EdenRequestParams, type EdenResponse, resolveEdenRequest } from '../internal/resolve'
 import type { Noop } from '../utils/noop'
 import type { HttpLinkOptions } from '.'
@@ -25,7 +24,7 @@ export type BatchValidator = (keys: EdenRequestParams[]) => boolean
 
 export type BatchRequester = (
   batchParams: EdenRequestParams[],
-  unitResolver: (index: number, value: RouteOutputSchema) => void,
+  unitResolver: (index: number, value: any) => void,
 ) => {
   promise: Promise<EdenResponse[]>
   cancel: Noop

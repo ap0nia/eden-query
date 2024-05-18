@@ -4,18 +4,28 @@ import type { MaybeArray, MaybePromise } from 'elysia/types'
 
 import type { OperationLink } from '../links/operation'
 
-/**
- * Request options for svelte-query.
- */
-export interface EdenQueryRequestOptions {
-  overrides?: {
-    createMutation?: Partial<CreateMutationOverride>
-  }
+export type EdenQueryRequestOptions = {
+  /**
+   * Whether the query should abort when the component unmounts.
+   */
   abortOnUnmount?: boolean
+
+  /**
+   * Overrides for svelte-query hooks.
+   */
+  overrides?: EdenQueryOverrides
+
+  /**
+   * QueryClient to st
+   */
   queryClient?: QueryClient
 }
 
-export interface CreateMutationOverride {
+export type EdenQueryOverrides = {
+  createMutation?: Partial<CreateMutationOverride>
+}
+
+export type CreateMutationOverride = {
   onSuccess: (opts: {
     originalFn: () => StoreOrVal<unknown>
     meta: Record<string, unknown>
@@ -23,9 +33,9 @@ export interface CreateMutationOverride {
 }
 
 /**
- * Options for resolving eden requests.
+ * Per-request options to customize the fetch behavior.
  */
-export type EdenResolveConfig = {
+export type EdenRequestOptions = {
   links?: OperationLink[]
   fetch?: Omit<RequestInit, 'headers' | 'method'>
   fetcher?: typeof fetch
@@ -37,22 +47,11 @@ export type EdenResolveConfig = {
   keepDomain?: boolean
 }
 
-/**
- * Options available when targetting SSR.
- */
 export type EdenSsrOptions = {
   event?: RequestEvent
-
-  /**
-   * Dehydrate the SSR queryClient, and pass a pointer to the object or `true` to initialize a new one.
-   * Completed queries will be merged with this dehdrated state.
-   */
   dehydrated?: DehydratedState | true
 }
 
-/**
- * All configuration options available to the fetch or treaty integrations.
- */
-export type EdenQueryConfig = EdenResolveConfig & EdenQueryRequestOptions & EdenSsrOptions
+export type EdenQueryConfig = EdenRequestOptions & EdenQueryRequestOptions & EdenSsrOptions
 
 export type EdenQueryConfigWithQueryClient = EdenQueryConfig & { queryClient: QueryClient }

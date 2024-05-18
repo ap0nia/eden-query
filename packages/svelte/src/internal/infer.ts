@@ -1,4 +1,5 @@
 import type { RouteSchema } from 'elysia'
+import type { MaybeArray } from 'elysia/types'
 
 import type { EdenFetchError, MapError } from '../internal/error'
 import type { IsNever } from '../utils/is-never'
@@ -7,19 +8,13 @@ import type { EdenQueryRequestOptions } from './config'
 
 type Files = File | FileList
 
-type ReplaceBlobWithFiles<in out RecordType extends Record<string, unknown>> = {
-  [K in keyof RecordType]: RecordType[K] extends Blob | Blob[] ? Files : RecordType[K]
-} & {}
+type ReplaceBlobWithFiles<T> = {
+  [K in keyof T]: T[K] extends MaybeArray<Blob> ? Files : T[K]
+}
 
-/**
- * Transforms a raw route definition into a more semantically accurate params object.
- */
 export type InferRouteInput<
   TRoute extends RouteSchema = any,
   _TMethod extends string = any,
-  /**
-   * Utility generic for filtering out certain properties from all input sources.
-   */
   TOmitInput extends string | number | symbol = never,
 > = (IsNever<keyof TRoute['params']> extends true
   ? {
@@ -53,12 +48,13 @@ export type InferRouteInput<
     : {
         body?: unknown
       }) & {
+    /**
+     * Per-request options.
+     */
     eden?: EdenQueryRequestOptions
   }
 
-export type InferRouteOutput<T extends Record<string, any>> = Omit<T, 'response'> & {
-  data: Awaited<T['response'][200]>
-}
+export type InferRouteOutput<T extends Record<string, any>> = Awaited<T['response'][200]>
 
 export type InferRouteError<T extends Record<string, any>> = MapError<
   T['response']
@@ -67,5 +63,3 @@ export type InferRouteError<T extends Record<string, any>> = MapError<
     ? EdenFetchError<number, string>
     : Errors
   : EdenFetchError<number, string>
-
-export type RouteOutputSchema = InferRouteInput & { data?: unknown }

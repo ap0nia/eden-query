@@ -10,7 +10,7 @@ import { type InferObservableValue, promisifyObservable } from '../links/observa
 import { share } from '../links/operators'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
-import type { EdenResolveConfig } from './config'
+import type { EdenRequestOptions } from './config'
 
 export type EdenRequestParams = {
   /**
@@ -54,7 +54,7 @@ export type EdenRequestParams = {
 
   /**
    */
-  config?: EdenResolveConfig
+  config?: EdenRequestOptions
 
   /**
    */
@@ -76,7 +76,7 @@ export type EdenResponse =
 export type EdenRequestResolver = (params: EdenRequestParams) => Promise<EdenResponse>
 
 export function processHeaders(
-  rawHeaders: EdenResolveConfig['headers'],
+  rawHeaders: EdenRequestOptions['headers'],
   path: string,
   options: RequestInit = {},
   headers: Record<string, string> = {},
@@ -305,7 +305,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   }
 }
 
-export async function parseResponse(response: Response, config: EdenResolveConfig = {}) {
+export async function parseResponse(response: Response, config: EdenRequestOptions = {}) {
   if (config.onResponse) {
     if (!Array.isArray(config.onResponse)) {
       config.onResponse = [config.onResponse]

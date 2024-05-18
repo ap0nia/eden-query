@@ -13,7 +13,7 @@ import type { Elysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 import { derived, type Readable } from 'svelte/store'
 
-import type { EdenQueryConfig, EdenResolveConfig } from '../internal/config'
+import type { EdenQueryConfig, EdenRequestOptions } from '../internal/config'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
@@ -103,14 +103,14 @@ export type TreatySubscriptionMapping<
   TPath extends any[] = [],
   TInput = InferRouteInput<TRoute>,
 > = {
-  options: Prettify<EdenResolveConfig & TInput>
+  options: Prettify<EdenRequestOptions & TInput>
   queryKey: EdenQueryKey<TPath>
 }
 
 export type TreatyCreateQuery<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
   options: StoreOrVal<EdenCreateQueryOptions<TRoute, TPath>>,
@@ -119,7 +119,7 @@ export type TreatyCreateQuery<
 export type TreatyCreateInfiniteQuery<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
   options: StoreOrVal<EdenCreateInfiniteQueryOptions<TRoute, TPath>>,
@@ -129,7 +129,7 @@ export type EdenTreatyCreateMutation<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteInput<TRoute>['body'],
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   /**
    * TODO: what is TContext for a fetch request mutation?
@@ -151,7 +151,7 @@ export type EdenTreatyAsyncMutationFunction<
   TInput extends Record<string, any> = InferRouteInput<TRoute>,
   TBody = TInput['body'],
   TParams = Omit<TInput, 'body'>,
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   /**
    * TODO: what is TContext for a fetch request mutation?
@@ -170,7 +170,7 @@ export type EdenTreatyMutationFunction<
   TInput extends Record<string, any> = InferRouteInput<TRoute>,
   TBody = TInput['body'],
   TParams = Omit<TInput, 'body'>,
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   /**
    * TODO: what is TContext for a fetch request mutation?

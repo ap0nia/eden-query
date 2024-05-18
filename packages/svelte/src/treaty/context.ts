@@ -103,7 +103,7 @@ type TreatyQueryContext<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteInput<TRoute>,
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
@@ -172,7 +172,7 @@ type TreatyInfiniteQueryContext<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteInput<TRoute, any, ReservedInfiniteQueryKeys>,
-  TOutput = InferRouteOutput<TRoute>['data'],
+  TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = {
