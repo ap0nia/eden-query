@@ -150,7 +150,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   let endpoint =
     params.endpoint ?? '/' + (params.paths?.filter((p) => p !== 'index').join('/') ?? '')
 
-  const fetcher = params.config.fetcher ?? globalThis.fetch
+  const fetcher = params.config.fetch ?? globalThis.fetch
 
   const isGetOrHead =
     params.method == null ||
@@ -181,7 +181,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
     method: params.method?.toUpperCase(),
     body: params.bodyOrOptions,
     signal: params.signal,
-    ...params.config.fetch,
+    ...params.config.fetchInit,
     headers,
   } satisfies RequestInit
 
@@ -370,7 +370,7 @@ export async function parseResponse(response: Response, config: EdenRequestOptio
 }
 
 export async function resolveEdenLinks(options: ChainOptions<EdenRequestParams, EdenResponse>) {
-  const signal = options.operation.signal ?? options.operation.config?.fetch?.signal
+  const signal = options.operation.signal ?? options.operation.config?.fetchInit?.signal
 
   const requestChain = createChain(options).pipe(share())
 

@@ -46,7 +46,7 @@ const getBatchRequesterFactory: BatchRequesterFactory = (options) => {
      */
     const resolvedRootParams = { ...batchParams[0] }
 
-    const signal = resolvedRootParams?.signal ?? resolvedRootParams?.config?.fetch?.signal
+    const signal = resolvedRootParams?.signal ?? resolvedRootParams?.config?.fetchInit?.signal
 
     const abortController = signal != null ? new AbortController() : null
 
@@ -87,7 +87,7 @@ const postBatchRequesterFactory: BatchRequesterFactory = (options) => {
       body.append(`${index}.path`, path)
     })
 
-    const signal = resolvedRootParams?.signal ?? resolvedRootParams?.config?.fetch?.signal
+    const signal = resolvedRootParams?.signal ?? resolvedRootParams?.config?.fetchInit?.signal
 
     const abortController = signal != null ? new AbortController() : null
 
@@ -101,8 +101,8 @@ const postBatchRequesterFactory: BatchRequesterFactory = (options) => {
 
     if (resolvedRootParams?.signal != null) {
       resolvedRootParams.signal = signal
-    } else if (resolvedRootParams.config?.fetch?.signal != null) {
-      resolvedRootParams.config.fetch.signal = signal
+    } else if (resolvedRootParams.config?.fetchInit?.signal != null) {
+      resolvedRootParams.config.fetchInit.signal = signal
     }
 
     const promise = resolveEdenRequest({

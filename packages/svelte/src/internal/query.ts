@@ -3,28 +3,35 @@
  */
 
 import {
+  type CreateBaseQueryOptions,
   type CreateInfiniteQueryOptions,
+  type CreateInfiniteQueryResult,
   createMutation,
-  type CreateMutationOptions,
   type CreateMutationResult,
-  type CreateQueryOptions,
+  type CreateQueryResult,
   type DefaultError,
+  type DefinedCreateQueryResult,
   dehydrate,
   type DehydratedState,
+  type InfiniteData,
+  type InfiniteQueryObserverSuccessResult,
+  type InitialDataFunction,
   type MutationObserverOptions,
   type OmitKeyof,
   type QueryClient,
-  type QueryKey,
+  type QueryObserverSuccessResult,
+  type QueryOptions,
   type StoreOrVal,
   type UndefinedInitialDataOptions,
 } from '@tanstack/svelte-query'
 import type { Elysia, RouteSchema } from 'elysia'
 import { derived, get } from 'svelte/store'
 
+import type { DistributiveOmit } from '../utils/distributive-omit'
 import { isStore } from '../utils/is-store'
-import type { EdenQueryConfig } from './config'
+import type { EdenQueryConfig, EdenRequestOptions } from './config'
 import { httpMethods, isHttpMethod } from './http'
-import type { InferRouteError, InferRouteInput, InferRouteOutput } from './infer'
+import type { InferRouteInput } from './infer'
 import { resolveEdenRequest } from './resolve'
 
 /**
@@ -52,6 +59,14 @@ export type InfiniteInput<T extends RouteSchema> = InfiniteCursorKey extends key
   : never
 
 /**
+ * Given T, which is presumably a {@link RouteSchema}, merge the "params" and "query" types,
+ * then extract the "cursor".
+ */
+export type ExtractCursorType<T> = T extends Record<string, any>
+  ? MergedGetInput<T>['cursor']
+  : unknown
+
+/**
  * Filters the routes of an {@link Elysia} instance for ones compatible with infinite queries.
  * i.e. GET routes that have {@link InfiniteCursorKey} in either the params or query.
  */
@@ -77,61 +92,132 @@ export type EdenQueryType = EdenKnownQueryType | 'any'
  * QueryKey used internally. Consists of a tuple with an array key and metadata.
  */
 export type EdenQueryKey<
-  TKey extends any[] = any[],
+  TKey extends any[] = string[],
   TInput = unknown,
   TType extends EdenKnownQueryType = EdenKnownQueryType,
-> = [key?: TKey, metadata?: { input?: TInput; type?: TType }]
+> = [key: TKey, metadata?: { input?: TInput; type?: TType }]
 
 /**
- * Strongly typed {@link CreateQueryOptions} for a specific Elysia route.
+ * Options to customize the behavior of the query or fetch.
  */
-export type EdenCreateQueryOptions<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  TKey extends QueryKey = EdenQueryKey<TPath>,
-> = TInput & {
-  eden?: EdenQueryConfig
-  queryOptions?: Omit<CreateQueryOptions<TOutput, TError, TOutput, TKey>, 'queryKey'>
+export type EdenSvelteRequestOptions =
+  /**
+   * Use svelte-query's internal AbortSignals instead of allowing user provided signals.
+   */
+  Omit<EdenRequestOptions, 'signal'> & {
+    /**
+     * Opt out or into aborting request on unmount
+     */
+    abortOnUnmount?: boolean
+  }
+
+/**
+ * Additional options for queries.
+ */
+export type EdenCreateQueryBaseOptions = {
+  /**
+   * tRPC-related options
+   */
+  eden?: EdenSvelteRequestOptions
 }
+
+export type EdenQueryOptions<TData, TError> = DistributiveOmit<
+  QueryOptions<TData, TError, TData, any>,
+  'queryKey'
+> &
+  EdenCreateQueryBaseOptions & {
+    queryKey: EdenQueryKey
+  }
+
+/**
+ * The CreateMutationOptions exported by svelte-query is pre-wrapped in StoreOrVal.
+ * Extract the original type and wrap it manually later.
+ */
+export type CreateMutationOptions<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TContext = unknown,
+> = OmitKeyof<MutationObserverOptions<TData, TError, TVariables, TContext>, '_defaulted'>
+
+export type EdenCreateQueryOptions<
+  TOutput,
+  TData,
+  TError,
+  TQueryOptsData = TOutput,
+> = DistributiveOmit<
+  CreateBaseQueryOptions<TOutput, TError, TData, TQueryOptsData, any>,
+  'queryKey'
+> &
+  EdenCreateQueryBaseOptions
 
 export type EdenDefinedCreateQueryOptions<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  TKey extends QueryKey = EdenQueryKey<TPath>,
-> = TInput & {
-  eden?: EdenQueryConfig
-  queryOptions?: Omit<CreateQueryOptions<TOutput, TError, TOutput, TKey>, 'queryKey'>
-}
+  TOutput,
+  TData,
+  TError,
+  TQueryOptsData = TOutput,
+> = DistributiveOmit<
+  CreateBaseQueryOptions<TOutput, TError, TData, TQueryOptsData, any>,
+  'queryKey'
+> &
+  EdenCreateQueryBaseOptions & {
+    initialData: InitialDataFunction<TQueryOptsData> | TQueryOptsData
+  }
 
-export type EdenCreateInfiniteQueryOptions<
-  TRoute extends RouteSchema,
-  TPath extends any[] = [],
-  TInput extends InferRouteInput<TRoute> = InferRouteInput<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  TKey extends QueryKey = EdenQueryKey<TPath>,
-> = TInput & {
-  eden?: EdenQueryConfig
-  queryOptions: Omit<CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>, 'queryKey'>
-}
+export type EdenCreateInfiniteQueryOptions<TInput, TOutput, TError> = DistributiveOmit<
+  CreateInfiniteQueryOptions<TOutput, TError, TOutput, TOutput, any, ExtractCursorType<TInput>>,
+  'queryKey' | 'initialPageParam'
+> &
+  EdenCreateQueryBaseOptions & {
+    initialCursor?: ExtractCursorType<TInput>
+  }
 
 export type EdenCreateMutationOptions<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput = InferRouteInput<TRoute>['body'],
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-  /**
-   * TODO: what is TContext for a fetch request mutation?
-   */
+  TInput,
+  TError,
+  TOutput,
   TContext = unknown,
-> = OmitKeyof<MutationObserverOptions<TOutput, TError, TInput, TContext>, '_defaulted'> & TInput
+> = CreateMutationOptions<TOutput, TError, TInput, TContext> & EdenCreateQueryBaseOptions
+
+export type EdenCreateSubscriptionOptions<TOutput, TError> = {
+  enabled?: boolean
+  onStarted?: () => void
+  onData: (data: TOutput) => void
+  onError?: (err: TError) => void
+}
+
+export type EdenHookResult = {
+  eden: {
+    path: string
+  }
+}
+
+export type EdenCreateQueryResult<TData, TError> = CreateQueryResult<TData, TError> & EdenHookResult
+
+export type EdenDefinedCreateTRPCQueryResult<TData, TError> = DefinedCreateQueryResult<
+  TData,
+  TError
+> &
+  EdenHookResult
+
+export type EdenCreateQuerySuccessResult<TData, TError> = QueryObserverSuccessResult<
+  TData,
+  TError
+> &
+  EdenHookResult
+
+export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfiniteQueryResult<
+  InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+  TError
+> &
+  EdenHookResult
+
+export type EdenCreateInfiniteQuerySuccessResult<TData, TError, TInput> =
+  InfiniteQueryObserverSuccessResult<
+    InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+    TError
+  > &
+    EdenHookResult
 
 export function getQueryKey(
   pathOrEndpoint: string | string[],
@@ -139,7 +225,7 @@ export function getQueryKey(
   type?: EdenQueryType,
 ): EdenQueryKey {
   const path = Array.isArray(pathOrEndpoint) ? pathOrEndpoint : pathOrEndpoint.split('/')
-  const hasInput = options?.body || options?.params || options?.query
+  const hasInput = options?.body != null || options?.params != null || options?.query != null
   const hasType = Boolean(type) && type !== 'any'
 
   if (!hasInput && !hasType) return [path]
@@ -148,12 +234,20 @@ export function getQueryKey(
   return [path, { ...(hasInput && { input }), ...(hasType && { type }) }]
 }
 
+export type EdenCreateMutationResult<TData, TError, TVariables, TContext> = CreateMutationResult<
+  TData,
+  TError,
+  TVariables,
+  TContext
+> &
+  EdenHookResult
+
 export function getMutationKey(
   pathOrEndpoint: string | string[],
   options?: InferRouteInput<any>,
 ): EdenQueryKey {
   const path = Array.isArray(pathOrEndpoint) ? pathOrEndpoint : pathOrEndpoint.split('/')
-  const hasInput = options?.body || options?.params || options?.query
+  const hasInput = options?.body != null || options?.params != null || options?.query != null
 
   if (!hasInput) return [path]
 
@@ -224,7 +318,7 @@ export function createTreatyQueryOptions(
   const resolvedConfig = {
     ...config,
     ...eden,
-    fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
+    fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetch ?? globalThis.fetch,
   }
 
   const baseQueryOptions = {
@@ -283,7 +377,7 @@ export function createTreatyInfiniteQueryOptions(
   const resolvedConfig = {
     ...config,
     ...eden,
-    fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetcher ?? globalThis.fetch,
+    fetcher: eden?.fetch ?? config.event?.fetch ?? config.fetch ?? globalThis.fetch,
   }
 
   const infiniteQueryOptions = {

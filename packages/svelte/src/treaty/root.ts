@@ -17,13 +17,13 @@ import type { EdenQueryConfig, EdenRequestOptions } from '../internal/config'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
+  type CreateEdenQueryOptions,
   createTreatyInfiniteQueryOptions,
   createTreatyMutation,
   createTreatyMutationOptions,
   createTreatyQueryOptions,
   type EdenCreateInfiniteQueryOptions,
   type EdenCreateMutationOptions,
-  type EdenCreateQueryOptions,
   type EdenQueryKey,
   type InfiniteCursorKey,
 } from '../internal/query'
@@ -113,7 +113,7 @@ export type TreatyCreateQuery<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  options: StoreOrVal<EdenCreateQueryOptions<TRoute, TPath>>,
+  options: StoreOrVal<CreateEdenQueryOptions<TRoute, TPath>>,
 ) => CreateQueryResult<TOutput, TError>
 
 export type TreatyCreateInfiniteQuery<
@@ -232,7 +232,7 @@ export function resolveEdenTreatyQueryProxy(
 
   switch (hook) {
     case 'createQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
+      const typedOptions = args[0] as StoreOrVal<CreateEdenQueryOptions<any>>
 
       if (!isStore(typedOptions)) {
         const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)

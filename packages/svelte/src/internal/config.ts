@@ -2,7 +2,7 @@ import type { RequestEvent } from '@sveltejs/kit'
 import type { DehydratedState, QueryClient, StoreOrVal } from '@tanstack/svelte-query'
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
-import type { OperationLink } from '../links/operation'
+import type { OperationContext } from './operation'
 
 export type EdenQueryRequestOptions = {
   /**
@@ -36,14 +36,46 @@ export type CreateMutationOverride = {
  * Per-request options to customize the fetch behavior.
  */
 export type EdenRequestOptions = {
-  links?: OperationLink[]
-  fetch?: Omit<RequestInit, 'headers' | 'method'>
-  fetcher?: typeof fetch
+  /**
+   * Additional context shared between links.
+   */
+  context?: OperationContext
+
+  /**
+   * Signal that's forwarded to the fetch request to enable aborting.
+   */
+  signal?: AbortSignal
+
+  /**
+   * Fetch options.
+   */
+  fetchInit?: Omit<RequestInit, keyof EdenRequestOptions | 'method'>
+
+  /**
+   * Fetch implementation.
+   */
+  fetch?: typeof fetch
+
+  /**
+   * Headers object to forward to the fetch request.
+   */
   headers?: MaybeArray<
     RequestInit['headers'] | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
   >
+
+  /**
+   * Callback to invoke prior to fetching the request.
+   */
   onRequest?: MaybeArray<(path: string, options: RequestInit) => MaybePromise<RequestInit | void>>
+
+  /**
+   * Callback to invoke after fetching the request.
+   */
   onResponse?: MaybeArray<(response: Response) => MaybePromise<unknown>>
+
+  /**
+   * IDK.
+   */
   keepDomain?: boolean
 }
 

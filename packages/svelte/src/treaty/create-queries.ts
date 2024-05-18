@@ -12,8 +12,8 @@ import { derived, type Readable } from 'svelte/store'
 import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
+  type CreateEdenQueryOptions,
   createTreatyQueryOptions,
-  type EdenCreateQueryOptions,
   type EdenQueryKey,
 } from '../internal/query'
 import type { AnyElysia, InstallMessage } from '../types'
@@ -67,7 +67,7 @@ export type CreateQueriesHook<
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (
   input: TInput,
-  opts?: Partial<EdenCreateQueryOptions<TRoute, TPath>>,
+  opts?: Partial<CreateEdenQueryOptions<TRoute, TPath>>,
 ) => CreateQueryOptions<TOutput, TError, TOutput, TKey>
 
 export function createEdenCreateQueriesProxy<T extends AnyElysia>(
@@ -96,7 +96,7 @@ export function resolveEdenCreateQueriesProxy(
   paths: string[] = [],
   elysia?: Elysia<any, any, any, any, any, any>,
 ) {
-  const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
+  const typedOptions = args[0] as StoreOrVal<CreateEdenQueryOptions<any>>
 
   if (!isStore(typedOptions)) {
     const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)

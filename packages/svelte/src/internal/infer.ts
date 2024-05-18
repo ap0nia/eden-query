@@ -4,7 +4,6 @@ import type { MaybeArray } from 'elysia/types'
 import type { EdenFetchError, MapError } from '../internal/error'
 import type { IsNever } from '../utils/is-never'
 import type { IsUnknown } from '../utils/is-unknown'
-import type { EdenQueryRequestOptions } from './config'
 
 type Files = File | FileList
 
@@ -47,12 +46,7 @@ export type InferRouteInput<
         }
     : {
         body?: unknown
-      }) & {
-    /**
-     * Per-request options.
-     */
-    eden?: EdenQueryRequestOptions
-  }
+      })
 
 export type InferRouteOutput<T extends Record<string, any>> = Awaited<T['response'][200]>
 
