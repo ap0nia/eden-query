@@ -1,6 +1,5 @@
 import type { EdenClientError, EdenClientRuntime } from '../../internal/client'
 import type { EdenRequestParams } from '../../internal/resolve'
-import type { JSONRPC2 } from '../../internal/rpc'
 import type { AnyElysia } from '../../types'
 import type { Observable, Observer } from './observable'
 
@@ -42,15 +41,16 @@ export type OperationResultObserver<TRoute extends AnyElysia, TOutput> = Observe
   EdenClientError<TRoute>
 >
 
-export interface OperationResultEnvelope<TOutput> {
-  result: EdenResultMessage<TOutput>['result'] | EdenSuccessResponse<TOutput>['result']
+export type OperationResultEnvelope<T> = {
+  result: EdenResultMessage<T> | EdenSuccessResponse<T>
   context?: OperationContext
 }
 
-export type EdenResultMessage<T> = JSONRPC2.ResultResponse<
-  { type: 'started'; data?: never } | { type: 'stopped'; data?: never } | { data: T; type: 'data' }
->
+export type EdenResultMessage<T> =
+  | { type: 'started'; data?: never }
+  | { type: 'stopped'; data?: never }
+  | { data: T; type: 'data' }
 
-export type EdenSuccessResponse<T> = JSONRPC2.ResultResponse<{ data: T; type?: 'data' }>
+export type EdenSuccessResponse<T> = { data: T; type?: 'data' }
 
 export type EdenLink<T extends AnyElysia = any> = (opts: EdenClientRuntime) => OperationLink<T>
