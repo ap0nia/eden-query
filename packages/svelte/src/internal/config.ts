@@ -33,6 +33,13 @@ export type CreateMutationOverride = {
 }
 
 /**
+ * Flexible format for defining headers.
+ */
+export type EdenRequestHeaders = MaybeArray<
+  RequestInit['headers'] | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
+>
+
+/**
  * Per-request options to customize the fetch behavior.
  */
 export type EdenRequestOptions = {
@@ -59,9 +66,7 @@ export type EdenRequestOptions = {
   /**
    * Headers object to forward to the fetch request.
    */
-  headers?: MaybeArray<
-    RequestInit['headers'] | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
-  >
+  headers?: EdenRequestHeaders
 
   /**
    * Callback to invoke prior to fetching the request.

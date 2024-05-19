@@ -12,7 +12,7 @@ type ReplaceBlobWithFiles<T> = {
 }
 
 export type InferRouteInput<
-  TRoute extends RouteSchema = any,
+  TRoute extends RouteSchema = RouteSchema,
   _TMethod extends string = any,
   TOmitInput extends string | number | symbol = never,
 > = (IsNever<keyof TRoute['params']> extends true

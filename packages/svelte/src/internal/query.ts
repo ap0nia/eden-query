@@ -308,10 +308,10 @@ export function createTreatyQueryOptions(
       const result = await resolveEdenRequest({
         paths,
         method,
-        bodyOrOptions,
+        input: bodyOrOptions,
         optionsOrUndefined,
         domain,
-        config: resolvedConfig,
+        request: resolvedConfig,
         signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
@@ -378,10 +378,10 @@ export function createTreatyInfiniteQueryOptions(
       const result = await resolveEdenRequest({
         paths,
         method,
-        bodyOrOptions,
+        input: bodyOrOptions,
         optionsOrUndefined,
         domain,
-        config: resolvedConfig,
+        request: resolvedConfig,
         signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
@@ -422,10 +422,10 @@ export function createTreatyMutationOptions(
       const result = await resolveEdenRequest({
         paths,
         method,
-        bodyOrOptions: customVariables.variables,
+        input: customVariables.variables,
         optionsOrUndefined: customVariables.options,
         domain,
-        config,
+        request: config,
         elysia,
       })
       if (!('data' in result)) return result

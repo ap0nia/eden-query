@@ -5,22 +5,18 @@ import { isNumericString } from 'elysia/utils'
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
 import { EdenFetchError } from '../internal/error'
 import { resolveWsOrigin } from '../internal/http'
-import { type ChainOptions, createChain } from '../links/create-chain'
-import { type InferObservableValue, promisifyObservable } from '../links/observable'
-import { share } from '../links/operators'
+import type { ResponseEsque } from '../links/internals/http'
 import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
-import type { EdenRequestOptions } from './config'
+import type { EdenRequestHeaders, EdenRequestOptions } from './config'
+import type { InferRouteInput } from './infer'
 
-export type EdenRequestParams<T = any> = {
-  /**
-   * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
-   *
-   * @example
-   * ['api', 'a', 'b']
-   */
-  paths?: string[]
+/**
+ * Extended init.
+ */
+export type EdenRequestInit = InferRouteInput & EdenRequestOptions & RequestInit
 
+export type EdenRequestParams<_T = any> = EdenRequestOptions & {
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    *
@@ -38,12 +34,7 @@ export type EdenRequestParams<T = any> = {
    * Options when first parameter of GET request.
    * Body when first parameter of POST, PUT, etc. request.
    */
-  bodyOrOptions?: T
-
-  /**
-   * Options when second parameter of POST, PUT, etc. request.
-   */
-  optionsOrUndefined?: any
+  input?: InferRouteInput
 
   /**
    * Domain. Can be undefined if relative endpoint.
@@ -54,15 +45,7 @@ export type EdenRequestParams<T = any> = {
 
   /**
    */
-  config?: EdenRequestOptions
-
-  /**
-   */
   elysia?: Elysia<any, any, any, any, any, any>
-
-  /**
-   */
-  signal?: AbortSignal | null
 }
 
 export type EdenResponse =
@@ -76,9 +59,9 @@ export type EdenResponse =
 export type EdenRequestResolver = (params: EdenRequestParams) => Promise<EdenResponse>
 
 export function processHeaders(
-  rawHeaders: EdenRequestOptions['headers'],
+  rawHeaders: EdenRequestHeaders,
   path: string,
-  options: RequestInit = {},
+  options: EdenRequestInit = {},
   headers: Record<string, string> = {},
 ): Record<string, string> {
   if (!rawHeaders) return headers
@@ -132,25 +115,23 @@ export function processHeaders(
   }
 }
 
-/**
- */
-export const resolveEdenRequest: EdenRequestResolver = async (params) => {
-  if (params.config?.links != null) {
-    // Prevent circular reference on links.
-    const {
-      config: { links, ...config },
-      ...restParams
-    } = params
-    const operation = { ...restParams, config }
-    return await resolveEdenLinks({ operation, links })
-  }
-
-  params.config ??= {}
-
+export function resolveEndpoint(params: EdenRequestParams, options: EdenRequestInit) {
   let endpoint =
     params.endpoint ?? '/' + (params.paths?.filter((p) => p !== 'index').join('/') ?? '')
 
-  const fetcher = params.config.fetch ?? globalThis.fetch
+  if (options?.params != null) {
+    Object.entries(options.params).forEach(([key, value]) => {
+      endpoint = endpoint.replace(`:${key}`, value as string)
+    })
+  }
+
+  return endpoint
+}
+
+/**
+ */
+export const resolveEdenRequest: EdenRequestResolver = async (params) => {
+  const fetcher = params.fetch ?? globalThis.fetch
 
   const isGetOrHead =
     params.method == null ||
@@ -158,16 +139,13 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
     params.method === 'head' ||
     params.method === 'subscribe'
 
-  const options = isGetOrHead ? params.bodyOrOptions : params.optionsOrUndefined
+  const options: EdenRequestInit = isGetOrHead ? params.input : params.optionsOrUndefined
 
-  if (options?.params != null) {
-    Object.entries(options.params).forEach(([key, value]) => {
-      endpoint = endpoint.replace(`:${key}`, value as string)
-    })
-  }
-  const headers = processHeaders(params.config.headers, endpoint, options)
+  const endpoint = resolveEndpoint(params, options)
 
-  const rawQuery = isGetOrHead ? params.bodyOrOptions['query'] : options?.query
+  const headers = processHeaders(params.headers, endpoint, options)
+
+  const rawQuery = isGetOrHead ? params.input['query'] : options?.query
 
   const query = buildQuery(rawQuery)
 
@@ -179,9 +157,8 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
 
   let fetchInit = {
     method: params.method?.toUpperCase(),
-    body: params.bodyOrOptions,
-    signal: params.signal,
-    ...params.config.fetchInit,
+    body: params.input,
+    ...params.fetchInit,
     headers,
   } satisfies RequestInit
 
@@ -191,8 +168,8 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   }
 
   const fetchOpts =
-    isGetOrHead && typeof params.bodyOrOptions === 'object'
-      ? params.bodyOrOptions.fetch
+    isGetOrHead && typeof params.input === 'object'
+      ? params.input.fetch
       : params.optionsOrUndefined?.fetch
 
   fetchInit = {
@@ -204,13 +181,13 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
     delete fetchInit.body
   }
 
-  params.config.onRequest ??= []
+  params.onRequest ??= []
 
-  if (!Array.isArray(params.config.onRequest)) {
-    params.config.onRequest = [params.config.onRequest]
+  if (!Array.isArray(params.onRequest)) {
+    params.onRequest = [params.onRequest]
   }
 
-  for (const value of params.config.onRequest) {
+  for (const value of params.onRequest) {
     const temp = await value(endpoint, fetchInit)
 
     if (typeof temp === 'object')
@@ -231,7 +208,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
     delete fetchInit.body
   }
 
-  if (hasFile(params.bodyOrOptions)) {
+  if (hasFile(params.input)) {
     const formData = new FormData()
 
     // FormData is 1 level deep
@@ -262,12 +239,12 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
 
       formData.append(key, field as string)
     }
-  } else if (params.bodyOrOptions instanceof FormData) {
+  } else if (params.input instanceof FormData) {
     // noop.
-  } else if (typeof params.bodyOrOptions === 'object') {
+  } else if (typeof params.input === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
-    fetchInit.body = JSON.stringify(params.bodyOrOptions)
-  } else if (params.bodyOrOptions !== null) {
+    fetchInit.body = JSON.stringify(params.input)
+  } else if (params.input !== null) {
     fetchInit.headers['content-type'] = 'text/plain'
   }
 
@@ -275,7 +252,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
     delete fetchInit.body
   }
 
-  for (const value of params.config.onRequest) {
+  for (const value of params.onRequest) {
     const temp = await value(endpoint, fetchInit)
 
     if (typeof temp === 'object')
@@ -294,7 +271,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   const response = await (params.elysia?.handle(new Request(url, fetchInit)) ??
     fetcher(url, fetchInit))
 
-  const { data, error, status } = await parseResponse(response, params.config)
+  const { data, error, status } = await parseResponse(response, params)
 
   return {
     data,
@@ -305,7 +282,7 @@ export const resolveEdenRequest: EdenRequestResolver = async (params) => {
   }
 }
 
-export async function parseResponse(response: Response, config: EdenRequestOptions = {}) {
+export async function parseResponse(response: ResponseEsque, config: EdenRequestOptions = {}) {
   if (config.onResponse) {
     if (!Array.isArray(config.onResponse)) {
       config.onResponse = [config.onResponse]
@@ -367,20 +344,4 @@ export async function parseResponse(response: Response, config: EdenRequestOptio
   } else {
     return { data, error: null, status: response.status }
   }
-}
-
-export async function resolveEdenLinks(options: ChainOptions<EdenRequestParams, EdenResponse>) {
-  const signal = options.operation.signal ?? options.operation.config?.fetchInit?.signal
-
-  const requestChain = createChain(options).pipe(share())
-
-  type TValue = InferObservableValue<typeof requestChain>
-
-  const promise = promisifyObservable<TValue>(requestChain, signal)
-
-  const abortablePromise = new Promise<TValue>((resolve, reject) => {
-    promise.then(resolve).catch(reject)
-  })
-
-  return abortablePromise
 }

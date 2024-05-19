@@ -53,4 +53,4 @@ export type EdenResultMessage<T> = JSONRPC2.ResultResponse<
 
 export type EdenSuccessResponse<T> = JSONRPC2.ResultResponse<{ data: T; type?: 'data' }>
 
-export type EdenLink<T extends AnyElysia> = (opts: EdenClientRuntime) => OperationLink<T>
+export type EdenLink<T extends AnyElysia = any> = (opts: EdenClientRuntime) => OperationLink<T>
