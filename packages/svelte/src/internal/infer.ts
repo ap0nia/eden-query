@@ -48,9 +48,9 @@ export type InferRouteInput<
         body?: unknown
       })
 
-export type InferRouteOutput<T extends Record<string, any>> = Awaited<T['response'][200]>
+export type InferRouteOutput<T extends Record<string, any> = any> = Awaited<T['response'][200]>
 
-export type InferRouteError<T extends Record<string, any>> = MapError<
+export type InferRouteError<T extends Record<string, any> = any> = MapError<
   T['response']
 > extends infer Errors
   ? IsNever<Errors> extends true

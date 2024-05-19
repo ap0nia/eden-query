@@ -1,7 +1,3 @@
-/**
- * Utilities for the svelte-query integration.
- */
-
 import {
   type CreateBaseQueryOptions,
   type CreateInfiniteQueryOptions,
@@ -14,12 +10,10 @@ import {
   dehydrate,
   type DehydratedState,
   type InfiniteData,
-  type InfiniteQueryObserverSuccessResult,
   type InitialDataFunction,
   type MutationObserverOptions,
   type OmitKeyof,
   type QueryClient,
-  type QueryObserverSuccessResult,
   type QueryOptions,
   type StoreOrVal,
   type UndefinedInitialDataOptions,
@@ -100,7 +94,7 @@ export type EdenQueryKey<
 /**
  * Options to customize the behavior of the query or fetch.
  */
-export type EdenSvelteRequestOptions =
+export type EdenQueryRequestOptions =
   /**
    * Use svelte-query's internal AbortSignals instead of allowing user provided signals.
    */
@@ -118,7 +112,7 @@ export type EdenCreateQueryBaseOptions = {
   /**
    * tRPC-related options
    */
-  eden?: EdenSvelteRequestOptions
+  eden?: EdenQueryRequestOptions
 }
 
 export type EdenQueryOptions<TData, TError> = DistributiveOmit<
@@ -200,24 +194,11 @@ export type EdenDefinedCreateTRPCQueryResult<TData, TError> = DefinedCreateQuery
 > &
   EdenHookResult
 
-export type EdenCreateQuerySuccessResult<TData, TError> = QueryObserverSuccessResult<
-  TData,
-  TError
-> &
-  EdenHookResult
-
 export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfiniteQueryResult<
   InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
   TError
 > &
   EdenHookResult
-
-export type EdenCreateInfiniteQuerySuccessResult<TData, TError, TInput> =
-  InfiniteQueryObserverSuccessResult<
-    InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
-    TError
-  > &
-    EdenHookResult
 
 export function getQueryKey(
   pathOrEndpoint: string | string[],

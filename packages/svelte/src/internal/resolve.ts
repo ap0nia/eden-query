@@ -12,7 +12,7 @@ import { buildQuery } from '../utils/build-query'
 import { createNewFile, hasFile } from '../utils/file'
 import type { EdenRequestOptions } from './config'
 
-export type EdenRequestParams = {
+export type EdenRequestParams<T = any> = {
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    *
@@ -38,7 +38,7 @@ export type EdenRequestParams = {
    * Options when first parameter of GET request.
    * Body when first parameter of POST, PUT, etc. request.
    */
-  bodyOrOptions?: any
+  bodyOrOptions?: T
 
   /**
    * Options when second parameter of POST, PUT, etc. request.
