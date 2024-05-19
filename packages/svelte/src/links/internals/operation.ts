@@ -1,12 +1,8 @@
+import type { EdenClientError, EdenClientRuntime } from '../../internal/client'
 import type { EdenRequestParams } from '../../internal/resolve'
 import type { JSONRPC2 } from '../../internal/rpc'
 import type { AnyElysia } from '../../types'
 import type { Observable, Observer } from './observable'
-
-/**
- * TODO: placeholder for TRPCClientError<TInferrable>.
- */
-export type OperationError<_T extends AnyElysia> = any
 
 export type OperationType = 'query' | 'mutation' | 'subscription'
 
@@ -38,12 +34,12 @@ export type OperationLinkOptions<
 
 export type OperationResultObservable<TElysia extends AnyElysia, TOutput> = Observable<
   OperationResultEnvelope<TOutput>,
-  OperationError<TElysia>
+  EdenClientError<TElysia>
 >
 
 export type OperationResultObserver<TRoute extends AnyElysia, TOutput> = Observer<
   OperationResultEnvelope<TOutput>,
-  OperationError<TRoute>
+  EdenClientError<TRoute>
 >
 
 export interface OperationResultEnvelope<TOutput> {
@@ -56,3 +52,5 @@ export type EdenResultMessage<T> = JSONRPC2.ResultResponse<
 >
 
 export type EdenSuccessResponse<T> = JSONRPC2.ResultResponse<{ data: T; type?: 'data' }>
+
+export type EdenLink<T extends AnyElysia> = (opts: EdenClientRuntime) => OperationLink<T>

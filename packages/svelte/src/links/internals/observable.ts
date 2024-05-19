@@ -1,6 +1,6 @@
 /* eslint-disable no-dupe-class-members */
 
-import type { Noop } from '../../utils/noop'
+import { type Noop, noop } from '../../utils/noop'
 
 export type TeardownLogic = Unsubscribable | Noop | void
 
@@ -37,43 +37,48 @@ export type InferObservableValue<TObservable> = TObservable extends Observable<
   ? TValue
   : never
 
-export function promisifyObservable<T>(observable: Observable<T>, signal?: RequestInit['signal']) {
-  const promise = new Promise<T>((resolve, reject) => {
-    let isDone = false
-
-    const onAbort = () => {
-      if (isDone) return
-      isDone = true
-      reject(new ObservableAbortError('This operation was aborted.'))
-      $observable.unsubscribe()
-    }
-
-    const $observable = observable.subscribe({
-      next: (data) => {
-        isDone = true
-        resolve(data)
-      },
-      error: (data) => {
-        isDone = true
-        reject(data)
-      },
-      complete: () => {
-        isDone = true
-      },
-    })
-
-    signal?.addEventListener('abort', onAbort)
-  })
-
-  return promise
-}
-
 export function isObservable(x: unknown): x is Observable<unknown, unknown> {
   return typeof x === 'object' && x !== null && 'subscribe' in x
 }
 
 export function pipeReducer(previousValue: any, next: UnaryFunction) {
   return next(previousValue)
+}
+
+export function promisifyObservable<T>(observable: Observable<T>) {
+  let abort = noop
+
+  const promise = new Promise<T>((resolve, reject) => {
+    let isDone = false
+
+    const onDone = () => {
+      if (isDone) return
+      isDone = true
+      reject(new ObservableAbortError('This operation was aborted.'))
+      obs$.unsubscribe()
+    }
+
+    const obs$ = observable.subscribe({
+      next: (data) => {
+        isDone = true
+        resolve(data)
+        onDone()
+      },
+      error: (data) => {
+        isDone = true
+        reject(data)
+        onDone()
+      },
+      complete: () => {
+        isDone = true
+        onDone()
+      },
+    })
+
+    abort = onDone
+  })
+
+  return { promise, abort }
 }
 
 export class ObservableAbortError extends Error {
