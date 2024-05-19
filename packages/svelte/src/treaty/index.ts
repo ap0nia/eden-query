@@ -10,7 +10,7 @@ import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { createEdenCreateQueriesProxy, type EdenCreateQueries } from './create-queries'
 import { createEdenTreatyQueryProxyRoot, type EdenTreatyQueryRoot } from './root'
-import { resolveFetchOrigin } from './utils'
+import { resolveDomain } from './utils'
 
 export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
   /**
@@ -104,7 +104,7 @@ export function createEdenTreatyQuery<T extends AnyElysia>(
   }
 
   if (typeof domain === 'string') {
-    const resolvedDomain = resolveFetchOrigin(domain, config)
+    const resolvedDomain = resolveDomain(domain, config)
     return createTreatyQueryProxy(resolvedDomain, config)
   }
 

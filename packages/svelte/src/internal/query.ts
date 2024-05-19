@@ -18,15 +18,54 @@ import {
   type StoreOrVal,
   type UndefinedInitialDataOptions,
 } from '@tanstack/svelte-query'
-import type { Elysia, RouteSchema } from 'elysia'
+import type { Elysia, MaybePromise, RouteSchema } from 'elysia'
 import { derived, get } from 'svelte/store'
 
 import type { DistributiveOmit } from '../utils/distributive-omit'
 import { isStore } from '../utils/is-store'
-import type { EdenQueryConfig, EdenRequestOptions } from './config'
 import { httpMethods, isHttpMethod } from './http'
 import type { InferRouteInput } from './infer'
+import type { EdenRequestOptions } from './request'
 import { resolveEdenRequest } from './resolve'
+
+/**
+ * Options to customize the behavior of the query or fetch.
+ */
+export type EdenQueryRequestOptions =
+  /**
+   * Use svelte-query's internal AbortSignals instead of allowing user provided signals.
+   */
+  Omit<EdenRequestOptions, 'signal'> & {
+    /**
+     * Opt out or into aborting request on unmount
+     */
+    abortOnUnmount?: boolean
+
+    /**
+     * Overrides for svelte-query hooks.
+     */
+    overrides?: EdenQueryOverrides
+
+    /**
+     * QueryClient to st
+     */
+    queryClient?: QueryClient
+  }
+
+export type EdenQueryOverrides = {
+  createMutation?: Partial<CreateMutationOverride>
+}
+
+export type CreateMutationOverride = {
+  onSuccess: (opts: {
+    originalFn: () => StoreOrVal<unknown>
+    meta: Record<string, unknown>
+  }) => MaybePromise<unknown>
+}
+
+export type EdenQueryConfig = EdenRequestOptions & EdenQueryRequestOptions
+
+export type EdenQueryConfigWithQueryClient = EdenQueryConfig & { queryClient: QueryClient }
 
 /**
  * Key in params or query that indicates GET routes that are eligible for infinite queries.
@@ -90,20 +129,6 @@ export type EdenQueryKey<
   TInput = unknown,
   TType extends EdenKnownQueryType = EdenKnownQueryType,
 > = [key: TKey, metadata?: { input?: TInput; type?: TType }]
-
-/**
- * Options to customize the behavior of the query or fetch.
- */
-export type EdenQueryRequestOptions =
-  /**
-   * Use svelte-query's internal AbortSignals instead of allowing user provided signals.
-   */
-  Omit<EdenRequestOptions, 'signal'> & {
-    /**
-     * Opt out or into aborting request on unmount
-     */
-    abortOnUnmount?: boolean
-  }
 
 /**
  * Additional options for queries.

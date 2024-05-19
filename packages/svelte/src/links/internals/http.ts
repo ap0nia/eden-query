@@ -20,11 +20,6 @@ export interface AbortControllerInstanceEsque {
 
 export type HTTPLinkBaseOptions = {
   /**
-   * Define custom fetch implementation.
-   */
-  fetch?: typeof fetch
-
-  /**
    * Define AbortController implementation.
    */
   AbortController?: AbortControllerEsque | null

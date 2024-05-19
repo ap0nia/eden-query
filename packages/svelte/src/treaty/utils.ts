@@ -55,14 +55,12 @@ export type InferTreatyQueryOutputMapping<
     : InferTreatyQueryOutputMapping<TSchema[K], [...TPath, K]>
 }
 
-export function resolveFetchOrigin(domain: string, config: EdenRequestOptions) {
+export function resolveDomain(domain: string, config: EdenRequestOptions) {
   if (!config.keepDomain) {
     if (!domain.includes('://')) {
-      return (
-        (LOCAL_ADDRESSES.find((address) => (domain as string).includes(address))
-          ? 'http://'
-          : 'https://') + domain
-      )
+      const localAddressIndex = LOCAL_ADDRESSES.findIndex((address) => domain.includes(address))
+      const origin = localAddressIndex === -1 ? 'https://' : 'http://'
+      return origin + domain
     }
 
     if (domain.endsWith('/')) {
