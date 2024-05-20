@@ -292,7 +292,7 @@ export function createTreatyMutation<
 }
 
 export function createTreatyQueryOptions(
-  client?: EdenClient,
+  client: EdenClient,
   config?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],

@@ -76,7 +76,7 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
   }
 
   const defaultHandler = (path: string | symbol) => {
-    const innerProxy = createEdenTreatyQueryProxyRoot(config)
+    const innerProxy = createEdenTreatyQueryProxyRoot(client, config)
     return innerProxy[path]
   }
 

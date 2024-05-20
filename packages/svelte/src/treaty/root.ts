@@ -126,7 +126,7 @@ export interface TreatyCreateQuery<
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
     input: TInput | SkipToken,
-    opts?: EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
+    options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
   ): EdenCreateQueryResult<TData, TError>
 }
 
@@ -149,7 +149,10 @@ export type EdenTreatyCreateMutation<
   TError = InferRouteError<TRoute>,
 > = <TContext = unknown>(
   options?: StoreOrVal<EdenCreateMutationOptions<TInput, TOutput, TError, TContext>>,
-) => Readable<
+) => /**
+ * TODO: move this to internal query file.
+ */
+Readable<
   Override<
     CreateBaseMutationResult<TOutput, TError, TInput, TContext>,
     {
