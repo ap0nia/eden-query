@@ -4,7 +4,6 @@ import {
   type CreateQueryOptions,
   dehydrate,
   type DehydratedState,
-  type FetchQueryOptions,
   type InfiniteData,
   type InvalidateOptions,
   type InvalidateQueryFilters,
@@ -17,15 +16,16 @@ import {
   type SetDataOptions,
   type Updater,
 } from '@tanstack/svelte-query'
-import type { Elysia, RouteSchema } from 'elysia'
+import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryConfig } from '../internal/config'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
   createTreatyInfiniteQueryOptions,
   createTreatyQueryKey,
   createTreatyQueryOptions,
+  type EdenCreateInfiniteQueryOptions,
   type EdenQueryKey,
+  type EdenQueryRequestOptions,
   type InfiniteCursorKey,
   mergeDyhdrated,
   type ReservedInfiniteQueryKeys,
@@ -34,12 +34,13 @@ import type { AnyElysia, InstallMessage } from '../types'
 import type { DeepPartial } from '../utils/deep-partial'
 import { noop } from '../utils/noop'
 import type { Override } from '../utils/override'
+import type { EdenFetchQueryOptions } from './base'
 
 /**
  */
 export type EdenTreatyQueryContext<
   T extends AnyElysia,
-  TConfig extends EdenQueryConfig = EdenQueryConfig,
+  TConfig extends EdenQueryRequestOptions<T> = EdenQueryRequestOptions<T>,
 > = T extends {
   _routes: infer TSchema extends Record<string, any>
 }
@@ -74,9 +75,10 @@ export type InnerContextProxy<
 /**
  * Type-safe access to dehydrated state and other root properties on the context.
  */
-type RootContext<TConfig extends EdenQueryConfig = EdenQueryConfig> = SharedContext & {
-  queryClient: QueryClient
-} & (undefined extends TConfig['dehydrated'] ? {} : { dehydrated: DehydratedState })
+type RootContext<TConfig extends EdenQueryRequestOptions = EdenQueryRequestOptions> =
+  SharedContext & {
+    queryClient: QueryClient
+  } & (undefined extends TConfig['dehydrated'] ? {} : { dehydrated: DehydratedState })
 
 /**
  */
@@ -107,20 +109,11 @@ type TreatyQueryContext<
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
-  fetch: (
-    input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
-  ) => Promise<TOutput>
+  fetch: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<TOutput>
 
-  prefetch: (
-    input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
-  ) => Promise<void>
+  prefetch: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<void>
 
-  ensureData: (
-    input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
-  ) => Promise<TOutput>
+  ensureData: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<TOutput>
 
   getData: (input: TInput) => TOutput | undefined
 
@@ -178,12 +171,12 @@ type TreatyInfiniteQueryContext<
 > = {
   fetchInfinite: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
+    options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<InfiniteData<TOutput>>
 
   prefetchInfinite: (
     input: TInput,
-    options?: FetchQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
+    options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<void>
 
   getInfiniteData: (input: TInput) => InfiniteData<TOutput> | undefined
@@ -196,7 +189,7 @@ type TreatyInfiniteQueryContext<
 
   infiniteOptions: (
     input: TInput,
-    options?: CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey> & EdenQueryConfig,
+    options?: EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>,
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>
 }
 
@@ -206,13 +199,11 @@ type TreatyInfiniteQueryContext<
  * Once the first property has been decided from the top-level proxy,
  * future property accesses will mutate a locally scoped array.
  */
-export function createInnerContextProxy(
-  domain?: string,
-  config?: EdenQueryConfig,
-  queryClient = config?.queryClient ?? new QueryClient(),
-  elysia?: Elysia<any, any, any, any, any, any>,
-  paths: any[] = [],
-): any {
+export function createInnerContextProxy(config?: EdenQueryRequestOptions, paths: any[] = []): any {
+  const queryClient = config?.queryClient ?? new QueryClient()
+
+  const resolvedConfig = config?.queryClient == null ? { ...config, queryClient } : config
+
   const dehydrated =
     config?.dehydrated != null && typeof config.dehydrated !== 'boolean'
       ? config.dehydrated
@@ -225,100 +216,99 @@ export function createInnerContextProxy(
     return result
   }
 
+  const pathsCopy = [...paths]
+
   const innerProxy = new Proxy(noop, {
-    get: (_, path: string): any => {
-      const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createInnerContextProxy(domain, config, queryClient, elysia, nextPaths)
+    get: (_target, path): any => {
+      const nextPaths = path === 'index' ? [...pathsCopy] : [...pathsCopy, path]
+      return createInnerContextProxy(resolvedConfig, nextPaths)
     },
-    apply: (_, __, args) => {
-      /**
-       * @example 'fetch', 'invalidate'
-       */
-      const hook = paths.pop()
+    apply: (_target, _thisArg, args) => {
+      const hook = pathsCopy.pop()
 
       switch (hook) {
         case 'options': {
-          const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyQueryOptions(resolvedConfig, pathsCopy, args)
           return queryOptions
         }
 
         case 'infiniteOptions': {
-          const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyInfiniteQueryOptions(resolvedConfig, pathsCopy, args)
           return queryOptions
         }
 
         case 'fetch': {
-          const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.fetchQuery(queryOptions).then(mergeSSRCache)
         }
 
         case 'prefetch': {
-          const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.prefetchQuery(queryOptions).then(mergeSSRCache)
         }
 
         case 'getData': {
-          const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.getQueryData(queryOptions.queryKey)
         }
 
         case 'ensureData': {
-          const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.ensureQueryData(queryOptions).then(mergeSSRCache)
         }
 
         case 'setData': {
-          const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.setQueryData(queryOptions.queryKey, args[1], args[2])
         }
 
         case 'fetchInfinite': {
-          const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyInfiniteQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.fetchInfiniteQuery(queryOptions).then(mergeSSRCache)
         }
 
         case 'prefetchInfinite': {
-          const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyInfiniteQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.prefetchInfiniteQuery(queryOptions).then(mergeSSRCache)
         }
 
         case 'getInfiniteData': {
-          const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyInfiniteQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.getQueryData(queryOptions.queryKey)
         }
 
         case 'ensureInfiniteData': {
-          const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyInfiniteQueryOptions(resolvedConfig, pathsCopy, args)
           return queryClient.ensureQueryData(queryOptions).then(mergeSSRCache)
         }
 
         case 'setInfiniteData': {
-          const queryOptions = createTreatyInfiniteQueryOptions(paths, args, domain, config, elysia)
+          const queryOptions = createTreatyInfiniteQueryOptions(resolvedConfig, paths, args)
           return queryClient.setQueryData(queryOptions.queryKey, args[0], args[1])
         }
 
         case 'invalidate': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createTreatyQueryKey(resolvedConfig, pathsCopy, args)
           return queryClient.invalidateQueries({ queryKey, ...args[0] }, args[1])
         }
 
         case 'refetch': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createTreatyQueryKey(resolvedConfig, pathsCopy, args)
           return queryClient.refetchQueries({ queryKey, ...args[0] }, args[1])
         }
 
         case 'cancel': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createTreatyQueryKey(resolvedConfig, pathsCopy, args)
           return queryClient.cancelQueries({ queryKey, ...args[0] }, args[1])
         }
 
         case 'reset': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createTreatyQueryKey(resolvedConfig, pathsCopy, args)
           return queryClient.resetQueries({ queryKey, ...args[0] }, args[1])
         }
 
         default: {
-          throw new TypeError(`context.${paths.join('.')}.${hook} is not a function`)
+          throw new TypeError(`context.${pathsCopy.join('.')}.${hook} is not a function`)
         }
       }
     },
@@ -332,13 +322,10 @@ export function createInnerContextProxy(
  */
 export function createContext<
   T extends AnyElysia,
-  TConfig extends EdenQueryConfig = EdenQueryConfig,
->(
-  domain?: string,
-  config?: TConfig,
-  elysia?: Elysia<any, any, any, any, any, any>,
-): EdenTreatyQueryContext<T, TConfig> {
+  TConfig extends EdenQueryRequestOptions<T> = EdenQueryRequestOptions<T>,
+>(config?: TConfig): EdenTreatyQueryContext<T, TConfig> {
   const queryClient = config?.queryClient ?? new QueryClient()
+
   const dehydrated = config?.dehydrated === true ? dehydrate(queryClient) : config?.dehydrated
 
   const topLevelProperties = {
@@ -346,12 +333,10 @@ export function createContext<
     dehydrated,
   }
 
-  if (config?.dehydrated != null) {
-    config.dehydrated = dehydrated
-  }
+  const resolvedConfig = config?.dehydrated != null ? { ...config, dehydrated } : config
 
   const defaultHandler = (path: string | symbol) => {
-    const innerProxy = createInnerContextProxy(domain, config, queryClient, elysia)
+    const innerProxy = createInnerContextProxy(resolvedConfig)
     return innerProxy[path]
   }
 

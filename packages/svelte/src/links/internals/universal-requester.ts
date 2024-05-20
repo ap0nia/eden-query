@@ -43,6 +43,7 @@ export const universalRequester: Requester = (options) => {
   const resolvedParams: EdenRequestParams = {
     ...defaultParams,
     ...params,
+    domain: '',
     method: methodOverride,
     signal: abortController?.signal,
   }

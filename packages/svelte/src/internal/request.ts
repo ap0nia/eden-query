@@ -1,5 +1,6 @@
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
+import type { AnyElysia } from '../types'
 import type { Nullish } from '../utils/null'
 import type { EdenFetchError } from './error'
 
@@ -27,7 +28,15 @@ export type EdenOnResponse = (response: Response) => MaybePromise<EdenResponse |
 /**
  * Options to customize the fetch behavior for the request.
  */
-export type EdenRequestOptions = {
+export type EdenRequestOptions<T extends AnyElysia = AnyElysia> = {
+  /**
+   */
+  domain?: T | string
+
+  /**
+   */
+  keepDomain?: boolean
+
   /**
    * Custom signal that's forwarded to the fetch request to enable aborting.
    */

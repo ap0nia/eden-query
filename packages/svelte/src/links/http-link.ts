@@ -1,25 +1,24 @@
+import type { EdenRequestOptions } from '../internal/request'
 import type { AnyElysia } from '../types'
-import { getAbortController } from './internals/http'
+import { getAbortController, type HTTPLinkBaseOptions } from './internals/http'
 import { Observable } from './internals/observable'
 import type { EdenLink, OperationLink } from './internals/operation'
-import {
-  type Requester,
-  type RequesterOptions,
-  universalRequester,
-} from './internals/universal-requester'
+import { type Requester, universalRequester } from './internals/universal-requester'
 
 export type HTTPLinkFactoryOptions = {
   requester: Requester
 }
 
-export type HTTPLinkFactory = <T extends AnyElysia>(options: RequesterOptions) => EdenLink<T>
+export type HTTPLinkOptions = HTTPLinkBaseOptions & EdenRequestOptions
+
+export type HTTPLinkFactory = <T extends AnyElysia>(options?: HTTPLinkOptions) => EdenLink<T>
 
 export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLinkFactory {
-  const factory: HTTPLinkFactory = (requesterOptions) => {
+  const factory: HTTPLinkFactory = (linkOptions = {}) => {
     const link: EdenLink = (_runtime) => {
       const operationLink: OperationLink = ({ operation }) => {
         const observable = new Observable((subscriber) => {
-          const { fetch, AbortController, methodOverride, ...defaultParams } = requesterOptions
+          const { fetch, domain, AbortController, methodOverride, ...defaultParams } = linkOptions
 
           const { id, context, type, ...operationParams } = operation
 
@@ -30,7 +29,7 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
             id,
             context,
             type,
-            params: { ...defaultParams, ...operationParams },
+            params: { ...defaultParams, domain, ...operationParams },
           }
 
           const { promise, cancel } = factoryOptions.requester(options)

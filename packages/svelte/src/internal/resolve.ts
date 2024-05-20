@@ -1,7 +1,7 @@
-import type { Elysia } from 'elysia'
 import { isNumericString } from 'elysia/utils'
 
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
+import type { AnyElysia } from '../types'
 import { createNewFile, hasFile } from '../utils/file'
 import { EdenFetchError } from './error'
 import type { InferRouteInput } from './infer'
@@ -9,7 +9,7 @@ import type { EdenRequestHeaders, EdenRequestOptions } from './request'
 
 /**
  */
-export type EdenRequestParams<_T = any> = EdenRequestOptions & {
+export type EdenRequestParams<T extends AnyElysia = AnyElysia> = EdenRequestOptions<T> & {
   /**
    * Endpoint. Can be relative or absolute, as long as the fetcher can handle it.
    *
@@ -28,17 +28,6 @@ export type EdenRequestParams<_T = any> = EdenRequestOptions & {
    * Body when first parameter of POST, PUT, etc. request.
    */
   input?: InferRouteInput
-
-  /**
-   * Domain. Can be undefined if relative endpoint.
-   *
-   * @example localhost:3000
-   */
-  domain?: string
-
-  /**
-   */
-  elysia?: Elysia<any, any, any, any, any, any>
 }
 
 export function parseHeaders(
@@ -281,13 +270,15 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
     }
   }
 
-  const url = (params.domain ?? '') + endpoint + query
+  const elysia = typeof params.domain === 'string' ? undefined : params.domain
+
+  const url = (typeof params.domain === 'string' ? params.domain : '') + endpoint + query
 
   const fetch = params.fetch ?? globalThis.fetch
 
   const request = new Request(url, fetchInit)
 
-  const response = await (params.elysia?.handle(request) ?? fetch(request))
+  const response = await (elysia?.handle(request) ?? fetch(request))
 
   const parsedResponse = await parseResponse(response, params)
 

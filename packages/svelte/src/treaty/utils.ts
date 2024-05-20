@@ -1,8 +1,8 @@
 import type { Elysia, RouteSchema } from 'elysia'
 
 import { LOCAL_ADDRESSES } from '../constants'
-import type { EdenRequestOptions } from '../internal/config'
 import type { InferRouteInput, InferRouteOutput } from '../internal/infer'
+import type { EdenRequestOptions } from '../internal/request'
 
 export type InferTreatyQueryIO<T extends Elysia<any, any, any, any, any, any, any, any>> =
   T extends {
@@ -55,18 +55,18 @@ export type InferTreatyQueryOutputMapping<
     : InferTreatyQueryOutputMapping<TSchema[K], [...TPath, K]>
 }
 
-export function resolveDomain(domain: string, config: EdenRequestOptions) {
-  if (!config.keepDomain) {
-    if (!domain.includes('://')) {
-      const localAddressIndex = LOCAL_ADDRESSES.findIndex((address) => domain.includes(address))
-      const origin = localAddressIndex === -1 ? 'https://' : 'http://'
-      return origin + domain
-    }
+export function resolveDomain(config?: EdenRequestOptions) {
+  const domain = config?.domain
 
-    if (domain.endsWith('/')) {
-      return domain.slice(0, -1)
-    }
+  if (typeof domain !== 'string') return domain
+
+  if (config?.keepDomain) return domain
+
+  if (!domain?.includes('://')) {
+    const localAddressIndex = LOCAL_ADDRESSES.findIndex((address) => domain?.includes(address))
+    const origin = localAddressIndex === -1 ? 'https://' : 'http://'
+    return origin + domain
   }
 
-  return domain
+  return domain.endsWith('/') ? domain.slice(0, -1) : domain
 }

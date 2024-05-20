@@ -20,6 +20,13 @@ export interface AbortControllerInstanceEsque {
 
 export type HTTPLinkBaseOptions = {
   /**
+   * Domain. Can be undefined if relative endpoint.
+   *
+   * @example localhost:3000
+   */
+  domain?: string
+
+  /**
    * Define AbortController implementation.
    */
   AbortController?: AbortControllerEsque | null

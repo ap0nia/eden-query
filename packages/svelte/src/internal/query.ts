@@ -18,11 +18,13 @@ import {
   type StoreOrVal,
   type UndefinedInitialDataOptions,
 } from '@tanstack/svelte-query'
-import type { Elysia, MaybePromise, RouteSchema } from 'elysia'
+import type { MaybePromise, RouteSchema } from 'elysia'
 import { derived, get } from 'svelte/store'
 
+import type { AnyElysia } from '../types'
 import type { DistributiveOmit } from '../utils/distributive-omit'
 import { isStore } from '../utils/is-store'
+import { EdenClient } from './client'
 import { httpMethods, isHttpMethod } from './http'
 import type { InferRouteInput } from './infer'
 import type { EdenRequestOptions } from './request'
@@ -31,11 +33,11 @@ import { resolveEdenRequest } from './resolve'
 /**
  * Options to customize the behavior of the query or fetch.
  */
-export type EdenQueryRequestOptions =
+export type EdenQueryRequestOptions<T extends AnyElysia = AnyElysia> =
   /**
    * Use svelte-query's internal AbortSignals instead of allowing user provided signals.
    */
-  Omit<EdenRequestOptions, 'signal'> & {
+  Omit<EdenRequestOptions<T>, 'signal'> & {
     /**
      * Opt out or into aborting request on unmount
      */
@@ -50,6 +52,11 @@ export type EdenQueryRequestOptions =
      * QueryClient to st
      */
     queryClient?: QueryClient
+
+    /**
+     * SSR option...
+     */
+    dehydrated?: boolean | DehydratedState
   }
 
 export type EdenQueryOverrides = {
@@ -62,10 +69,6 @@ export type CreateMutationOverride = {
     meta: Record<string, unknown>
   }) => MaybePromise<unknown>
 }
-
-export type EdenQueryConfig = EdenRequestOptions & EdenQueryRequestOptions
-
-export type EdenQueryConfigWithQueryClient = EdenQueryConfig & { queryClient: QueryClient }
 
 /**
  * Key in params or query that indicates GET routes that are eligible for infinite queries.
@@ -100,7 +103,7 @@ export type ExtractCursorType<T> = T extends Record<string, any>
   : unknown
 
 /**
- * Filters the routes of an {@link Elysia} instance for ones compatible with infinite queries.
+ * Filters the routes of an Elysia instance for ones compatible with infinite queries.
  * i.e. GET routes that have {@link InfiniteCursorKey} in either the params or query.
  */
 export type InfiniteRoutes<T> = {
@@ -271,7 +274,7 @@ export function createTreatyMutation<
   TVariables = void,
   TContext = unknown,
 >(
-  options: CreateMutationOptions<TData, TError, TVariables, TContext>,
+  options: StoreOrVal<CreateMutationOptions<TData, TError, TVariables, TContext>>,
   queryClient?: QueryClient,
 ): CreateMutationResult<TData, TError, TVariables, TContext> {
   const mutation = createMutation(options, queryClient)
@@ -292,11 +295,9 @@ export function createTreatyMutation<
 }
 
 export function createTreatyQueryOptions(
-  paths: string[],
-  args: any,
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
+  config?: EdenQueryRequestOptions,
+  paths: string[] = [],
+  args: any[] = [],
 ): UndefinedInitialDataOptions {
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
@@ -308,39 +309,37 @@ export function createTreatyQueryOptions(
     paths.pop()
   }
 
+  const client = new EdenClient({ links: [] })
+
   const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
   const { queryOptions, eden, ...bodyOrOptions } = optionsValue
 
-  const optionsOrUndefined = args[1]
+  // const optionsOrUndefined = args[1]
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
   /**
    * Resolve the config, and handle platform specific variables before resolving.
    */
-  const resolvedConfig = {
-    ...config,
-    ...eden,
-    fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetch ?? globalThis.fetch,
-  }
+  // const resolvedConfig = {
+  //   ...config,
+  //   ...eden,
+  //   fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetch ?? globalThis.fetch,
+  // }
 
   const baseQueryOptions = {
     queryKey: getQueryKey(paths, optionsValue, 'query'),
     queryFn: async (context) => {
-      const result = await resolveEdenRequest({
-        paths,
+      const result = await client.query({
         method,
         input: bodyOrOptions,
-        optionsOrUndefined,
         domain,
-        request: resolvedConfig,
         signal: abortOnUnmount ? context.signal : undefined,
         elysia,
       })
-      if (!('data' in result)) return result
       if (result.error != null) throw result.error
       return result.data
     },
@@ -351,11 +350,9 @@ export function createTreatyQueryOptions(
 }
 
 export function createTreatyInfiniteQueryOptions(
-  paths: string[],
-  args: any,
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
+  config?: EdenQueryRequestOptions,
+  paths: string[] = [],
+  args: any[] = [],
 ): CreateInfiniteQueryOptions {
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
@@ -421,11 +418,9 @@ export function createTreatyInfiniteQueryOptions(
 }
 
 export function createTreatyMutationOptions(
-  paths: string[],
-  args: any,
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
+  config?: EdenQueryRequestOptions,
+  paths: string[] = [],
+  args: any[] = [],
 ): CreateMutationOptions {
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
@@ -472,7 +467,7 @@ export function createTreatyMutationOptions(
   return mutationOptions
 }
 
-export function createTreatyQueryKey(paths: string[], anyArgs: any, type: EdenQueryType = 'any') {
+export function createTreatyQueryKey(paths: string[], args: any, type: EdenQueryType = 'any') {
   const pathsCopy: any[] = [...paths]
 
   /**
@@ -491,7 +486,7 @@ export function createTreatyQueryKey(paths: string[], anyArgs: any, type: EdenQu
     pathsCopy.pop()
   }
 
-  const queryKey = getQueryKey(pathsCopy, anyArgs[0], type)
+  const queryKey = getQueryKey(pathsCopy, args[0], type)
 
   return queryKey
 }

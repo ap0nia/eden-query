@@ -2,10 +2,10 @@ import type { QueryClient } from '@tanstack/svelte-query'
 import { createQueries } from '@tanstack/svelte-query'
 import { getContext, setContext } from 'svelte'
 
-import { EDEN_CONTEXT_KEY, SAMPLE_DOMAIN } from '../constants'
-import type { EdenQueryConfig } from '../internal/config'
+import { EDEN_CONTEXT_KEY } from '../constants'
+import type { EdenQueryRequestOptions } from '../internal/query'
+import type { EdenLink } from '../links/internals/operation'
 import type { AnyElysia } from '../types'
-import { isBrowser } from '../utils/is-browser'
 import { noop } from '../utils/noop'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { createEdenCreateQueriesProxy, type EdenCreateQueries } from './create-queries'
@@ -20,7 +20,7 @@ export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
   /**
    * Save utilities in context for {@link EdenFetchQuery.getContext} to retrieve later.
    */
-  setContext: (queryClient: QueryClient, configOverride?: EdenQueryConfig) => void
+  setContext: (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => void
 
   /**
    * Get the utilities saved by {@link EdenFetchQuery.setContext}.
@@ -30,11 +30,11 @@ export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
   /**
    * Create utilities.
    */
-  createContext: <TConfig extends EdenQueryConfig = EdenQueryConfig>(
-    domain?: string,
-    config?: TConfig,
-    elysia?: T,
-  ) => EdenTreatyQueryContext<T, TConfig>
+  createContext: (configOverride?: EdenTreatyQueryConfig) => EdenTreatyQueryContext<T>
+}
+
+export type EdenTreatyQueryConfig<T extends AnyElysia = AnyElysia> = EdenQueryRequestOptions<T> & {
+  links?: EdenLink[]
 }
 
 /**
@@ -42,17 +42,15 @@ export type EdenTreatyQuery<T extends AnyElysia> = EdenTreatyQueryRoot<T> & {
  * the first property access.
  */
 export function createTreatyQueryProxy<T extends AnyElysia>(
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: T,
+  config?: EdenTreatyQueryConfig<T>,
 ): any {
   const getContextThunk = () => {
     return getContext(EDEN_CONTEXT_KEY)
   }
 
-  const setContextHelper = (queryClient: QueryClient, configOverride?: EdenQueryConfig) => {
+  const setContextHelper = (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => {
     const resolvedConfig = { ...config, ...configOverride, queryClient }
-    const contextProxy = createContext(domain, resolvedConfig, elysia)
+    const contextProxy = createContext(resolvedConfig)
     setContext(EDEN_CONTEXT_KEY, contextProxy)
   }
 
@@ -92,29 +90,10 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
 }
 
 export function createEdenTreatyQuery<T extends AnyElysia>(
-  /**
-   * URL to server for client-side usage, {@link Elysia} instance for server-side usage,
-   * or undefined for relative URLs.
-   */
-  domain?: string | T,
-  config: EdenQueryConfig = {},
+  config?: EdenTreatyQueryConfig<T>,
 ): EdenTreatyQuery<T> {
-  if (domain == null) {
-    return createTreatyQueryProxy(domain, config)
-  }
-
-  if (typeof domain === 'string') {
-    const resolvedDomain = resolveDomain(domain, config)
-    return createTreatyQueryProxy(resolvedDomain, config)
-  }
-
-  if (isBrowser()) {
-    console.warn(
-      'Elysia instance found on client side, this is not recommended for security reason. Use generic type instead.',
-    )
-  }
-
-  return createTreatyQueryProxy(SAMPLE_DOMAIN, config, domain)
+  const domain = resolveDomain(config)
+  return createTreatyQueryProxy({ ...config, domain })
 }
 
 export * from './context'

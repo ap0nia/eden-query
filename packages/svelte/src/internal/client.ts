@@ -1,13 +1,14 @@
 import { createChain } from '../links/internals/create-chain'
-import {
-  type InferObservableValue,
-  promisifyObservable,
-  type Unsubscribable,
-} from '../links/internals/observable'
-import type { EdenLink, OperationLink, OperationType } from '../links/internals/operation'
+import { promisifyObservable, type Unsubscribable } from '../links/internals/observable'
+import type {
+  EdenLink,
+  OperationContext,
+  OperationLink,
+  OperationType,
+} from '../links/internals/operation'
 import { share } from '../links/internals/operators'
 import type { AnyElysia } from '../types'
-import type { OperationContext } from './operation'
+import type { EdenResponse } from './request'
 import type { EdenRequestParams } from './resolve'
 
 export type EdenSubscriptionObserver<TValue, TError> = {
@@ -78,27 +79,18 @@ export class EdenClient<T extends AnyElysia = AnyElysia> {
   ): Promise<TOutput> {
     const req$ = this.$request<TInput, TOutput>(options)
 
-    type TValue = InferObservableValue<typeof req$>
-
-    const { promise, abort } = promisifyObservable<TValue>(req$)
+    const { promise, abort } = promisifyObservable<TOutput>(req$ as any)
 
     const abortablePromise = new Promise<TOutput>((resolve, reject) => {
       options.signal?.addEventListener('abort', abort)
-
-      promise
-        .then((envelope) => {
-          resolve((envelope.result as any).data)
-        })
-        .catch((err) => {
-          reject(TRPCClientError.from(err))
-        })
+      promise.then(resolve).catch(reject)
     })
 
     return abortablePromise
   }
 
   public query(params: EdenRequestParams, options?: EdenClientRequestOptions) {
-    return this.promisifyRequest({
+    return this.promisifyRequest<any, EdenResponse>({
       type: 'query',
       params,
       context: options?.context,
