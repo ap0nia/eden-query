@@ -3,7 +3,10 @@ import { createQueries } from '@tanstack/svelte-query'
 import { getContext, setContext } from 'svelte'
 
 import { EDEN_CONTEXT_KEY } from '../constants'
+import { EdenClient } from '../internal/client'
 import type { EdenQueryRequestOptions } from '../internal/query'
+import type { EdenRequestOptions } from '../internal/request'
+import { httpLink } from '../links/http-link'
 import type { EdenLink } from '../links/internals/operation'
 import type { AnyElysia } from '../types'
 import { noop } from '../utils/noop'
@@ -42,6 +45,7 @@ export type EdenTreatyQueryConfig<T extends AnyElysia = AnyElysia> = EdenQueryRe
  * the first property access.
  */
 export function createTreatyQueryProxy<T extends AnyElysia>(
+  client: EdenClient,
   config?: EdenTreatyQueryConfig<T>,
 ): any {
   const getContextThunk = () => {
@@ -50,22 +54,21 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
 
   const setContextHelper = (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => {
     const resolvedConfig = { ...config, ...configOverride, queryClient }
-    const contextProxy = createContext(resolvedConfig)
+    const contextProxy = createContext(client, resolvedConfig)
     setContext(EDEN_CONTEXT_KEY, contextProxy)
   }
 
-  const createQueriesProxy = createEdenCreateQueriesProxy<T>(domain, config, elysia)
+  const createQueriesProxy = createEdenCreateQueriesProxy<T>(client, config)
 
   const edenCreateQueries: EdenCreateQueries<T['_routes']> = (callback) => {
     return createQueries(callback(createQueriesProxy) as any)
   }
 
   const topLevelProperties = {
-    createContext: (newDomain?: string, newConfig?: EdenQueryConfig, newElysia?: T) => {
-      const resolvedDomain = newDomain ?? domain
+    createContext: (newConfig?: EdenRequestOptions) => {
       const resolvedConfig = { ...newConfig, ...config }
-      const resolvedElysia = newElysia ?? elysia
-      return createContext(resolvedDomain, resolvedConfig, resolvedElysia)
+      const resolvedDomain = resolveDomain(resolvedConfig)
+      return createContext(client, { ...resolvedConfig, domain: resolvedDomain })
     },
     getContext: getContextThunk,
     setContext: setContextHelper,
@@ -73,7 +76,7 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
   }
 
   const defaultHandler = (path: string | symbol) => {
-    const innerProxy = createEdenTreatyQueryProxyRoot(domain, config, elysia)
+    const innerProxy = createEdenTreatyQueryProxyRoot(config)
     return innerProxy[path]
   }
 
@@ -93,7 +96,17 @@ export function createEdenTreatyQuery<T extends AnyElysia>(
   config?: EdenTreatyQueryConfig<T>,
 ): EdenTreatyQuery<T> {
   const domain = resolveDomain(config)
-  return createTreatyQueryProxy({ ...config, domain })
+
+  const links = config?.links ?? []
+
+  if (links.length === 0) {
+    const defaultHttpLink = httpLink(config)
+    links.push(defaultHttpLink)
+  }
+
+  const client = new EdenClient({ links })
+
+  return createTreatyQueryProxy(client, { ...config, domain })
 }
 
 export * from './context'

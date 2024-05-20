@@ -216,10 +216,7 @@ export type EdenHookResult = {
 
 export type EdenCreateQueryResult<TData, TError> = CreateQueryResult<TData, TError> & EdenHookResult
 
-export type EdenDefinedCreateTRPCQueryResult<TData, TError> = DefinedCreateQueryResult<
-  TData,
-  TError
-> &
+export type EdenDefinedCreateQueryResult<TData, TError> = DefinedCreateQueryResult<TData, TError> &
   EdenHookResult
 
 export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfiniteQueryResult<
@@ -295,6 +292,7 @@ export function createTreatyMutation<
 }
 
 export function createTreatyQueryOptions(
+  client?: EdenClient,
   config?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],
@@ -309,13 +307,11 @@ export function createTreatyQueryOptions(
     paths.pop()
   }
 
-  const client = new EdenClient({ links: [] })
-
-  const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any>>
+  const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
 
   const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
 
-  const { queryOptions, eden, ...bodyOrOptions } = optionsValue
+  const { eden, ...bodyOrOptions } = optionsValue
 
   // const optionsOrUndefined = args[1]
 
@@ -350,6 +346,7 @@ export function createTreatyQueryOptions(
 }
 
 export function createTreatyInfiniteQueryOptions(
+  client?: EdenClient,
   config?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],
@@ -418,6 +415,7 @@ export function createTreatyInfiniteQueryOptions(
 }
 
 export function createTreatyMutationOptions(
+  client?: EdenClient,
   config?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],

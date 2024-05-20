@@ -6,16 +6,17 @@ import {
   type QueryKey,
   type StoreOrVal,
 } from '@tanstack/svelte-query'
-import type { Elysia, RouteSchema } from 'elysia'
+import type { RouteSchema } from 'elysia'
 import { derived, type Readable } from 'svelte/store'
 
-import type { EdenQueryConfig } from '../internal/config'
+import type { EdenClient } from '../internal/client'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
-  type CreateEdenQueryOptions,
   createTreatyQueryOptions,
+  type EdenCreateQueryOptions,
   type EdenQueryKey,
 } from '../internal/query'
+import type { EdenRequestOptions } from '../internal/request'
 import type { AnyElysia, InstallMessage } from '../types'
 import { isStore } from '../utils/is-store'
 
@@ -67,22 +68,21 @@ export type CreateQueriesHook<
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (
   input: TInput,
-  opts?: Partial<CreateEdenQueryOptions<TRoute, TPath>>,
+  opts?: Partial<EdenCreateQueryOptions<TOutput, TInput, TError>>,
 ) => CreateQueryOptions<TOutput, TError, TOutput, TKey>
 
 export function createEdenCreateQueriesProxy<T extends AnyElysia>(
-  domain?: string,
-  config: EdenQueryConfig = {},
-  elysia?: Elysia<any, any, any, any, any, any>,
+  client: EdenClient,
+  config?: EdenRequestOptions,
   paths: any[] = [],
 ): EdenCreateQueriesProxy<T> {
   const innerProxy: any = new Proxy(() => {}, {
     get: (_, path: string): any => {
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createEdenCreateQueriesProxy(domain, config, elysia, nextPaths)
+      return createEdenCreateQueriesProxy(client, config, nextPaths)
     },
     apply: (_, __, args) => {
-      return resolveEdenCreateQueriesProxy(args, domain, config, [...paths], elysia)
+      return resolveEdenCreateQueriesProxy(client, config, [...paths], args)
     },
   })
 
@@ -90,22 +90,20 @@ export function createEdenCreateQueriesProxy<T extends AnyElysia>(
 }
 
 export function resolveEdenCreateQueriesProxy(
-  args: any[],
-  domain?: string,
-  config: EdenQueryConfig = {},
+  client: EdenClient,
+  config?: EdenRequestOptions,
   paths: string[] = [],
-  elysia?: Elysia<any, any, any, any, any, any>,
+  args: any[] = [],
 ) {
-  const typedOptions = args[0] as StoreOrVal<CreateEdenQueryOptions<any>>
+  const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
 
   if (!isStore(typedOptions)) {
-    const queryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+    const queryOptions = createTreatyQueryOptions(client, config, paths, args)
     return createQuery(queryOptions)
   }
 
   const optionsStore = derived(typedOptions, ($typedOptions) => {
-    args[0] = $typedOptions
-    const newQueryOptions = createTreatyQueryOptions(paths, args, domain, config, elysia)
+    const newQueryOptions = createTreatyQueryOptions(client, config, paths, [$typedOptions])
     return { ...$typedOptions, ...newQueryOptions }
   })
 

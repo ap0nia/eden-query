@@ -1,17 +1,16 @@
 import {
   type CreateBaseMutationResult,
   createInfiniteQuery,
-  type CreateInfiniteQueryResult,
   createQuery,
-  type CreateQueryResult,
-  type InfiniteData,
   type MutateOptions,
+  type SkipToken,
   type StoreOrVal,
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 import { derived, type Readable } from 'svelte/store'
 
+import type { EdenClient } from '../internal/client'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import {
@@ -21,8 +20,12 @@ import {
   createTreatyMutationOptions,
   createTreatyQueryOptions,
   type EdenCreateInfiniteQueryOptions,
+  type EdenCreateInfiniteQueryResult,
   type EdenCreateMutationOptions,
   type EdenCreateQueryOptions,
+  type EdenCreateQueryResult,
+  type EdenDefinedCreateQueryOptions,
+  type EdenDefinedCreateQueryResult,
   type EdenQueryKey,
   type EdenQueryRequestOptions,
   type InfiniteCursorKey,
@@ -109,35 +112,44 @@ export type TreatySubscriptionMapping<
   queryKey: EdenQueryKey<TPath>
 }
 
-export type TreatyCreateQuery<
+export interface TreatyCreateQuery<
   TRoute extends RouteSchema,
-  TPath extends any[] = [],
+  _TPath extends any[] = [],
+  TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-> = (
-  options: StoreOrVal<EdenCreateQueryOptions<TRoute, TPath>>,
-) => CreateQueryResult<TOutput, TError>
+> {
+  <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
+    input: TInput | SkipToken,
+    options: StoreOrVal<EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
+  ): EdenDefinedCreateQueryResult<TData, TError>
+
+  <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
+    input: TInput | SkipToken,
+    opts?: EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
+  ): EdenCreateQueryResult<TData, TError>
+}
 
 export type TreatyCreateInfiniteQuery<
   TRoute extends RouteSchema,
-  TPath extends any[] = [],
+  _TPath extends any[] = [],
+  TInput = InferRouteInput<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  options: StoreOrVal<EdenCreateInfiniteQueryOptions<TRoute, TPath>>,
-) => CreateInfiniteQueryResult<InfiniteData<TOutput>, TError>
+  input: TInput | SkipToken,
+  options: StoreOrVal<EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>>,
+) => EdenCreateInfiniteQueryResult<TOutput, TError, TInput>
 
 export type EdenTreatyCreateMutation<
   TRoute extends RouteSchema,
-  TPath extends any[] = [],
+  _TPath extends any[] = [],
   TInput = InferRouteInput<TRoute>['body'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  /**
-   * TODO: what is TContext for a fetch request mutation?
-   */
-  TContext = unknown,
-> = (options?: StoreOrVal<EdenCreateMutationOptions<TRoute, TPath>>) => Readable<
+> = <TContext = unknown>(
+  options?: StoreOrVal<EdenCreateMutationOptions<TInput, TOutput, TError, TContext>>,
+) => Readable<
   Override<
     CreateBaseMutationResult<TOutput, TError, TInput, TContext>,
     {
@@ -155,11 +167,7 @@ export type EdenTreatyAsyncMutationFunction<
   TParams = Omit<TInput, 'body'>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  /**
-   * TODO: what is TContext for a fetch request mutation?
-   */
-  TContext = unknown,
-> = (
+> = <TContext = unknown>(
   variables: TBody,
   ...args: {} extends TParams
     ? [options?: TParams & MutateOptions<TOutput, TError, TBody, TContext>]
@@ -174,11 +182,7 @@ export type EdenTreatyMutationFunction<
   TParams = Omit<TInput, 'body'>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  /**
-   * TODO: what is TContext for a fetch request mutation?
-   */
-  TContext = unknown,
-> = (
+> = <TContext = unknown>(
   variables: TBody,
   ...args: {} extends TParams
     ? [options?: TParams & MutateOptions<TOutput, TError, TBody, TContext>]
@@ -192,17 +196,17 @@ export type EdenTreatyMutationFunction<
  * future property accesses will mutate a locally scoped array.
  */
 export function createEdenTreatyQueryProxyRoot(
-  domain?: string | AnyElysia,
+  client: EdenClient,
   options?: EdenQueryRequestOptions,
   paths: any[] = [],
 ): any {
   const innerProxy: any = new Proxy(noop, {
     get: (_, path: string): any => {
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createEdenTreatyQueryProxyRoot(domain, options, nextPaths)
+      return createEdenTreatyQueryProxyRoot(client, options, nextPaths)
     },
     apply: (_, __, args) => {
-      return resolveEdenTreatyQueryProxy(domain, options, [...paths], args)
+      return resolveEdenTreatyQueryProxy(client, options, [...paths], args)
     },
   })
 
@@ -220,7 +224,7 @@ export function createEdenTreatyQueryProxyRoot(
  * mutation.mutate(body)
  */
 export function resolveEdenTreatyQueryProxy(
-  domain?: string | AnyElysia,
+  client: EdenClient,
   options?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],
@@ -235,12 +239,12 @@ export function resolveEdenTreatyQueryProxy(
       const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
 
       if (!isStore(typedOptions)) {
-        const queryOptions = createTreatyQueryOptions(domain, options, paths, args)
+        const queryOptions = createTreatyQueryOptions(client, options, paths, args)
         return createQuery(queryOptions)
       }
 
       const optionsStore = derived(typedOptions, ($typedOptions) => {
-        const newQueryOptions = createTreatyQueryOptions(domain, options, paths, [$typedOptions])
+        const newQueryOptions = createTreatyQueryOptions(client, options, paths, [$typedOptions])
         return { ...$typedOptions, ...newQueryOptions }
       })
 
@@ -251,12 +255,12 @@ export function resolveEdenTreatyQueryProxy(
       const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any, any, any>>
 
       if (!isStore(typedOptions)) {
-        const queryOptions = createTreatyInfiniteQueryOptions(domain, options, paths, args)
+        const queryOptions = createTreatyInfiniteQueryOptions(client, options, paths, args)
         return createInfiniteQuery(queryOptions)
       }
 
       const optionsStore = derived(typedOptions, ($typedOptions) => {
-        const newOptions = createTreatyInfiniteQueryOptions(domain, options, paths, [$typedOptions])
+        const newOptions = createTreatyInfiniteQueryOptions(client, options, paths, [$typedOptions])
         return { ...$typedOptions, ...newOptions }
       })
 
@@ -267,12 +271,12 @@ export function resolveEdenTreatyQueryProxy(
       const typedOptions = args[0] as StoreOrVal<CreateMutationOptions>
 
       if (!isStore(typedOptions)) {
-        const mutationOptions = createTreatyMutationOptions(domain, options, paths, args)
+        const mutationOptions = createTreatyMutationOptions(client, options, paths, args)
         return createTreatyMutation(mutationOptions)
       }
 
       const optionsStore = derived(typedOptions, ($typedOptions) => {
-        const newOptions = createTreatyMutationOptions(domain, options, paths, [$typedOptions])
+        const newOptions = createTreatyMutationOptions(client, options, paths, [$typedOptions])
         return { ...$typedOptions, ...newOptions }
       })
 
