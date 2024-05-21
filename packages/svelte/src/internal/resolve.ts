@@ -276,9 +276,7 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
 
   const fetch = params.fetch ?? globalThis.fetch
 
-  const request = new Request(url, fetchInit)
-
-  const response = await (elysia?.handle(request) ?? fetch(request))
+  const response = await (elysia?.handle(new Request(url, fetchInit)) ?? fetch(url, fetchInit))
 
   const parsedResponse = await parseResponse(response, params)
 
