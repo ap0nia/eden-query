@@ -33,10 +33,10 @@ export type EdenClientRuntime = {}
 /**
  * The request options that are passed
  */
-export type EdenClientInternalRequestOptions = {
+export type EdenClientInternalRequestOptions<T extends AnyElysia = any> = {
   type: OperationType
   context?: OperationContext
-  params: EdenRequestParams
+  params: EdenRequestParams<T>
 }
 
 export type EdenClientPromisifyRequestOptions = EdenClientInternalRequestOptions & {
@@ -48,14 +48,14 @@ export type EdenClientRequestOptions = {
   signal?: AbortSignal
 }
 
-export class EdenClient<T extends AnyElysia = AnyElysia> {
-  private readonly links: OperationLink<T>[]
+export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
+  private readonly links: OperationLink<TElysia>[]
 
   public readonly runtime: EdenClientRuntime
 
   private requestId: number
 
-  constructor(options: EdenClientOptions<T>) {
+  constructor(options: EdenClientOptions<TElysia>) {
     this.requestId = 0
 
     this.runtime = {}
@@ -63,8 +63,10 @@ export class EdenClient<T extends AnyElysia = AnyElysia> {
     this.links = options.links.map((link) => link(this.runtime))
   }
 
-  private $request<TInput = unknown, TOutput = unknown>(options: EdenClientInternalRequestOptions) {
-    const chain$ = createChain<T, TInput, TOutput>({
+  private $request<TInput = unknown, TOutput = unknown>(
+    options: EdenClientInternalRequestOptions<TElysia>,
+  ) {
+    const chain$ = createChain<TElysia, TInput, TOutput>({
       links: this.links as OperationLink<any, any, any>[],
       operation: {
         id: ++this.requestId,
@@ -108,8 +110,8 @@ export class EdenClient<T extends AnyElysia = AnyElysia> {
   }
 
   public subscription(
-    params: EdenRequestParams,
-    options?: Partial<EdenSubscriptionObserver<unknown, EdenClientError<T>>> &
+    params: EdenRequestParams<TElysia>,
+    options?: Partial<EdenSubscriptionObserver<unknown, EdenClientError<TElysia>>> &
       EdenClientRequestOptions,
   ): Unsubscribable {
     const observable = this.$request({

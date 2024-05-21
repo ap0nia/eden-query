@@ -108,8 +108,8 @@ export function parseQuery(query: Record<string, any> = {}): string {
   return q
 }
 
-export async function parseResponse(response: Response, params: EdenRequestParams) {
-  if (params.onResponse != null) {
+export async function parseResponse(response: Response, params?: EdenRequestParams) {
+  if (params?.onResponse != null) {
     const onResponse = Array.isArray(params.onResponse) ? params.onResponse : [params.onResponse]
 
     for (const value of onResponse) {

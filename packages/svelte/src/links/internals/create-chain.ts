@@ -4,7 +4,7 @@ import type { Operation, OperationLink, OperationResultObservable } from './oper
 
 export type ChainOptions<TElysia extends AnyElysia, TInput = unknown, TOutput = unknown> = {
   links: OperationLink<TElysia, TInput, TOutput>[]
-  operation: Operation<TInput>
+  operation: Operation<TElysia>
 }
 
 export function createChain<TElysia extends AnyElysia, TInput = unknown, TOutput = unknown>(

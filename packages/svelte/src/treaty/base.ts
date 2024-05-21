@@ -17,13 +17,29 @@ import type {
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 
-import type { EdenRequestOptions } from '../internal/config'
+import type { EdenClient } from '../internal/client'
 import type { InferRouteError, InferRouteInput, InferRouteOutput } from '../internal/infer'
 import type { EdenQueryKey, ExtractCursorType } from '../internal/query'
+import type { EdenRequestOptions } from '../internal/request'
 import type { AnyElysia } from '../types'
 import type { DeepPartial } from '../utils/deep-partial'
 import type { DistributiveOmit } from '../utils/distributive-omit'
 import type { ProtectedIntersection } from '../utils/protected-intersection'
+
+/**
+ * TODO
+ */
+type EdenTreatyGetContext<T> = T
+
+/**
+ * TODO
+ */
+type EdenTreatySetContext<T> = T
+
+/**
+ * TODO
+ */
+type EdenTreatyCreateQueries<T> = T
 
 /**
  * Properties at the root of the eden treaty svelte-query proxy.
@@ -56,7 +72,7 @@ export type EdenContextProps<T extends AnyElysia> = {
   /**
    * The eden fetch client.
    */
-  client: EdenFetchClient<T>
+  client: EdenClient<T>
 
   /**
    * The svelte-query {@link QueryClient}

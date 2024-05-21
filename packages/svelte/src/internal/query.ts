@@ -19,16 +19,14 @@ import {
   type UndefinedInitialDataOptions,
 } from '@tanstack/svelte-query'
 import type { MaybePromise, RouteSchema } from 'elysia'
-import { derived, get } from 'svelte/store'
+import { derived } from 'svelte/store'
 
 import type { AnyElysia } from '../types'
 import type { DistributiveOmit } from '../utils/distributive-omit'
-import { isStore } from '../utils/is-store'
 import { EdenClient } from './client'
 import { httpMethods, isHttpMethod } from './http'
 import type { InferRouteInput } from './infer'
 import type { EdenRequestOptions } from './request'
-import { resolveEdenRequest } from './resolve'
 
 /**
  * Options to customize the behavior of the query or fetch.
@@ -352,7 +350,7 @@ export function createTreatyQueryOptions(
 }
 
 export function createTreatyInfiniteQueryOptions(
-  client?: EdenClient,
+  client: EdenClient,
   config?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],
@@ -367,50 +365,52 @@ export function createTreatyInfiniteQueryOptions(
     paths.pop()
   }
 
-  const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any>>
+  /**
+   * Main input will be provided as first argument.
+   */
+  const input = args[0] as InferRouteInput
 
-  const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
-
-  const { queryOptions, eden, ...rest } = optionsValue
+  /**
+   * Additional query options will be provided as the second argument to the `createQuery` call.
+   */
+  const { eden, ...queryOptions } = (args[1] ?? {}) as EdenCreateInfiniteQueryOptions<any, any, any>
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
-
-  const optionsOrUndefined = args[1]
 
   /**
    * Resolve the config, and handle platform specific variables before resolving.
    */
-  const resolvedConfig = {
+  const requestOptions = {
     ...config,
     ...eden,
-    fetcher: eden?.fetch ?? config.event?.fetch ?? config.fetch ?? globalThis.fetch,
+    fetch: eden?.fetch ?? config?.fetch ?? globalThis.fetch,
   }
 
+  const endpoint = '/' + paths.join('/')
+
   const infiniteQueryOptions = {
-    queryKey: getQueryKey(paths, args[0], 'infinite'),
+    queryKey: getQueryKey(paths, input, 'infinite'),
+    initialPageParam: 0,
     queryFn: async (context) => {
-      const bodyOrOptions = { ...rest }
+      const inputCopy: any = { ...input }
 
       // FIXME: scuffed way to set cursor.
-      if (bodyOrOptions.query) {
-        bodyOrOptions.query['cursor'] = context.pageParam
+      if (inputCopy.query) {
+        inputCopy.query['cursor'] = context.pageParam
+      }
+      if (inputCopy.params) {
+        inputCopy.params['cursor'] = context.pageParam
       }
 
-      if (bodyOrOptions.params) {
-        bodyOrOptions.params['cursor'] = context.pageParam
-      }
-
-      const result = await resolveEdenRequest({
-        paths,
-        method,
-        input: bodyOrOptions,
-        optionsOrUndefined,
-        domain,
-        request: resolvedConfig,
-        signal: abortOnUnmount ? context.signal : undefined,
-        elysia,
-      })
-      if (!('data' in result)) return result
+      const result = await client.query(
+        {
+          endpoint,
+          method,
+          input,
+          ...requestOptions,
+        },
+        { signal: abortOnUnmount ? context.signal : undefined },
+      )
       if (result.error != null) throw result.error
       return result.data
     },
@@ -421,7 +421,7 @@ export function createTreatyInfiniteQueryOptions(
 }
 
 export function createTreatyMutationOptions(
-  client?: EdenClient,
+  client: EdenClient,
   config?: EdenQueryRequestOptions,
   paths: string[] = [],
   args: any[] = [],
@@ -436,39 +436,44 @@ export function createTreatyMutationOptions(
     paths.pop()
   }
 
-  const typedOptions = args[0] as CreateMutationOptions
+  const mutationOptions = args[0] as EdenCreateMutationOptions<any, any, any>
 
-  const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
+  const endpoint = '/' + paths.join('/')
 
-  const mutationOptions = {
-    mutationKey: getMutationKey(paths, optionsValue as any),
+  const treatyMutationOptions = {
+    mutationKey: getMutationKey(paths, mutationOptions as any),
     mutationFn: async (customVariables: any = {}) => {
-      const result = await resolveEdenRequest({
-        paths,
+      /**
+       * Custom wrapper around createMutation allows two arguments to be provided.
+       * The first argument is input, and the second is per-request options.
+       */
+      const { variables, options } = customVariables
+
+      const result = await client.query({
+        endpoint,
         method,
-        input: customVariables.variables,
-        optionsOrUndefined: customVariables.options,
-        domain,
-        request: config,
-        elysia,
+        input: variables,
+        ...mutationOptions.eden,
+        ...options,
       })
+
       if (!('data' in result)) return result
       if (result.error != null) throw result.error
       return result.data
     },
     onSuccess(data, variables, context) {
-      const originalFn = () => optionsValue?.onSuccess?.(data, variables, context)
+      const originalFn = () => mutationOptions?.onSuccess?.(data, variables, context)
       return config?.overrides?.createMutation?.onSuccess != null
         ? config.overrides.createMutation.onSuccess({
-            meta: optionsValue?.meta as any,
+            meta: mutationOptions?.meta as any,
             originalFn,
           })
         : originalFn()
     },
-    ...optionsValue,
+    ...mutationOptions,
   } satisfies CreateMutationOptions
 
-  return mutationOptions
+  return treatyMutationOptions
 }
 
 export function createTreatyQueryKey(paths: string[], args: any, type: EdenQueryType = 'any') {

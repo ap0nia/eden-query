@@ -7,7 +7,7 @@ export type OperationType = 'query' | 'mutation' | 'subscription'
 
 export type OperationContext = {}
 
-export type Operation<T = unknown> = {
+export type Operation<T extends AnyElysia = any> = {
   id: number
   type: OperationType
   params: EdenRequestParams<T>
@@ -24,11 +24,11 @@ export type OperationLink<
 
 export type OperationLinkOptions<
   TElysia extends AnyElysia = AnyElysia,
-  TInput = unknown,
+  _TInput = unknown,
   TOutput = unknown,
 > = {
-  operation: Operation<TInput>
-  next: (operation: Operation<TInput>) => OperationResultObservable<TElysia, TOutput>
+  operation: Operation<TElysia>
+  next: (operation: Operation<TElysia>) => OperationResultObservable<TElysia, TOutput>
 }
 
 export type OperationResultObservable<TElysia extends AnyElysia, TOutput> = Observable<
