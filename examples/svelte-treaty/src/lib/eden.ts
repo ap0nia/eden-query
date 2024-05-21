@@ -1,6 +1,6 @@
 import {
   createEdenTreatyQuery,
-  httpBatchLink,
+  httpLink,
   type InferTreatyQueryInput,
   type InferTreatyQueryIO,
   type InferTreatyQueryOutput,
@@ -8,8 +8,8 @@ import {
 
 import type { App } from '$lib/server'
 
-export const eden = createEdenTreatyQuery<App>(undefined, {
-  links: [httpBatchLink({ endpoint: '/api/batch' })],
+export const eden = createEdenTreatyQuery<App>({
+  links: [httpLink()],
 })
 
 export type RouterInputs = InferTreatyQueryInput<App>

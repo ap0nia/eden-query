@@ -13,11 +13,11 @@ export const load: LayoutLoad = async (event) => {
     },
   })
 
-  const edenUtils = eden.createContext(undefined, { queryClient, fetcher: event.fetch })
+  const edenUtils = eden.createContext({ queryClient, fetch: event.fetch })
 
   return {
     queryClient,
     eden: edenUtils,
-    dehydrated: event.data.dehydrated,
+    // dehydrated: event.data.dehydrated,
   }
 }

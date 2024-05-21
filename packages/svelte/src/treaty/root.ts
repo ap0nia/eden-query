@@ -8,7 +8,7 @@ import {
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
-import { derived, type Readable } from 'svelte/store'
+import { derived, type Readable, readable } from 'svelte/store'
 
 import type { EdenClient } from '../internal/client'
 import type { HttpMutationMethod, HttpQueryMethod, HttpSubscriptionMethod } from '../internal/http'
@@ -239,51 +239,85 @@ export function resolveEdenTreatyQueryProxy(
 
   switch (hook) {
     case 'createQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
+      /**
+       * Main input will be provided as first argument.
+       */
+      const input = args[0] as StoreOrVal<InferRouteInput>
 
-      if (!isStore(typedOptions)) {
-        const queryOptions = createTreatyQueryOptions(client, options, paths, args)
-        return createQuery(queryOptions)
+      /**
+       * Additional query options will be provided as the second argument to the `createQuery` call.
+       */
+      const queryOptions = args[1] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
+
+      // If both are not stores, then create the query options normally.
+
+      if (!isStore(input) && !isStore(queryOptions)) {
+        const treatyQueryOptions = createTreatyQueryOptions(client, options, paths, args)
+        return createQuery(treatyQueryOptions)
       }
 
-      const optionsStore = derived(typedOptions, ($typedOptions) => {
-        const newQueryOptions = createTreatyQueryOptions(client, options, paths, [$typedOptions])
-        return { ...$typedOptions, ...newQueryOptions }
-      })
+      // Otherwise, convert both to stores and derive the query options.
 
-      return createQuery(optionsStore)
+      const readableInput = isStore(input) ? input : readable(input)
+      const readableQueryOptions = isStore(queryOptions) ? queryOptions : readable(queryOptions)
+
+      const treatyQueryOptions = derived(
+        [readableInput, readableQueryOptions],
+        ([$input, $queryOptions]) => {
+          return createTreatyQueryOptions(client, options, paths, [$input, $queryOptions])
+        },
+      )
+
+      return createQuery(treatyQueryOptions)
     }
 
     case 'createInfiniteQuery': {
-      const typedOptions = args[0] as StoreOrVal<EdenCreateInfiniteQueryOptions<any, any, any>>
+      /**
+       * Main input will be provided as first argument.
+       */
+      const input = args[0] as StoreOrVal<InferRouteInput>
 
-      if (!isStore(typedOptions)) {
-        const queryOptions = createTreatyInfiniteQueryOptions(client, options, paths, args)
-        return createInfiniteQuery(queryOptions)
+      /**
+       * Additional query options will be provided as the second argument to the `createQuery` call.
+       */
+      const queryOptions = args[1] as StoreOrVal<EdenCreateInfiniteQueryOptions<any, any, any>>
+
+      // If both are not stores, then create the query options normally.
+
+      if (!isStore(input) && !isStore(queryOptions)) {
+        const treatyQueryOptions = createTreatyInfiniteQueryOptions(client, options, paths, args)
+        return createInfiniteQuery(treatyQueryOptions)
       }
 
-      const optionsStore = derived(typedOptions, ($typedOptions) => {
-        const newOptions = createTreatyInfiniteQueryOptions(client, options, paths, [$typedOptions])
-        return { ...$typedOptions, ...newOptions }
-      })
+      // Otherwise, convert both to stores and derive the query options.
 
-      return createInfiniteQuery(optionsStore)
+      const readableInput = isStore(input) ? input : readable(input)
+
+      const readableQueryOptions = isStore(queryOptions) ? queryOptions : readable(queryOptions)
+
+      const treatyQueryOptions = derived(
+        [readableInput, readableQueryOptions],
+        ([$input, $queryOptions]) => {
+          return createTreatyInfiniteQueryOptions(client, options, paths, [$input, $queryOptions])
+        },
+      )
+
+      return createInfiniteQuery(treatyQueryOptions)
     }
 
     case 'createMutation': {
-      const typedOptions = args[0] as StoreOrVal<CreateMutationOptions>
+      const mutationOptions = args[0] as StoreOrVal<CreateMutationOptions>
 
-      if (!isStore(typedOptions)) {
-        const mutationOptions = createTreatyMutationOptions(client, options, paths, args)
-        return createTreatyMutation(mutationOptions)
+      if (!isStore(mutationOptions)) {
+        const treatyMutationOptions = createTreatyMutationOptions(client, options, paths, args)
+        return createTreatyMutation(treatyMutationOptions)
       }
 
-      const optionsStore = derived(typedOptions, ($typedOptions) => {
-        const newOptions = createTreatyMutationOptions(client, options, paths, [$typedOptions])
-        return { ...$typedOptions, ...newOptions }
+      const treatyMutationOptions = derived(mutationOptions, ($mutationOptions) => {
+        return createTreatyMutationOptions(client, options, paths, [$mutationOptions])
       })
 
-      return createTreatyMutation(optionsStore)
+      return createTreatyMutation(treatyMutationOptions)
     }
 
     default: {

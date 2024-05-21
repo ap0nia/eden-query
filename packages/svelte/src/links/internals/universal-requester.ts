@@ -47,7 +47,6 @@ export const universalRequester: Requester = (options) => {
     method: methodOverride,
     signal: abortController?.signal,
   }
-
   const promise = new Promise<EdenResponse>((resolve, reject) => {
     resolveEdenRequest(resolvedParams)
       .then((response) => {

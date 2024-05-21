@@ -20,7 +20,7 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
         const observable = new Observable((subscriber) => {
           const { fetch, domain, AbortController, methodOverride, ...defaultParams } = linkOptions
 
-          const { id, context, type, ...operationParams } = operation
+          const { id, context, type, params } = operation
 
           const options = {
             fetch,
@@ -29,7 +29,7 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
             id,
             context,
             type,
-            params: { ...defaultParams, domain, ...operationParams },
+            params: { ...defaultParams, domain, ...params },
           }
 
           const { promise, cancel } = factoryOptions.requester(options)

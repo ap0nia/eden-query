@@ -227,7 +227,7 @@ export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfinit
 
 export function getQueryKey(
   pathOrEndpoint: string | string[],
-  options?: InferRouteInput<any>,
+  options?: InferRouteInput,
   type?: EdenQueryType,
 ): EdenQueryKey {
   const path = Array.isArray(pathOrEndpoint) ? pathOrEndpoint : pathOrEndpoint.split('/')
@@ -307,35 +307,41 @@ export function createTreatyQueryOptions(
     paths.pop()
   }
 
-  const typedOptions = args[0] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
+  /**
+   * Main input will be provided as first argument.
+   */
+  const input = args[0] as InferRouteInput
 
-  const optionsValue = isStore(typedOptions) ? get(typedOptions) : typedOptions
-
-  const { eden, ...bodyOrOptions } = optionsValue
-
-  // const optionsOrUndefined = args[1]
+  /**
+   * Additional query options will be provided as the second argument to the `createQuery` call.
+   */
+  const { eden, ...queryOptions } = (args[1] ?? {}) as EdenCreateQueryOptions<any, any, any>
 
   const abortOnUnmount = Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)
 
   /**
    * Resolve the config, and handle platform specific variables before resolving.
    */
-  // const resolvedConfig = {
-  //   ...config,
-  //   ...eden,
-  //   fetcher: eden?.fetcher ?? config.event?.fetch ?? config.fetch ?? globalThis.fetch,
-  // }
+  const requestOptions = {
+    ...config,
+    ...eden,
+    fetch: eden?.fetch ?? config?.fetch ?? globalThis.fetch,
+  }
+
+  const endpoint = '/' + paths.join('/')
 
   const baseQueryOptions = {
-    queryKey: getQueryKey(paths, optionsValue, 'query'),
+    queryKey: getQueryKey(paths, input, 'query'),
     queryFn: async (context) => {
-      const result = await client.query({
-        method,
-        input: bodyOrOptions,
-        domain,
-        signal: abortOnUnmount ? context.signal : undefined,
-        elysia,
-      })
+      const result = await client.query(
+        {
+          endpoint,
+          method,
+          input,
+          ...requestOptions,
+        },
+        { signal: abortOnUnmount ? context.signal : undefined },
+      )
       if (result.error != null) throw result.error
       return result.data
     },
