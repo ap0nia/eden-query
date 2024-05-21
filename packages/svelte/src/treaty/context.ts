@@ -12,6 +12,7 @@ import {
   type QueryFilters,
   type QueryKey,
   type RefetchOptions,
+  type RefetchQueryFilters,
   type ResetOptions,
   type SetDataOptions,
   type Updater,
@@ -27,6 +28,7 @@ import {
   type EdenCreateInfiniteQueryOptions,
   type EdenQueryKey,
   type EdenQueryRequestOptions,
+  type ExtractCursorType,
   type InfiniteCursorKey,
   mergeDyhdrated,
   type ReservedInfiniteQueryKeys,
@@ -35,7 +37,7 @@ import type { AnyElysia, InstallMessage } from '../types'
 import type { DeepPartial } from '../utils/deep-partial'
 import { noop } from '../utils/noop'
 import type { Override } from '../utils/override'
-import type { EdenFetchQueryOptions } from './base'
+import type { EdenFetchInfiniteQueryOptions, EdenFetchQueryOptions } from './base'
 
 /**
  */
@@ -116,46 +118,40 @@ type TreatyQueryContext<
 
   ensureData: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<TOutput>
 
-  getData: (input: TInput) => TOutput | undefined
-
-  setData: (
-    input: TInput,
-    updater: Updater<TOutput | undefined, TOutput | undefined>,
-    options?: SetDataOptions & EdenQueryConfig,
-  ) => void
-
   invalidate: (
     input?: DeepPartial<TInput>,
     filters?: Override<
       InvalidateQueryFilters,
       {
-        predicate?: (query: Query<TOutput, TError, TOutput, TKey>) => boolean
+        predicate?: (
+          query: Query<TInput, TError, TInput, TKey /** TODO: TKey omit infinite input */>,
+        ) => boolean
       }
     >,
-    options?: InvalidateOptions & EdenQueryConfig,
+    options?: InvalidateOptions,
   ) => Promise<void>
 
   refetch: (
     input?: TInput,
-    filters?: QueryFilters,
-    options?: RefetchOptions & EdenQueryConfig,
+    filters?: RefetchQueryFilters,
+    options?: RefetchOptions,
   ) => Promise<void>
 
-  cancel: (
-    input?: TInput,
-    filters?: QueryFilters,
-    options?: CancelOptions & EdenQueryConfig,
-  ) => Promise<void>
+  cancel: (input?: TInput, filters?: QueryFilters, options?: CancelOptions) => Promise<void>
 
-  reset: (
-    input?: TInput,
-    filters?: QueryFilters,
-    options?: ResetOptions & EdenQueryConfig,
-  ) => Promise<void>
+  setData: (
+    input: TInput,
+    updater: Updater<TOutput | undefined, TOutput | undefined>,
+    options?: SetDataOptions,
+  ) => void
+
+  reset: (input?: TInput, options?: ResetOptions) => Promise<void>
+
+  getData: (input: TInput) => TOutput | undefined
 
   options: (
     input: TInput,
-    options?: CreateQueryOptions<TOutput, TError> & EdenQueryConfig,
+    options?: CreateQueryOptions<TOutput, TError>,
   ) => CreateQueryOptions<TOutput, TError>
 }
 
@@ -172,20 +168,25 @@ type TreatyInfiniteQueryContext<
 > = {
   fetchInfinite: (
     input: TInput,
-    options?: EdenFetchQueryOptions<TOutput, TError>,
-  ) => Promise<InfiniteData<TOutput>>
+    options?: EdenFetchInfiniteQueryOptions<TInput, TOutput, TError>,
+  ) => Promise<InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>>>
 
   prefetchInfinite: (
     input: TInput,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<void>
 
-  getInfiniteData: (input: TInput) => InfiniteData<TOutput> | undefined
+  getInfiniteData: (
+    input: TInput,
+  ) => InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined
 
   setInfiniteData: (
     input: TInput,
-    updater: Updater<InfiniteData<TOutput> | undefined, InfiniteData<TOutput> | undefined>,
-    options?: SetDataOptions & EdenQueryConfig,
+    updater: Updater<
+      InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined,
+      InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined
+    >,
+    options?: SetDataOptions,
   ) => void
 
   infiniteOptions: (
