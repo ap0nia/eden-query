@@ -43,9 +43,11 @@ export const universalRequester: Requester = (options) => {
   const resolvedParams: EdenRequestParams = {
     ...defaultParams,
     ...params,
-    domain: '',
-    method: methodOverride,
     signal: abortController?.signal,
+  }
+
+  if (methodOverride != null) {
+    resolvedParams.method = methodOverride
   }
   const promise = new Promise<EdenResponse>((resolve, reject) => {
     resolveEdenRequest(resolvedParams)

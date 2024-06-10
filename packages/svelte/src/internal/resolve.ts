@@ -1,6 +1,7 @@
 import { isNumericString } from 'elysia/utils'
 
 import { FORMAL_DATE_REGEX, IS_SERVER, ISO8601_REGEX, SHORTENED_DATE_REGEX } from '../constants'
+import { getDataTransformer } from '../links/transformer'
 import type { AnyElysia } from '../types'
 import { createNewFile, hasFile } from '../utils/file'
 import { EdenFetchError } from './error'
@@ -30,18 +31,18 @@ export type EdenRequestParams<T extends AnyElysia = AnyElysia> = EdenRequestOpti
   input?: InferRouteInput
 }
 
-export function parseHeaders(
+export async function parseHeaders(
   rawHeaders: EdenRequestHeaders,
   path: string,
   options: RequestInit = {},
   headers: Record<string, string> = {},
-): Record<string, string> {
+): Promise<Record<string, string>> {
   if (!rawHeaders) return headers
 
   if (Array.isArray(rawHeaders)) {
     for (const value of rawHeaders) {
       if (!Array.isArray(value)) {
-        headers = parseHeaders(value, path, options, headers)
+        headers = await parseHeaders(value, path, options, headers)
         continue
       }
 
@@ -62,7 +63,7 @@ export function parseHeaders(
 
   switch (typeof rawHeaders) {
     case 'function': {
-      const v = rawHeaders(path, options)
+      const v = await rawHeaders(path, options)
       return v ? parseHeaders(v, path, options, headers) : headers
     }
 
@@ -130,6 +131,15 @@ export async function parseResponse(response: Response, params?: EdenRequestPara
   switch (response.headers.get('Content-Type')?.split(';')[0]) {
     case 'application/json': {
       data = await response.json()
+
+      const transformer = getDataTransformer(params?.transformer)
+
+      const deserialize = transformer?.output.deserialize
+
+      if (deserialize != null) {
+        data = deserialize(data)
+      }
+
       break
     }
 
@@ -181,15 +191,16 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
 
   const providedHeaders = params.input?.headers ?? params.headers
 
-  const headers = parseHeaders(providedHeaders, endpoint, params.fetchInit)
+  const headers = await parseHeaders(providedHeaders, endpoint, params.fetchInit)
 
   const query = parseQuery(params.input?.query)
 
   let fetchInit = {
     method: params.method?.toUpperCase(),
     body: params.input?.body as any,
-    ...params.fetchInit,
+    signal: params.signal,
     headers,
+    ...params.fetchInit,
   } satisfies RequestInit
 
   const isGetOrHead =
@@ -208,13 +219,15 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
     for (const value of onRequest) {
       const temp = await value(endpoint, fetchInit)
 
+      const parsedHeaders = await parseHeaders(temp?.headers, endpoint, fetchInit)
+
       if (typeof temp === 'object') {
         fetchInit = {
           ...fetchInit,
           ...temp,
           headers: {
             ...fetchInit.headers,
-            ...parseHeaders(temp?.headers, endpoint, fetchInit),
+            ...parsedHeaders,
           },
         }
       }
@@ -264,6 +277,15 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
       }
     } else if (typeof fetchInit.body === 'object') {
       fetchInit.headers['content-type'] = 'application/json'
+
+      const transformer = getDataTransformer(params.transformer)
+
+      const serialize = transformer?.input.serialize
+
+      if (serialize != null) {
+        fetchInit.body = serialize(fetchInit.body)
+      }
+
       fetchInit.body = JSON.stringify(fetchInit.body)
     } else if (fetchInit.body !== null) {
       fetchInit.headers['content-type'] = 'text/plain'

@@ -20,6 +20,12 @@ export type HttpSubscriptionMethod = (typeof httpSubscriptionMethods)[number]
 
 export type HttpMethod = (typeof httpMethods)[number]
 
+export interface HeadersInitEsque {
+  [Symbol.iterator](): IterableIterator<[string, string]>
+}
+
+export type HTTPHeaders = HeadersInitEsque | Record<string, string[] | string | undefined>
+
 export function resolveWsOrigin(domain = '') {
   return domain.replace(
     /^([^]+):\/\//,

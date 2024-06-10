@@ -1,8 +1,8 @@
 import type { EdenRequestOptions } from '../internal/request'
 import type { AnyElysia } from '../types'
 import { getAbortController, type HTTPLinkBaseOptions } from './internals/http'
-import { Observable } from './internals/observable'
-import type { EdenLink, OperationLink } from './internals/operation'
+import { Observable, type Observer } from './internals/observable'
+import type { EdenLink, Operation, OperationLink } from './internals/operation'
 import { type Requester, universalRequester } from './internals/universal-requester'
 
 export type HTTPLinkFactoryOptions = {
@@ -16,38 +16,37 @@ export type HTTPLinkFactory = <T extends AnyElysia>(options?: HTTPLinkOptions) =
 export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLinkFactory {
   const factory: HTTPLinkFactory = (linkOptions = {}) => {
     const link: EdenLink = (_runtime) => {
+      const resolveOperation = (operation: Operation, observer: Observer<any, any>) => {
+        const { fetch, domain, AbortController, methodOverride, ...defaultParams } = linkOptions
+
+        const { id, context, type, params } = operation
+
+        const options = {
+          fetch,
+          AbortController: getAbortController(AbortController),
+          methodOverride,
+          id,
+          context,
+          type,
+          params: { ...defaultParams, domain, ...params },
+        }
+
+        const { promise, cancel } = factoryOptions.requester(options)
+
+        promise
+          .then((result) => {
+            observer.next(result)
+            observer.complete()
+          })
+          .catch((cause) => {
+            observer.error(cause)
+          })
+
+        return cancel
+      }
+
       const operationLink: OperationLink = ({ operation }) => {
-        const observable = new Observable((subscriber) => {
-          const { fetch, domain, AbortController, methodOverride, ...defaultParams } = linkOptions
-
-          const { id, context, type, params } = operation
-
-          const options = {
-            fetch,
-            AbortController: getAbortController(AbortController),
-            methodOverride,
-            id,
-            context,
-            type,
-            params: { ...defaultParams, domain, ...params },
-          }
-
-          const { promise, cancel } = factoryOptions.requester(options)
-
-          promise
-            .then((result) => {
-              subscriber.next(result)
-              subscriber.complete()
-            })
-            .catch((cause) => {
-              subscriber.error(cause)
-            })
-
-          return () => {
-            cancel()
-          }
-        })
-
+        const observable = new Observable(resolveOperation.bind(undefined, operation))
         return observable
       }
 

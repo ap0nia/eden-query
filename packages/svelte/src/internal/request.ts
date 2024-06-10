@@ -1,15 +1,20 @@
 import type { MaybeArray, MaybePromise } from 'elysia/types'
 
+import type { DataTransformerOptions } from '../links/transformer'
 import type { AnyElysia } from '../types'
 import type { Nullish } from '../utils/null'
 import type { EdenFetchError } from './error'
+import type { HTTPHeaders } from './http'
 
 /**
  * Flexible format for defining headers.
  */
-export type EdenRequestHeaders = MaybeArray<
-  RequestInit['headers'] | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
->
+export type EdenRequestHeaders =
+  | MaybeArray<
+      | RequestInit['headers']
+      | ((path: string, options: RequestInit) => MaybePromise<RequestInit['headers'] | void>)
+    >
+  | MaybePromise<HTTPHeaders>
 
 /**
  * Callback function to invoke before the request is made. The fetch options can be modified,
@@ -31,6 +36,10 @@ export type EdenOnResponse = (response: Response) => MaybePromise<EdenResponse |
 export type EdenRequestOptions<T extends AnyElysia = AnyElysia> = {
   /**
    */
+  transformer?: DataTransformerOptions
+
+  /**
+   */
   domain?: T | string
 
   /**
@@ -40,7 +49,7 @@ export type EdenRequestOptions<T extends AnyElysia = AnyElysia> = {
   /**
    * Custom signal that's forwarded to the fetch request to enable aborting.
    */
-  signal?: AbortSignal
+  signal?: AbortSignal | null
 
   /**
    * Custom headers object that's processed and forwarded to the fetch options.

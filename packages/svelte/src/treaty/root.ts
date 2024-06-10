@@ -120,12 +120,12 @@ export interface TreatyCreateQuery<
   TError = InferRouteError<TRoute>,
 > {
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: TInput | SkipToken,
+    input: StoreOrVal<TInput | SkipToken>,
     options: StoreOrVal<EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
   ): EdenDefinedCreateQueryResult<TData, TError>
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: TInput | SkipToken,
+    input: StoreOrVal<TInput | SkipToken>,
     options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
   ): EdenCreateQueryResult<TData, TError>
 }
@@ -137,7 +137,7 @@ export type TreatyCreateInfiniteQuery<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  input: TInput | SkipToken,
+  input: StoreOrVal<TInput | SkipToken>,
   options: StoreOrVal<EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>>,
 ) => EdenCreateInfiniteQueryResult<TOutput, TError, TInput>
 
@@ -229,9 +229,11 @@ export function createEdenTreatyQueryProxyRoot(
 export function resolveEdenTreatyQueryProxy(
   client: EdenClient,
   options?: EdenQueryRequestOptions,
-  paths: string[] = [],
+  originalPaths: string[] = [],
   args: any[] = [],
 ) {
+  const paths = [...originalPaths]
+
   /**
    * @example 'createQuery'
    */

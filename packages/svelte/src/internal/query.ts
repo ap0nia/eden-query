@@ -292,9 +292,11 @@ export function createTreatyMutation<
 export function createTreatyQueryOptions(
   client: EdenClient,
   config?: EdenQueryRequestOptions,
-  paths: string[] = [],
+  originalPaths: string[] = [],
   args: any[] = [],
 ): UndefinedInitialDataOptions {
+  const paths = [...originalPaths]
+
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
@@ -436,7 +438,7 @@ export function createTreatyMutationOptions(
     paths.pop()
   }
 
-  const mutationOptions = args[0] as EdenCreateMutationOptions<any, any, any>
+  const mutationOptions = args[0] as EdenCreateMutationOptions<any, any, any> | undefined
 
   const endpoint = '/' + paths.join('/')
 
@@ -452,9 +454,9 @@ export function createTreatyMutationOptions(
       const result = await client.query({
         endpoint,
         method,
-        input: variables,
-        ...mutationOptions.eden,
-        ...options,
+        input: { body: variables, ...options },
+        ...mutationOptions?.eden,
+        ...options?.eden,
       })
 
       if (!('data' in result)) return result
@@ -478,12 +480,6 @@ export function createTreatyMutationOptions(
 
 export function createTreatyQueryKey(paths: string[], args: any, type: EdenQueryType = 'any') {
   const pathsCopy: any[] = [...paths]
-
-  /**
-   * Pop the hook.
-   * @example 'fetch', 'invalidate'
-   */
-  pathsCopy.pop() ?? ''
 
   /**
    * Only sometimes method, i.e. since invalidations can be partial and not include it.

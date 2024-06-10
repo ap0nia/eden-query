@@ -14,9 +14,9 @@ export type BatchPluginOptions = {
 }
 
 export function batchPlugin(options?: BatchPluginOptions) {
-  const endpoint = options?.endpoint ?? BATCH_ENDPOINT
-
   return (elysia: Elysia) => {
+    const endpoint = options?.endpoint ?? BATCH_ENDPOINT
+
     const instance = new Elysia().post(endpoint, async (context) => {
       if (context.request.formData == null) return
 
@@ -46,6 +46,7 @@ export function batchPlugin(options?: BatchPluginOptions) {
             method: batchedRequest.method,
             // TODO: body,
           })
+
           return {
             request,
             response: await elysia.handle(request),
