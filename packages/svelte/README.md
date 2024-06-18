@@ -429,10 +429,6 @@ type MappedApp = MappedElysia<App>
 > is provided by the parent `MappedElysia`. This is important for integration with `@tanstack/query`
 > because `GET` requests are eligible for `createQuery` calls, while all other types are
 > eligible for `createMutation`.
->
-> For example:
-> `GET` -> `createQuery` > `POST` -> `createMutation` > `PATCH` -> `createMutation` > `DELETE` -> `createMutation`
-> etc...
 
 3. Finally, we can provide rough type-safety for a `@tanstack/query`.
 
