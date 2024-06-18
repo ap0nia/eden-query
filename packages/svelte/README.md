@@ -131,7 +131,7 @@ export const PATCH = handler
 export const DELETE = handler
 ```
 
-<h2 id="implementation">Implementation Details</h2>
+## Implementation Details
 
 ## Remarks
 
