@@ -131,6 +131,8 @@ export const PATCH = handler
 export const DELETE = handler
 ```
 
+<h2 id="implementation">Implementation Details</h2>
+
 ## Remarks
 
 Ideas for batching:

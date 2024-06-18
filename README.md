@@ -19,4 +19,4 @@ pnpm install
 
 ## Implementation
 
-Read more about the implementation in the [eden + svelte-query integration](/packages/svelte)
+Read more about the implementation in the [eden + svelte-query integration](/packages/svelte#implementation)
