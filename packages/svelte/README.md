@@ -133,7 +133,207 @@ export const DELETE = handler
 
 ## Implementation Details
 
-### TypeScript Mapping
+### Runtime
+
+The main components of the runtime implementation include:
+
+- the proxy that reads the route and generates options for `createQuery` and `createMutation`
+- links
+- resolving requests
+
+#### Proxy
+
+A proxy that accumulates routes can be created with a couple of simple steps.
+
+1. Create an object interface that represents your desired proxy.
+2. Create a nested proxy that reads the routes, and terminates when it's called like function.
+
+```ts
+type MyProxyInterface = {
+  a: {
+    b: {
+      c: () => any
+    }
+  }
+}
+
+function createQueryOptions(path: string, options: any) {
+  console.log('Creating query options with path and options: ', { path, options })
+
+  return {
+    queryKey: [path],
+    queryFn: async () => {
+      const response = await fetch(path, options)
+      const data = await response.json()
+      return data
+    }
+  }
+}
+
+function createProxy(paths: any[] = []): any {
+  return new Proxy(() => {
+    get: (_target, path) => {
+      return createProxy([...paths, path])
+    },
+    apply: (_target, _thisArg, args) => {
+      const path = paths.join('/')
+
+      // When a property is called like a function, returns another function.
+      return (options: any) => createQueryOptions(path, options)
+    }
+  })
+}
+
+const myProxyImplementation: MyProxyInterface = createProxy()
+
+// Returns function
+const makeRequest = myProxyImplementation.a.b.c()
+
+// Make the call.
+const resolvedRequest = makeRequest()
+```
+
+> [!NOTE]
+> The goal for this proxy is that accessing (i.e. "get-ing") a property will return a new nested proxy,
+> while calling it like function will simply return the joined path.
+
+> [!IMPORTANT]
+> The proxy itself only has two behaviors whenever a property is accessed:
+>
+> 1. If not called like a function, return a nested proxy.
+> 2. If called like a function, resolves the path, and returns another function.
+>    The functionality of the latter is allows options to be pre-generated for `createQuery` and `createMutation`.
+>
+> In the example above the path is calculated and captured in a closure before returning a simpler function.
+> The proxy's usage is logically defined by the type interface, but during runtime it can be used
+> in any way, e.g. `myProxyImplementation.x.y.z()` and it would work the same, despite not being defined in the types.
+
+#### Proxy Query Options
+
+Now that we know how the proxy conceptually works in generating options for a function call,
+capturing them in a closure, before returning a "simplified" function, this is an example of how it
+works with `@tanstack/query`.
+
+```ts
+import type { CreateQueryOptions, CreateQueryResult } from '@tanstack/svelte-query'
+
+type EdenQueryRequestOptions = {
+  abortOnUnmount?: boolean
+}
+
+type EdenCreateQueryOptions = CreateQueryOptions & {
+  /**
+   * Special property for holding fetch-related options.
+   */
+  eden?: EdenQueryRequestOptions
+}
+
+type MyInput = {
+  query: {
+    message: string
+  }
+}
+
+type MyProxyInterface = {
+  a: {
+    b: {
+      c: (input: MyInput, options?: EdenCreateQueryOptions) => CreateQueryResult<number>
+    }
+  }
+}
+
+function createQueryOptions(paths: string[], input: any, options: EdenCreateQueryOptions = {}) {
+  const path = paths.join('/')
+
+  const { eden, ...queryOptions } = options
+
+  const abortOnUnmount = Boolean(eden?.abortOnUnmount)
+
+  return createQuery({
+    queryKey: [paths, { type: 'query', input: input }],
+    queryFn: async (context) => {
+      const fetchInit = { ...options }
+
+      if (abortOnUnmount) {
+        fetchInit.signal = context.signal
+      }
+
+      const endpoint = '/' + paths.join('/')
+
+      const response = await fetch(endpoint, fetchInit)
+
+      const data = await response.json()
+
+      return data
+    }
+    ...queryOptions
+  })
+}
+
+function createProxy(paths: any[] = []): any {
+  return new Proxy(() => {
+    get: (_target, path) => {
+      return createProxy([...paths, path])
+    },
+    apply: (_target, _thisArg, args) => {
+      return (input: any, options: EdenCreateQueryOptions) => createQueryOptions(paths, input, options)
+    }
+  })
+}
+```
+
+#### Links
+
+Links are an abstraction layer over the request resolution and are inspired by [tRPC links](https://trpc.io/docs/client/links).
+
+Basically, instead of using `fetch` directly, a `client` is created and a request is made by
+doing `client.query`.
+
+Links are functions that accept configuration options and return an observable object.
+
+The `EdenClient` accepts an array of links and iterates over the observables.
+
+##### EdenClient
+
+Links are managed by a client. To make a request, `EdenClient.query` or `EdenClient.mutation` is invoked, after which
+the links are iterated in order to perform the request.
+
+##### HTTP Link
+
+The library exposes a factory, `httpLink` which is a function that returns a function that
+returns a function that returns an observable.
+
+> [!NOTE]
+> For better or worse, this is the nested function architecture being used by tRPC.
+>
+> `httpLinkFactory` (factory that makes factories) -> `EdenLink` (a factory) ->
+> Call with runtime options -> `OperationLink` -> Call with operation arguments -> `Observable`
+>
+> The first call is made by the developer to initialize it.
+> The second call is made by the `EdenClient` in its constructor.
+> Finally, whenever the `EdenClient` uses the `OperationLink`, it passes all the arguments
+> for the request, and gets an observable that resolves when the request is done.
+
+The default `httpLink` factory is made with the `universalRequester`, which is derived
+from the IIFE function used by the official `@elysiajs/eden` [treaty implementation](https://github.com/elysiajs/eden/blob/main/src/treaty2/index.ts#L265).
+
+Using an HTTP Link.
+
+```ts
+import { EdenClient, httpLink } from '@ap0nia/eden-svelte-query'
+
+const client = new EdenClient({
+  links: [httpLink()],
+})
+
+const result = await client.query({ endpoint: '/api/a/b' })
+
+console.log('result: ', result)
+```
+
+So to use
+
+### TypeScript
 
 An Elysia.js app looks like this:
 
@@ -174,12 +374,114 @@ type Routes = {
 
 The most important thing is the `_routes` property that represents the available routes as nested objects.
 
-#### Key Points in Elysia.js Routes
+#### Key Points in Elysia.js TS Routes
 
 1. Every key has a nested object.
 2. The nested object may be a `RouteSchema`. A `RouteSchema` looks like `{ body: unknown, response: { 200: string } }`.
 3. If the nested object is a `RouteSchema`, then the key represents the method. For example, `get`, or `post`.
 4. A `RouteSchema` represents a leaf, and you should stop "recurring". Otherwise, it's a nested route.
+
+#### Mapping Elysia.js TS Routes
+
+1. Write a mapped type that converts leaf nodes to something else. (Using the same app type above as an example).
+
+```ts
+import { Elysia, type RouteSchema } from 'elysia'
+
+const app = new Elysia().get('/a/b', () => 'ab').post('/a/b/c', () => 'abc')
+
+type App = typeof app
+
+type MappedElysia<T> = {
+  [K in keyof T]: T[K] extends RouteSchema ? 'Leaf Node' : MappedElysia<T[K]>
+}
+
+type MappedApp = MappedElysia<App>
+```
+
+2. Since we know that leaf nodes are `RouteSchema`, try writing another type to transform it.
+
+```ts
+import { Elysia, type RouteSchema } from 'elysia'
+
+const app = new Elysia().get('/a/b', () => 'ab').post('/a/b/c', () => 'abc')
+
+type App = typeof app
+
+type MappedElysiaLeaf<
+  TMethod extends PropertyKey,
+  TRoute extends RouteSchema,
+> = TMethod extends 'get'
+  ? { method: 'GET'; route: TRoute }
+  : TMethod extends 'post'
+  ? { method: 'POST'; route: TRoute }
+  : { method: 'N/A'; route: TRoute }
+
+type MappedElysia<T> = {
+  [K in keyof T]: T[K] extends RouteSchema ? MappedElysiaLeaft<K, T[K]> : MappedElysia<T[K]>
+}
+
+type MappedApp = MappedElysia<App>
+```
+
+> [!NOTE]
+> Here, the `MappedElysiaLeaf` gets both the `TMethod` and `TRoute` from its parent, which
+> is provided by the parent `MappedElysia`. This is important for integration with `@tanstack/query`
+> because `GET` requests are eligible for `createQuery` calls, while all other types are
+> eligible for `createMutation`.
+>
+> For example:
+> `GET` -> `createQuery` > `POST` -> `createMutation` > `PATCH` -> `createMutation` > `DELETE` -> `createMutation`
+> etc...
+
+3. Finally, we can provide rough type-safety for a `@tanstack/query`.
+
+```ts
+import type { CreateQueryResult, CreateMutationResult } from '@tanstack/svelte-query'
+import { Elysia, type RouteSchema } from 'elysia'
+
+const app = new Elysia().get('/a/b', () => 'ab').post('/a/b/c', () => 'abc')
+
+type App = typeof app
+
+type InferRouteInput<T extends RouteSchema> = {
+  params: T['params']
+  query: T['query']
+  body: T['body']
+}
+
+type MappedElysiaLeaf<
+  TMethod extends PropertyKey,
+  TRoute extends RouteSchema,
+> = TMethod extends 'get'
+  ? CreateQueryResult<InferRouteInput<TRoute>>
+  : CreateMutationResult<InferRouteInput<TRoute>>
+
+type MappedElysia<T> = {
+  [K in keyof T]: T[K] extends RouteSchema ? MappedElysiaLeaft<K, T[K]> : MappedElysia<T[K]>
+}
+
+type MappedApp = MappedElysia<App>
+
+// Result!
+
+let eden: MappedApp = {} as any
+
+// type-safe!
+
+eden.a.b.get.createQuery
+
+eden.a.b.c.post.createMutation
+```
+
+> [!NOTE]
+> Here, we iterate over all nested routes, and handle leaf nodes differently.
+> If the key for a route is 'get', then it would be mapped to `createQuery`, otherwise `createMutation`
+
+> [!IMPORTANT]
+> Please note, there are **_three_** sources of inputs: route params, query params, and request body.
+> That's why there's a helper method called `InferRouteInput<T extends RouteSchema>` which recognizes
+> the different sources of inputs and omits any unneeded inputs. It's been simplified in this demonstration.
 
 ## Remarks
 
