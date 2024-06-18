@@ -135,6 +135,8 @@ export const DELETE = handler
 
 ### Runtime
 
+#### eden treaty + @tanstack/query
+
 The main components of the runtime implementation include:
 
 - the proxy that reads the route and generates options for `createQuery` and `createMutation`
@@ -142,6 +144,56 @@ The main components of the runtime implementation include:
 - resolving requests
 
 #### Proxy
+
+The main helper is made of three components.
+
+- Root: The treaty API with `createQuery`, `createMutation`, etc. as leaves.
+- Base: Additional helpers at the root, like `setContext`, `getContext` that aren't part of the treaty API.
+- Context: Available from the base as `getContext`, and exposes helper utilities like `invalidate`.
+
+> Type Interfaces Example
+
+```ts
+import type {
+  CreateQueryOptions,
+  CreateQueryResult,
+  InvalidateOptions,
+  QueryClient,
+} from '@tanstack/svelte-query'
+import { Elysia } from 'elysia'
+
+const app = new Elysia().get('/a', () => 123).get('/b', () => 'B')
+
+type TreatyQueryRoot = {
+  a: {
+    get: (input: {}, options?: CreateQueryOptions) => CreateQueryResult<number>
+  }
+  b: {
+    get: (input: {}, options?: CreateQueryOptions) => CreateQueryResult<string>
+  }
+}
+
+type TreatyQueryBase = {
+  setContext: (queryClient: QueryClient) => void
+  getContext: () => TreatyQueryContext
+}
+
+type TreatyQueryContext = {
+  a: {
+    invalidate: (input: {}, options?: InvalidateOptions) => Promise<void>
+    // ...
+  }
+  b: {
+    invalidate: (input: {}, options?: InvalidateOptions) => Promise<void>
+    // ...
+  }
+}
+
+// The entire API integration...
+type TreatyQuery = TreatyQueryRoot & TreatyQueryBase & TreatyQueryContext
+```
+
+> Building from Scratch
 
 A proxy that accumulates routes can be created with a couple of simple steps.
 
@@ -331,7 +383,17 @@ const result = await client.query({ endpoint: '/api/a/b' })
 console.log('result: ', result)
 ```
 
-So to use
+##### HTTP Batch Link
+
+The HTTP Batch link is an experimental, WIP feature that adds a wrapper around the `universalRequester`
+that internally invokes `setTimeout` to batch all requests that are made in the same event loop.
+
+In order for it to work, an `elysia` plugin must also be used on the server to handle the batch requests.
+
+There are two main modes.
+
+- POST: The batched request and response data is encoded in `FormData`.
+- GET: The batch request data is encoded in JSON in the URL query params, and the batch response data is encoded in JSON.
 
 ### TypeScript
 
