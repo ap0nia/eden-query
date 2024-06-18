@@ -133,6 +133,54 @@ export const DELETE = handler
 
 ## Implementation Details
 
+### TypeScript Mapping
+
+An Elysia.js app looks like this:
+
+```ts
+import Elysia from 'elysia'
+
+const app = new Elysia().get('/a/b', () => 'ab').post('/a/b/c', () => 'abc')
+
+const routes: Routes = app._routes
+
+type Routes = {
+  a: {
+    b: {
+      c: {
+        post: {
+          body: unknown
+          params: Record<never, string>
+          query: unknown
+          headers: unknown
+          response: {
+            200: string
+          }
+        }
+      }
+      get: {
+        body: unknown
+        params: Record<never, string>
+        query: unknown
+        headers: unknown
+        response: {
+          200: string
+        }
+      }
+    }
+  }
+}
+```
+
+The most important thing is the `_routes` property that represents the available routes as nested objects.
+
+#### Key Points in Elysia.js Routes
+
+1. Every key has a nested object.
+2. The nested object may be a `RouteSchema`. A `RouteSchema` looks like `{ body: unknown, response: { 200: string } }`.
+3. If the nested object is a `RouteSchema`, then the key represents the method. For example, `get`, or `post`.
+4. A `RouteSchema` represents a leaf, and you should stop "recurring". Otherwise, it's a nested route.
+
 ## Remarks
 
 Ideas for batching:
