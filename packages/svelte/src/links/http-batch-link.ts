@@ -2,15 +2,19 @@ import type { MaybeArray } from 'elysia/types'
 
 import { BATCH_ENDPOINT } from '../constants'
 import type { HTTPHeaders } from '../internal/http'
-import { resolveEdenRequest } from '../internal/resolve'
+import { type ResolvedEdenRequest, resolveEdenRequest } from '../internal/resolve'
 import { arrayToDict } from '../utils/array-to-dict'
 import type { NonEmptyArray } from '../utils/non-empty-array'
 import { notNull } from '../utils/null'
 import { batchedDataLoader, type BatchLoader } from './batch-data-loader'
 import { httpLinkFactory } from './http-link'
 import type { Operation, OperationType } from './internals/operation'
-import { type Requester } from './internals/universal-requester'
-import type { CombinedDataTransformer } from './transformer'
+import {
+  type Requester,
+  type RequesterOptions,
+  universalRequester,
+} from './internals/universal-requester'
+import { type DataTransformerOptions, getDataTransformer } from './transformer'
 
 export type HTTPBatchRequesterOptions = {
   endpoint?: string
@@ -18,22 +22,24 @@ export type HTTPBatchRequesterOptions = {
   headers?:
     | HTTPHeaders
     | ((operations: NonEmptyArray<Operation>) => HTTPHeaders | Promise<HTTPHeaders>)
-  transformer?: CombinedDataTransformer
+  transformer?: DataTransformerOptions
 }
 
 export type GetInputParams = {
   url?: string
   path: string
   type: OperationType
-  transformer?: CombinedDataTransformer
+  transformer?: DataTransformerOptions
   input: MaybeArray<unknown>
   methodOverride?: 'POST'
 }
 
 export function getInput(params: GetInputParams) {
+  const transformer = getDataTransformer(params.transformer)
+
   return Array.isArray(params.input)
-    ? arrayToDict(params.input.map((input) => params.transformer?.input.serialize(input)))
-    : params.transformer?.input.serialize(params.input)
+    ? arrayToDict(params.input.map((input) => transformer?.input.serialize(input)))
+    : transformer?.input.serialize(params.input)
 }
 
 export function getUrl(params: GetInputParams) {
@@ -82,15 +88,74 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
         return url.length <= resolvedFactoryOptions.maxURLLength
       },
       fetch: (batchOps) => {
+        if (batchOps.length === 1) {
+          const [firstOperation] = batchOps
+
+          if (firstOperation != null) {
+            const requesterOptions: RequesterOptions = {
+              transformer: options?.transformer,
+              ...firstOperation,
+            }
+
+            const singleResult = universalRequester(requesterOptions)
+
+            const promise = singleResult.promise.then((result) => [result])
+
+            return { promise, cancel: singleResult.cancel }
+          }
+        }
+
         const body = new FormData()
+
+        const query: Record<string, any> = {}
 
         const endpoint = resolvedFactoryOptions?.endpoint ?? BATCH_ENDPOINT
 
         batchOps.forEach((operation, index) => {
-          const path = operation.params.endpoint ?? ''
+          let path = operation.params.endpoint ?? ''
 
           if (operation.params.method != null) {
             body.append(`${index}.method`, operation.params.method)
+          }
+
+          if (operation.params.input?.params != null) {
+            Object.entries(operation.params.input?.params).forEach(([key, value]) => {
+              path = path.replace(`:${key}`, value as string)
+            })
+          }
+
+          if (operation.params.input?.query != null) {
+            Object.entries(operation.params.input.query).forEach(([key, value]) => {
+              if (value != null) {
+                query[`${index}.${key}`] = value
+              }
+            })
+          }
+
+          if (operation.params.input?.body != null) {
+            const transformer = getDataTransformer(
+              options?.transformer ?? operation.params.transformer,
+            )
+
+            if (operation.params.input.body instanceof FormData) {
+              body.append(`${index}.body_type`, 'formdata')
+
+              operation.params.input.body.forEach((value, key) => {
+                const resolvedValue =
+                  transformer != null ? transformer.input.serialize(value) : value
+
+                body.set(`${index}.body.${key}`, resolvedValue)
+              })
+            } else {
+              body.append(`${index}.body_type`, 'json')
+
+              const resolvedBody =
+                transformer != null
+                  ? transformer.input.serialize(operation.params.input.body)
+                  : operation.params.input.body
+
+              body.set(`${index}.body`, JSON.stringify(resolvedBody))
+            }
           }
 
           body.append(`${index}.path`, path)
@@ -118,13 +183,33 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
             : resolvedFactoryOptions.headers
 
         const promise = resolveEdenRequest({
-          signal: signals.length ? abortController?.signal : undefined,
+          transformer: options?.transformer,
+          signal: abortController?.signal,
           endpoint,
           method: 'POST',
-          input: { body },
+          input: { body, query },
           headers,
         }).then((result) => {
-          return 'data' in result ? result.data : []
+          if (!('data' in result) || !Array.isArray(result.data)) {
+            return []
+          }
+
+          const batchedResults: ResolvedEdenRequest[] = result.data
+
+          const transformer = getDataTransformer(options?.transformer)
+
+          if (transformer == null) {
+            return result.data
+          }
+
+          const transformedResponses = batchedResults.map((nestedResult: ResolvedEdenRequest) => {
+            if (nestedResult.data != null) {
+              nestedResult.data = transformer.output.deserialize(nestedResult.data)
+            }
+            return nestedResult
+          })
+
+          return transformedResponses
         })
 
         return { promise, cancel }

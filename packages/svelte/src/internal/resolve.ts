@@ -179,8 +179,19 @@ export async function parseResponse(response: Response, params?: EdenRequestPara
     return { data, error: null, status: response.status }
   }
 }
+export type ResolvedEdenRequest =
+  | {
+      data: null
+      error: EdenFetchError<any, any>
+      status: number
+    }
+  | {
+      data: any
+      error: null
+      status: number
+    }
 
-export async function resolveEdenRequest(params: EdenRequestParams) {
+export async function resolveEdenRequest(params: EdenRequestParams): Promise<ResolvedEdenRequest> {
   let endpoint = params.endpoint ?? ''
 
   if (params.input?.params != null) {
@@ -275,7 +286,9 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
 
         formData.append(key, field as string)
       }
-    } else if (typeof fetchInit.body === 'object') {
+    } else if (typeof fetchInit.body === 'string') {
+      fetchInit.headers['content-type'] = 'text/plain'
+    } else {
       fetchInit.headers['content-type'] = 'application/json'
 
       const transformer = getDataTransformer(params.transformer)
@@ -287,8 +300,6 @@ export async function resolveEdenRequest(params: EdenRequestParams) {
       }
 
       fetchInit.body = JSON.stringify(fetchInit.body)
-    } else if (fetchInit.body !== null) {
-      fetchInit.headers['content-type'] = 'text/plain'
     }
   }
 

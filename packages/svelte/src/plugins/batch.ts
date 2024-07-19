@@ -4,13 +4,153 @@ import { BATCH_ENDPOINT } from '../constants'
 import { parseResponse } from '../internal/resolve'
 
 export type BatchedRequestData = {
-  method?: string
   path: string
+  method?: string
   body?: any
+  body_type?: 'formdata' | 'json'
+  headers?: Headers
+  query?: URLSearchParams
+  rawBody?: Record<string, any>
 }
 
 export type BatchPluginOptions = {
   endpoint?: string
+}
+
+async function unBatchRequests(request: Request): Promise<BatchedRequestData[]> {
+  const batchedRequests = await unBatchRequestData(request)
+  const batchedHeaders = unBatchHeaders(request)
+  const batchedQueries = unBatchQueries(request)
+
+  // Zip batched headers with batched requests.
+  for (const index in batchedHeaders.requests) {
+    const current = batchedRequests[index]
+    if (current != null) {
+      current.headers ??= batchedHeaders.requests[index]
+    }
+  }
+
+  // Set headers for all requests.
+  batchedHeaders.shared.forEach((value, key) => {
+    batchedRequests.forEach((batchedRequest) => {
+      if (!batchedRequest.headers?.get(key)) {
+        batchedRequest.headers ??= new Headers()
+        batchedRequest.headers.set(key, value)
+      }
+    })
+  })
+
+  // Zip batched queries with batched requests.
+  for (const index in batchedQueries) {
+    const current = batchedRequests[index]
+    if (current != null) {
+      current.query ??= batchedQueries[index]
+    }
+  }
+
+  // Convert body if necessary.
+  batchedRequests.forEach((request) => {
+    switch (request.body_type) {
+      case 'formdata': {
+        const body = new FormData()
+
+        if (typeof request.body === 'object') {
+          for (const [key, value] of Object.entries(request.body)) {
+            body.set(key, value as any)
+          }
+        }
+
+        request.body = body
+        break
+      }
+
+      case 'json': {
+        request.headers?.set('content-type', 'application/json')
+        break
+      }
+    }
+  })
+
+  return batchedRequests
+}
+
+async function unBatchRequestData(request: Request): Promise<BatchedRequestData[]> {
+  const result: BatchedRequestData[] = []
+
+  const formData = await request.formData?.()
+
+  if (formData == null) {
+    return result
+  }
+
+  // Unbatch basic request information.
+  for (const [key, value] of formData.entries()) {
+    const [id, property] = key.split('.')
+
+    if (id == null || property == null) continue
+
+    try {
+      const index = Number(id)
+      const definedResult: any = { ...result[index] }
+
+      set(definedResult, property, value)
+
+      if (property.startsWith('body')) {
+        const [_prefix, bodyKey] = property.split('.')
+
+        if (bodyKey != null) {
+          definedResult.rawBody ??= {}
+          definedResult.rawBody[bodyKey] = value
+        }
+      }
+
+      result[index] = definedResult
+    } catch (e) {
+      console.error(`Failed to add request with key: ${id} to batch: `, e)
+    }
+  }
+
+  return result
+}
+
+/**
+ */
+function unBatchHeaders(request: Request): { requests: Headers[]; shared: Headers } {
+  const requests: Headers[] = []
+  const shared = new Headers()
+
+  for (const [key, value] of request.headers.entries()) {
+    const [requestId, headerName] = key.split('.')
+
+    if (Number.isInteger(requestId) && headerName != null) {
+      requests[Number(requestId)] ??= new Headers()
+      requests[Number(requestId)]?.set(headerName, value)
+    } else {
+      shared.set(key, value)
+    }
+  }
+
+  return { requests, shared }
+}
+
+function unBatchQueries(request: Request): URLSearchParams[] {
+  const result: URLSearchParams[] = []
+
+  const requestUrl = new URL(request.url)
+
+  for (const [key, value] of requestUrl.searchParams.entries()) {
+    const [requestId, queryName] = key.split('.')
+
+    if (Number.isNaN(requestId) || queryName == null) continue
+    result[Number(requestId)] ??= new URLSearchParams()
+    result[Number(requestId)]?.append(queryName, value)
+  }
+
+  return result
+}
+
+function createUrl(path: string, query?: URLSearchParams): string {
+  return path + (query?.size ? `?${query.toString()}` : '')
 }
 
 export function batchPlugin(options?: BatchPluginOptions) {
@@ -18,39 +158,32 @@ export function batchPlugin(options?: BatchPluginOptions) {
     const endpoint = options?.endpoint ?? BATCH_ENDPOINT
 
     const instance = new Elysia().post(endpoint, async (context) => {
-      if (context.request.formData == null) return
-
-      const formData = await context.request.formData()
-
-      const batchedRequests: BatchedRequestData[] = []
-
-      for (const [key, value] of formData.entries()) {
-        const [id, property] = key.split('.')
-
-        if (id == null || property == null) return
-
-        try {
-          const index = +id
-          batchedRequests[index] ??= {} as any
-          set(batchedRequests[index], property, value)
-        } catch (e) {
-          console.error(`Failed to add request with key: ${id} to batch: `, e)
-        }
-      }
+      const requests = await unBatchRequests(context.request)
 
       const originalUrl = new URL(context.request.url)
 
-      const batchedResponses = await Promise.allSettled(
-        batchedRequests.map(async (batchedRequest) => {
-          const request = new Request(`${originalUrl.origin}${batchedRequest.path}`, {
-            method: batchedRequest.method,
-            // TODO: body,
-          })
+      /**
+       * Context that's forwarded to all batch requests.
+       *
+       * Be careful if mutating it!
+       */
+      const forwardedContext = {
+        event: (context as any).event,
+      }
 
-          return {
-            request,
-            response: await elysia.handle(request),
-          }
+      const responses = await Promise.allSettled(
+        requests.map(async (batchedRequest) => {
+          const fullPath = `${originalUrl.origin}${batchedRequest.path}`
+
+          const requestUrl = createUrl(fullPath, batchedRequest.query)
+
+          const request = new Request(requestUrl, batchedRequest)
+
+          ;(request as any).context = forwardedContext
+
+          const response = await elysia.handle(request)
+
+          return { request, response }
         }),
       ).catch((e) => {
         console.error('Error occurred while handling batched requests: ', e)
@@ -58,7 +191,7 @@ export function batchPlugin(options?: BatchPluginOptions) {
       })
 
       const parsedResponses = await Promise.all(
-        batchedResponses.map(async (handledRequest) => {
+        responses.map(async (handledRequest) => {
           if (handledRequest.status === 'rejected') {
             console.error('Failed to handle request: ', handledRequest.reason)
             return
@@ -67,6 +200,7 @@ export function batchPlugin(options?: BatchPluginOptions) {
           const result = await parseResponse(handledRequest.value.response).catch((e) => {
             console.error('Failed to parse response: ', e)
           })
+
           return result
         }),
       )
