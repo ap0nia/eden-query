@@ -23,7 +23,9 @@
     "tanstack-query"
   ],
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
+  },
   "packageManager": "pnpm@9.1.1",
   "engines": {
     "pnpm": "^9.0.0",
