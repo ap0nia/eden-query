@@ -77,6 +77,12 @@ importers:
         specifier: ^7.18.0
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
 
+  packages/eden-svelte-query:
+    devDependencies:
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
 packages:
   '@babel/code-frame@7.24.7':
     resolution:
