@@ -1,0 +1,32 @@
+{
+  "name": "elysiajs-eden",
+  "version": "0.0.0",
+  "description": "monorepo for eden, a fully type-safe Elysia.js client",
+  "contributors": [
+    {
+      "name": "ap0nia",
+      "email": "",
+      "url": "https://github.com/ap0nia"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ap0nia/eden-query"
+  },
+  "bugs": {
+    "url": "https://github.com/ap0nia/eden-query/issues"
+  },
+  "keywords": [
+    "elysia",
+    "eden",
+    "connector",
+    "tanstack-query"
+  ],
+  "type": "module",
+  "scripts": {},
+  "packageManager": "pnpm@9.1.1",
+  "engines": {
+    "pnpm": "^9.0.0",
+    "node": ">=18"
+  }
+}
