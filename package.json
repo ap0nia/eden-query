@@ -26,11 +26,6 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm"
   },
-  "packageManager": "pnpm@9.1.1",
-  "engines": {
-    "pnpm": "^9.0.0",
-    "node": ">=18"
-  },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.2.2",
     "@commitlint/types": "^19.0.3",
@@ -41,6 +36,7 @@
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
     "commitizen": "^4.3.0",
+    "commitlint": "^19.3.0",
     "cz-conventional-changelog": "^3.3.0",
     "devmoji": "^2.3.0",
     "eslint-config-prettier": "^9.1.0",
@@ -52,5 +48,10 @@
     "svelte-eslint-parser": "^0.41.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.18.0"
+  },
+  "packageManager": "pnpm@9.1.1",
+  "engines": {
+    "pnpm": "^9.0.0",
+    "node": ">=18"
   }
 }
