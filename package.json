@@ -24,7 +24,8 @@
   ],
   "type": "module",
   "scripts": {
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "postinstall": "husky install"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.2.2",
@@ -43,6 +44,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-svelte": "^2.43.0",
     "globals": "^15.8.0",
+    "husky": "^9.1.4",
     "lint-staged": "^15.2.7",
     "prettier": "^3.3.3",
     "svelte-eslint-parser": "^0.41.0",
