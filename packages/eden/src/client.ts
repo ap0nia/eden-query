@@ -1,4 +1,4 @@
-import { AnyElysia } from 'elysia'
+import type { AnyElysia } from 'elysia'
 
 import { createChain } from './links/internal/create-chain'
 import { promisifyObservable, type Unsubscribable } from './links/internal/observable'
@@ -80,12 +80,20 @@ export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
   private promisifyRequest<TInput = unknown, TOutput = unknown>(
     options: EdenClientPromisifyRequestOptions,
   ): Promise<TOutput> {
+    // Forward the signal
+    if (options.signal != null) {
+      options.params.fetch ??= {}
+      options.params.fetch.signal = options.signal
+    }
+
+    const signal = options.params.fetch?.signal
+
     const req$ = this.$request<TInput, TOutput>(options)
 
     const { promise, abort } = promisifyObservable<TOutput>(req$ as any)
 
     const abortablePromise = new Promise<TOutput>((resolve, reject) => {
-      options.signal?.addEventListener('abort', abort)
+      signal?.addEventListener('abort', abort)
       promise.then(resolve).catch(reject)
     })
 
