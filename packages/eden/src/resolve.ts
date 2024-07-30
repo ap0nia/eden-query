@@ -1,10 +1,15 @@
-import type { Elysia } from 'elysia'
+import type { AnyElysia } from 'elysia'
 
-import { CLIENT_WARNING, IS_SERVER, LOOPBACK_ADDRESSES } from './constants'
+import type { EdenConfig } from './config'
+import { DEMO_DOMAIN, IS_SERVER, LOOPBACK_ADDRESSES } from './constants'
 import { EdenFetchError } from './errors'
-import type { Treaty } from './types'
-import { hasFile, isGetOrHeadMethod, isHttpMethod, parseStringifiedValue } from './utils'
-// import { EdenWS } from './ws'
+import type { InferRouteBody, InferRouteOptions } from './infer'
+import { getDataTransformer } from './links/internal/transformer'
+import type { EdenRequestOptions, EdenResponse } from './request'
+import { hasFile } from './utils/file'
+import { isGetOrHeadMethod } from './utils/http'
+import { parseStringifiedValue } from './utils/parse'
+import { EdenWS } from './ws'
 
 function createNewFile(v: File) {
   if (IS_SERVER) {
@@ -29,16 +34,16 @@ function createNewFile(v: File) {
   })
 }
 
-function processHeaders(
-  configHeaders: Treaty.Config['headers'],
+async function processHeaders(
+  configHeaders: EdenConfig['headers'],
   path: string,
   options: RequestInit = {},
   headers: Record<string, string> = {},
-): Record<string, string> {
+): Promise<Record<string, string>> {
   if (Array.isArray(configHeaders)) {
     for (const value of configHeaders)
       if (!Array.isArray(value)) {
-        headers = processHeaders(value, path, options, headers)
+        headers = await processHeaders(value, path, options, headers)
       } else {
         const key = value[0]
         if (typeof key === 'string') {
@@ -65,7 +70,7 @@ function processHeaders(
         return processHeaders(configHeaders, path, options, headers)
       }
 
-      const customHeaders = configHeaders(path, options)
+      const customHeaders = await configHeaders(path, options)
 
       if (customHeaders) {
         return processHeaders(customHeaders, path, options, headers)
@@ -119,16 +124,6 @@ export async function* streamResponse(response: Response) {
   }
 }
 
-/**
- * If an object is passed in the middle of a chain as an argument, it's assumed to be a
- * path parameter if there's exactly one key?
- *
- * @see https://elysiajs.com/eden/overview.html#eden-treaty-recommended
- */
-function isRequestBody(body?: any) {
-  return typeof body === 'object' && Object.keys(body).length !== 1
-}
-
 function buildQueryString(query?: any) {
   let q = ''
 
@@ -152,56 +147,132 @@ function buildQueryString(query?: any) {
   return q
 }
 
-export type AnyElysia = Elysia<any, any, any, any, any, any, any, any>
+export async function parseResponse<T extends AnyElysia = AnyElysia, TRaw extends boolean = false>(
+  response: Response,
+  params?: EdenRequestParams<T, TRaw>,
+) {
+  if (params?.onResponse != null) {
+    const onResponse = Array.isArray(params.onResponse) ? params.onResponse : [params.onResponse]
+
+    for (const value of onResponse) {
+      try {
+        const data = await value(response.clone())
+        if (data != null) {
+          return { data, error: null, status: response.status }
+        }
+      } catch (err) {
+        const error = err instanceof EdenFetchError ? err : new EdenFetchError(422, err)
+        return { data: null, error, status: response.status }
+      }
+    }
+  }
+
+  let data: any
+
+  switch (response.headers.get('Content-Type')?.split(';')[0]) {
+    case 'text/event-stream': {
+      data = streamResponse(response)
+      break
+    }
+
+    case 'application/json': {
+      data = await response.json()
+
+      const transformer = getDataTransformer(params?.transformer)
+
+      const deserialize = transformer?.output.deserialize
+
+      if (deserialize != null) {
+        data = deserialize(data)
+      }
+
+      break
+    }
+
+    case 'application/octet-stream': {
+      data = await response.arrayBuffer()
+      break
+    }
+
+    case 'multipart/form-data': {
+      const temp = await response.formData()
+
+      data = {}
+
+      temp.forEach((value, key) => {
+        data[key] = value
+      })
+
+      break
+    }
+
+    default: {
+      data = await response.text().then(parseStringifiedValue)
+    }
+  }
+
+  if (response.status >= 300 || response.status < 200) {
+    const error = new EdenFetchError(response.status, data)
+    return { data: null, error, status: response.status }
+  } else {
+    return { data, error: null, status: response.status }
+  }
+}
 
 /**
  * Parameters that control how an Eden request is resolved.
  */
-export type EdenRequestParams<T extends AnyElysia = AnyElysia> = Treaty.Config & {
+export type EdenRequestParams<
+  T extends AnyElysia = AnyElysia,
+  TRaw extends boolean = false,
+> = EdenRequestOptions<T, TRaw> & {
   domain?: T | string
-  input?: any
+  options?: InferRouteOptions
+  body?: InferRouteBody
   path?: string
   method?: string
 }
 
-async function resolveEdenRequest(params: EdenRequestParams) {
+export async function resolveEdenRequest<
+  T extends AnyElysia = AnyElysia,
+  TRaw extends boolean = false,
+>(params: EdenRequestParams<T, TRaw>): Promise<EdenResponse<TRaw> | EdenWS> {
   const path = params.path ?? ''
 
   const isGetOrHead = isGetOrHeadMethod(params.method)
 
-  const headers = processHeaders(params.headers, path, params.input.headers)
+  const headers = await processHeaders(params.headers, path, params.options?.headers)
 
-  const query = isGetOrHead ? params.input.body?.['query'] : params.input.query
+  let q = buildQueryString(params.options?.query)
 
-  let q = buildQueryString(query)
+  if (params.method === 'subscribe') {
+    const domain = typeof params.domain === 'string' ? params.domain : DEMO_DOMAIN
 
-  // if (method === 'subscribe') {
-  //   const origin = domain.replace(
-  //     /^([^]+):\/\//,
-  //     domain.startsWith('https://')
-  //       ? 'wss://'
-  //       : domain.startsWith('http://')
-  //         ? 'ws://'
-  //         : LOOPBACK_ADDRESSES.find((address) => domain.includes(address))
-  //           ? 'ws://'
-  //           : 'wss://',
-  //   )
+    const protocol = domain.startsWith('https://')
+      ? 'wss://'
+      : domain.startsWith('http://')
+        ? 'ws://'
+        : LOOPBACK_ADDRESSES.find((address) => domain.includes(address))
+          ? 'ws://'
+          : 'wss://'
 
-  //   const url = origin + path + q
+    const origin = domain.replace(/^([^]+):\/\//, protocol)
 
-  //   return new EdenWS(url)
-  // }
+    const url = origin + path + q
+
+    return new EdenWS(url)
+  }
 
   let fetchInit = {
     method: params.method?.toUpperCase(),
-    body: params.input.body,
+    body: params.body as any,
     ...params.fetch,
     headers,
   } satisfies FetchRequestInit
 
   fetchInit.headers = {
     ...headers,
-    ...processHeaders(params.input.headers, path, fetchInit),
+    ...(await processHeaders(params.options?.headers, path, fetchInit)),
   }
 
   if (isGetOrHead) {
@@ -220,7 +291,7 @@ async function resolveEdenRequest(params: EdenRequestParams) {
           ...temp,
           headers: {
             ...fetchInit.headers,
-            ...processHeaders(temp.headers, path, fetchInit),
+            ...(await processHeaders(temp?.headers, path, fetchInit)),
           },
         }
     }
@@ -232,9 +303,9 @@ async function resolveEdenRequest(params: EdenRequestParams) {
   }
 
   // Don't handle raw FormData if given.
-  if (FormData != null && params.input.body instanceof FormData) {
+  if (FormData != null && params.body instanceof FormData) {
     // noop
-  } else if (hasFile(params.input.body)) {
+  } else if (hasFile(params.body as any)) {
     const formData = new FormData()
 
     // FormData is 1 level deep
@@ -274,10 +345,10 @@ async function resolveEdenRequest(params: EdenRequestParams) {
     // We don't do this because we need to let the browser set the content type with the correct boundary
     // fetchInit.headers['content-type'] = 'multipart/form-data'
     fetchInit.body = formData
-  } else if (typeof params.input.body === 'object') {
+  } else if (typeof params.body === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
-    fetchInit.body = JSON.stringify(params.input.body)
-  } else if (params.input.body !== undefined && params.input.body !== null) {
+    fetchInit.body = JSON.stringify(params.body)
+  } else if (params.body !== null) {
     fetchInit.headers['content-type'] = 'text/plain'
   }
 
@@ -297,7 +368,7 @@ async function resolveEdenRequest(params: EdenRequestParams) {
           ...temp,
           headers: {
             ...fetchInit.headers,
-            ...processHeaders(temp.headers, path, fetchInit),
+            ...(await processHeaders(temp?.headers, path, fetchInit)),
           } as Record<string, string>,
         }
     }
@@ -311,156 +382,22 @@ async function resolveEdenRequest(params: EdenRequestParams) {
 
   const response = await (elysia?.handle(new Request(url, fetchInit)) ?? fetcher(url, fetchInit))
 
-  let data: any = null
+  const edenResponse = await parseResponse(response, params)
 
-  let error = null
-
-  if (params.onResponse) {
-    const onResponse = Array.isArray(params.onResponse) ? params.onResponse : [params.onResponse]
-
-    for (const value of onResponse)
-      try {
-        const temp = await value(response.clone())
-
-        if (temp !== undefined && temp !== null) {
-          data = temp
-          break
-        }
-      } catch (err) {
-        if (err instanceof EdenFetchError) error = err
-        else error = new EdenFetchError(422, err)
-
-        break
-      }
-  }
-
-  if (data !== null) {
+  if (edenResponse.data !== null) {
     return {
-      data,
-      error,
-      response,
-      status: response.status,
-      headers: response.headers,
-    }
-  }
-
-  switch (response.headers.get('Content-Type')?.split(';')[0]) {
-    case 'text/event-stream': {
-      data = streamResponse(response)
-      break
-    }
-
-    case 'application/json': {
-      data = await response.json()
-      break
-    }
-
-    case 'application/octet-stream': {
-      data = await response.arrayBuffer()
-      break
-    }
-
-    case 'multipart/form-data': {
-      const temp = await response.formData()
-
-      data = {}
-
-      temp.forEach((value, key) => {
-        data[key] = value
-      })
-
-      break
-    }
-
-    default: {
-      data = await response.text().then(parseStringifiedValue)
-    }
+      ...edenResponse,
+      ...(params.raw && { response, headers: response.headers, statusText: response.statusText }),
+    } as EdenResponse
   }
 
   if (response.status >= 300 || response.status < 200) {
-    error = new EdenFetchError(response.status, data)
-    data = null
+    edenResponse.error = new EdenFetchError(response.status, edenResponse.data)
+    edenResponse.data = null
   }
 
   return {
-    data,
-    error,
-    response,
-    status: response.status,
-    headers: response.headers,
-  }
+    ...edenResponse,
+    ...(params.raw && { response, headers: response.headers, statusText: response.statusText }),
+  } as EdenResponse
 }
-
-function createProxy(domain: string | Elysia, config: Treaty.Config, paths: string[] = []): any {
-  return new Proxy(() => {}, {
-    get: (_target, p: string, _receiver): any => {
-      return createProxy(domain, config, p === 'index' ? paths : [...paths, p])
-    },
-    apply: (_target, _thisArg, argArray) => {
-      const [body, options] = argArray
-
-      const method = paths.at(-1)
-
-      if (!body || options || isRequestBody(body) || isHttpMethod(method)) {
-        const isGetOrHead = isGetOrHeadMethod(method)
-
-        const fetch = {
-          ...config.fetch,
-          ...(isGetOrHead ? body : options),
-        }
-
-        return resolveEdenRequest({
-          ...config,
-          // options,
-          // config,
-          fetch,
-          domain,
-          input: {
-            body,
-          },
-          path: '/' + paths.join('/'),
-          method,
-        })
-      }
-
-      if (typeof body === 'object') {
-        return createProxy(domain, config, [...paths, Object.values(body)[0] as string])
-      }
-
-      return createProxy(domain, config, paths)
-    },
-  }) as any
-}
-
-export function treaty<const App extends Elysia<any, any, any, any, any, any, any, any>>(
-  domain: string | App,
-  config: Treaty.Config = {},
-): Treaty.Create<App> {
-  if (typeof domain === 'string') {
-    if (!config.keepDomain) {
-      if (!domain.includes('://')) {
-        const domainString = domain
-
-        const protocol = LOOPBACK_ADDRESSES.find((address) => domainString.includes(address))
-          ? 'http://'
-          : 'https://'
-
-        domain = protocol + domain
-      }
-
-      if (domain.endsWith('/')) {
-        domain = domain.slice(0, -1)
-      }
-    }
-
-    return createProxy(domain, config)
-  }
-
-  if (!IS_SERVER) {
-    console.warn(CLIENT_WARNING)
-  }
-
-  return createProxy(domain, config, [])
-}
-
-export type { Treaty }

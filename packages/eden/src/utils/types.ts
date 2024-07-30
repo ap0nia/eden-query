@@ -27,3 +27,5 @@ export type ReplaceGeneratorWithAsyncGenerator<T extends Record<string, unknown>
           : AsyncGenerator<A, B, C> | B
       : T[K]
 } & {}
+
+export type NonEmptyArray<T> = [T, ...T[]]
