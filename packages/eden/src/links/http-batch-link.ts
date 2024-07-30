@@ -160,33 +160,22 @@ export function generatePostBatchParams(
  * If using GET request to batch, the request data will be encoded in query parameters.
  * This is only possible if all requests are GET requests.
  *
- * The query object will look like this
+ * The query will look like this
  *
- * {
- *   batch: [
- *     // GET request to /api/b?name=elysia, i.e. query of name=elysia
- *     {
- *       path: '/api/b',
- *       method: 'GET',
- *       query.name: 'elysia'
- *     }
- *   ]
- * }
+ * // GET request to /api/b?name=elysia, i.e. query of name=elysia
+ *
+ * batch=1&0.path=/api/b&0.method=GET&0.query.name=elysia
  */
 export function generateGetBatchParams(operations: Operation[]) {
-  const query = {
-    batch: [] as any[],
-  }
+  const query: Record<string, any> = {}
 
   const headers = new Headers()
 
-  operations.forEach((operation) => {
+  operations.forEach((operation, index) => {
     let operationPath = operation.params.path ?? ''
 
-    const current: any = {}
-
     if (operation.params.method != null) {
-      current.method = operation.params.method
+      query[`${index}.method`] = operation.params.method
     }
 
     if (operation.params.options?.params != null) {
@@ -198,17 +187,13 @@ export function generateGetBatchParams(operations: Operation[]) {
     if (operation.params.options?.query != null) {
       Object.entries(operation.params.options.query).forEach(([key, value]) => {
         if (value != null) {
-          current.query[`${key}`] = value
+          query[`${index}.query.${key}`] = operation.params.method
         }
       })
     }
 
     // Don't handle body for GET requests.
     // if (operation.params?.body != null) { }
-
-    current.path = operationPath
-
-    query.batch.push(current)
   })
 
   return { body: null, query, headers }
