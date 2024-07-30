@@ -24,20 +24,20 @@ type And<A extends boolean, B extends boolean> = A extends true
     : false
   : false
 
-type ReplaceGeneratorWithAsyncGenerator<in out RecordType extends Record<string, unknown>> = {
-  [K in keyof RecordType]: RecordType[K] extends Generator<infer A, infer B, infer C>
+type ReplaceGeneratorWithAsyncGenerator<T extends Record<string, unknown>> = {
+  [K in keyof T]: T[K] extends Generator<infer A, infer B, infer C>
     ? And<Not<IsNever<A>>, void extends B ? true : false> extends true
       ? AsyncGenerator<A, B, C>
       : And<IsNever<A>, void extends B ? false : true> extends true
         ? B
         : AsyncGenerator<A, B, C> | B
-    : RecordType[K] extends AsyncGenerator<infer A, infer B, infer C>
+    : T[K] extends AsyncGenerator<infer A, infer B, infer C>
       ? And<Not<IsNever<A>>, void extends B ? true : false> extends true
         ? AsyncGenerator<A, B, C>
         : And<IsNever<A>, void extends B ? false : true> extends true
           ? B
           : AsyncGenerator<A, B, C> | B
-      : RecordType[K]
+      : T[K]
 } & {}
 
 type MaybeArray<T> = T | T[]
@@ -55,23 +55,23 @@ export namespace Treaty {
     ? Prettify<Sign<Schema>>
     : 'Please install Elysia before using Eden'
 
-  export type Sign<in out Route extends Record<string, any>> = {
-    [K in keyof Route as K extends `:${string}` ? never : K]: K extends 'subscribe' // ? Websocket route
-      ? (undefined extends Route['subscribe']['headers']
+  export type Sign<T extends Record<string, any>> = {
+    [K in keyof T as K extends `:${string}` ? never : K]: K extends 'subscribe' // ? Websocket route
+      ? (undefined extends T['subscribe']['headers']
           ? { headers?: Record<string, unknown> }
           : {
-              headers: Route['subscribe']['headers']
+              headers: T['subscribe']['headers']
             }) &
-          (undefined extends Route['subscribe']['query']
+          (undefined extends T['subscribe']['query']
             ? { query?: Record<string, unknown> }
             : {
-                query: Route['subscribe']['query']
+                query: T['subscribe']['query']
               }) extends infer Param
         ? {} extends Param
-          ? (options?: Param) => EdenWS<Route['subscribe']>
-          : (options?: Param) => EdenWS<Route['subscribe']>
+          ? (options?: Param) => EdenWS<T['subscribe']>
+          : (options?: Param) => EdenWS<T['subscribe']>
         : never
-      : Route[K] extends {
+      : T[K] extends {
             body: infer Body
             headers: infer Headers
             params: any
@@ -80,9 +80,7 @@ export namespace Treaty {
           }
         ? (undefined extends Headers
             ? { headers?: Record<string, unknown> }
-            : {
-                headers: Headers
-              }) &
+            : { headers: Headers }) &
             (undefined extends Query
               ? { query?: Record<string, unknown> }
               : { query: Query }) extends infer Param
@@ -109,13 +107,13 @@ export namespace Treaty {
                   options: Prettify<Param & TreatyParam>,
                 ) => Promise<TreatyResponse<ReplaceGeneratorWithAsyncGenerator<Response>>>
           : never
-        : CreateParams<Route[K]>
+        : CreateParams<T[K]>
   }
 
-  type CreateParams<Route extends Record<string, any>> =
-    Extract<keyof Route, `:${string}`> extends infer Path extends string
+  type CreateParams<T extends Record<string, any>> =
+    Extract<keyof T, `:${string}`> extends infer Path extends string
       ? IsNever<Path> extends true
-        ? Prettify<Sign<Route>>
+        ? Prettify<Sign<T>>
         : // ! DO NOT USE PRETTIFY ON THIS LINE, OTHERWISE FUNCTION CALLING WILL BE OMITTED
           (((params: {
             [param in Path extends `:${infer Param}`
@@ -123,22 +121,31 @@ export namespace Treaty {
                 ? Param
                 : Param
               : never]: string | number
-          }) => Prettify<Sign<Route[Path]>> & CreateParams<Route[Path]>) &
-            Prettify<Sign<Route>>) &
-            (Path extends `:${string}?` ? CreateParams<Route[Path]> : {})
+          }) => Prettify<Sign<T[Path]>> & CreateParams<T[Path]>) &
+            Prettify<Sign<T>>) &
+            (Path extends `:${string}?` ? CreateParams<T[Path]> : {})
       : never
 
   export interface Config {
+    /**
+     */
+    transformer?: DataTransformerOptions
+
     fetch?: Omit<RequestInit, 'headers' | 'method'>
+
     fetcher?: typeof fetch
+
     headers?: MaybeArray<
       | RequestInit['headers']
       | ((path: string, options: RequestInit) => RequestInit['headers'] | void)
     >
+
     onRequest?: MaybeArray<
       (path: string, options: FetchRequestInit) => MaybePromise<FetchRequestInit | void>
     >
+
     onResponse?: MaybeArray<(response: Response) => MaybePromise<unknown>>
+
     keepDomain?: boolean
   }
 

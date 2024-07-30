@@ -1,13 +1,13 @@
+export const GET_OR_HEAD_HTTP_METHODS = ['get', 'head', 'subscribe'] as const
+
 export const HTTP_METHODS = [
-  'get',
+  ...GET_OR_HEAD_HTTP_METHODS,
   'post',
   'put',
   'delete',
   'patch',
   'options',
-  'head',
   'connect',
-  'subscribe',
 ] as const
 
 export const LOOPBACK_ADDRESSES = ['localhost', '127.0.0.1', '0.0.0.0']

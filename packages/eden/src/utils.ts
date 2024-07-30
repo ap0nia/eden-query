@@ -1,17 +1,26 @@
-import { HTTP_METHODS, IS_SERVER } from './constants'
+import { GET_OR_HEAD_HTTP_METHODS, HTTP_METHODS, IS_SERVER } from './constants'
 
-const isISO8601 =
+const isISO8601Regex =
   /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/
-const isFormalDate =
+
+const isFormalDateRegex =
   /(?:Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s\d{2}\s\d{4}\s\d{2}:\d{2}:\d{2}\sGMT(?:\+|-)\d{4}\s\([^)]+\)/
-const isShortenDate =
+
+const isShortenedDateRegex =
   /^(?:(?:(?:(?:0?[1-9]|[12][0-9]|3[01])[/\s-](?:0?[1-9]|1[0-2])[/\s-](?:19|20)\d{2})|(?:(?:19|20)\d{2}[/\s-](?:0?[1-9]|1[0-2])[/\s-](?:0?[1-9]|[12][0-9]|3[01]))))(?:\s(?:1[012]|0?[1-9]):[0-5][0-9](?::[0-5][0-9])?(?:\s[AP]M)?)?$/
 
 function isNumericString(message: string) {
   return message.trim().length !== 0 && !Number.isNaN(Number(message))
 }
 
-export function parseStringifiedDate(value: any) {
+function isStringifiedObject(value: string): boolean {
+  const start = value.charCodeAt(0)
+  const end = value.charCodeAt(value.length - 1)
+
+  return (start === 123 && end === 125) || (start === 91 && end === 93)
+}
+
+export function parseStringifiedDate(value: unknown): Date | null {
   if (typeof value !== 'string') {
     return null
   }
@@ -19,7 +28,11 @@ export function parseStringifiedDate(value: any) {
   // Remove quote from stringified date
   const temp = value.replace(/"/g, '')
 
-  if (isISO8601.test(temp) || isFormalDate.test(temp) || isShortenDate.test(temp)) {
+  if (
+    isISO8601Regex.test(temp) ||
+    isFormalDateRegex.test(temp) ||
+    isShortenedDateRegex.test(temp)
+  ) {
     const date = new Date(temp)
 
     if (!Number.isNaN(date.getTime())) {
@@ -28,13 +41,6 @@ export function parseStringifiedDate(value: any) {
   }
 
   return null
-}
-
-function isStringifiedObject(value: string) {
-  const start = value.charCodeAt(0)
-  const end = value.charCodeAt(value.length - 1)
-
-  return (start === 123 && end === 125) || (start === 91 && end === 93)
 }
 
 export function parseStringifiedObject(data: string) {
@@ -111,4 +117,8 @@ export function hasFile(object?: Record<string, any>): boolean {
 
 export function isHttpMethod(value: unknown): boolean {
   return HTTP_METHODS.includes(value as any)
+}
+
+export function isGetOrHeadMethod(value: unknown): boolean {
+  return GET_OR_HEAD_HTTP_METHODS.includes(value as any)
 }
