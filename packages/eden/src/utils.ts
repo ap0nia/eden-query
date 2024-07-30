@@ -1,3 +1,5 @@
+import { HTTP_METHODS, IS_SERVER } from './constants'
+
 const isISO8601 =
   /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/
 const isFormalDate =
@@ -85,4 +87,28 @@ export function parseMessageEvent(event: MessageEvent) {
   const messageString = event.data.toString()
 
   return messageString === 'null' ? null : parseStringifiedValue(messageString)
+}
+
+export function isFile(v: any) {
+  if (IS_SERVER) return v instanceof Blob
+
+  return v instanceof FileList || v instanceof File
+}
+
+export function hasFile(object?: Record<string, any>): boolean {
+  if (!object) {
+    return false
+  }
+
+  for (const key in object) {
+    if (isFile(object[key])) return true
+
+    if (Array.isArray(object[key]) && (object[key] as unknown[]).find(isFile)) return true
+  }
+
+  return false
+}
+
+export function isHttpMethod(value: unknown): boolean {
+  return HTTP_METHODS.includes(value as any)
 }
