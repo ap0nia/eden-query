@@ -1,7 +1,7 @@
 import type { AnyElysia } from 'elysia'
 
+import { getAbortController, type HTTPLinkBaseOptions } from '../http'
 import type { EdenRequestOptions } from '../request'
-import { getAbortController, type HTTPLinkBaseOptions } from './internal/http'
 import { Observable, type Observer } from './internal/observable'
 import type { EdenLink, Operation, OperationLink } from './internal/operation'
 import { type Requester, universalRequester } from './internal/universal-requester'
@@ -36,7 +36,10 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
 
         promise
           .then((result) => {
-            observer.next(result)
+            /**
+             * TODO: support result.meta?
+             */
+            observer.next({ result, context: undefined })
             observer.complete()
           })
           .catch((cause) => {
