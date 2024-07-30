@@ -80,7 +80,7 @@ importers:
         specifier: ^7.18.0
         version: 7.18.0(eslint@8.57.0)(typescript@5.5.4)
 
-  packages/eden-svelte-query:
+  packages/eden:
     dependencies:
       elysia:
         specifier: ^1.1.4
@@ -89,6 +89,19 @@ importers:
       '@types/bun':
         specifier: ^1.1.6
         version: 1.1.6
+      typescript:
+        specifier: ^5.5.4
+        version: 5.5.4
+
+  packages/eden-svelte-query:
+    dependencies:
+      '@elysiajs/eden':
+        specifier: workspace:^
+        version: link:../eden
+      '@tanstack/svelte-query':
+        specifier: ^5.51.15
+        version: 5.51.15(svelte@4.2.18)
+    devDependencies:
       typescript:
         specifier: ^5.5.4
         version: 5.5.4
@@ -488,6 +501,20 @@ packages:
       {
         integrity: sha512-Ul3YyOTU++to8cgNkttakC0dWvpERr6RYoHO2W47DLbFvrwBDJUY31B1sImH6JZSYc4Kt4PyHtoPNu+vL2r2dA==,
       }
+
+  '@tanstack/query-core@5.51.15':
+    resolution:
+      {
+        integrity: sha512-xyobHDJ0yhPE3+UkSQ2/4X1fLSg7ICJI5J1JyU9yf7F3deQfEwSImCDrB1WSRrauJkMtXW7YIEcC0oA6ZZWt5A==,
+      }
+
+  '@tanstack/svelte-query@5.51.15':
+    resolution:
+      {
+        integrity: sha512-aeVaAfe4/2+G9uy724yT6VF55zryGV4gL5hRLoLDxn3Egf5YA89ivaRhYpVv9GjThJvDp0k9JKpuAzdn203Lig==,
+      }
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0-next.0
 
   '@types/bun@1.1.6':
     resolution:
@@ -3568,6 +3595,13 @@ snapshots:
       fastq: 1.17.1
 
   '@sinclair/typebox@0.32.35': {}
+
+  '@tanstack/query-core@5.51.15': {}
+
+  '@tanstack/svelte-query@5.51.15(svelte@4.2.18)':
+    dependencies:
+      '@tanstack/query-core': 5.51.15
+      svelte: 4.2.18
 
   '@types/bun@1.1.6':
     dependencies:
