@@ -1,5 +1,6 @@
 import type { RouteSchema } from 'elysia'
 
+import type { EdenFetchError, MapError } from './errors'
 import type { IsNever, IsUnknown, ReplaceGeneratorWithAsyncGenerator } from './utils/types'
 
 type Files = File | FileList
@@ -8,6 +9,8 @@ type ReplaceBlobWithFiles<in out RecordType extends Record<string, unknown>> = {
   [K in keyof RecordType]: RecordType[K] extends Blob | Blob[] ? Files : RecordType[K]
 } & {}
 
+/**
+ */
 export type InferRouteOptions<
   TRoute extends RouteSchema = RouteSchema,
   /**
@@ -49,7 +52,14 @@ export type InferRouteBody<
       : ReplaceBlobWithFiles<Omit<TRoute['body'], TOmitInput>>
     : unknown
 
-export type InferRouteResponse<TRoute extends RouteSchema = RouteSchema> =
+export type InferRouteOutput<TRoute extends RouteSchema = RouteSchema> =
   TRoute['response'] extends Record<number, unknown>
     ? ReplaceGeneratorWithAsyncGenerator<TRoute['response']>[200]
     : never
+
+export type InferRouteError<T extends Record<string, any> = any> =
+  MapError<T['response']> extends infer Errors
+    ? IsNever<Errors> extends true
+      ? EdenFetchError<number, string>
+      : Errors
+    : EdenFetchError<number, string>

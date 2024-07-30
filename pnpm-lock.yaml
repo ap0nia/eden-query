@@ -101,6 +101,9 @@ importers:
       '@tanstack/svelte-query':
         specifier: ^5.51.15
         version: 5.51.15(svelte@4.2.18)
+      elysia:
+        specifier: ^1.1.4
+        version: 1.1.4(@sinclair/typebox@0.32.35)(typescript@5.5.4)
     devDependencies:
       typescript:
         specifier: ^5.5.4

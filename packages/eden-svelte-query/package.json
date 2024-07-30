@@ -13,7 +13,8 @@
   "main": "src/index.ts",
   "dependencies": {
     "@elysiajs/eden": "workspace:^",
-    "@tanstack/svelte-query": "^5.51.15"
+    "@tanstack/svelte-query": "^5.51.15",
+    "elysia": "^1.1.4"
   },
   "devDependencies": {
     "typescript": "^5.5.4"
