@@ -1,4 +1,4 @@
-import type { MaybeArray, MaybePromise } from 'elysia/types'
+import type { MaybeArray, MaybePromise } from 'elysia'
 
 /**
  * Configuration for Eden client. It can also be specified on a request to override the client's defaults.

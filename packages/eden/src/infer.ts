@@ -1,4 +1,4 @@
-import type { RouteSchema } from 'elysia/types'
+import type { RouteSchema } from 'elysia'
 
 import type { IsNever, IsUnknown, ReplaceGeneratorWithAsyncGenerator } from './utils/types'
 

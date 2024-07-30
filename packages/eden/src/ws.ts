@@ -1,16 +1,24 @@
-import type { InputSchema } from 'elysia'
+import type { InputSchema, MaybeArray } from 'elysia'
 
-import type { Treaty } from './types'
-import { parseMessageEvent } from './utils'
+import { parseMessageEvent } from './utils/parse'
 
-export class EdenWS<in out Schema extends InputSchema<any> = {}> {
+export interface OnMessage<Data = unknown> extends MessageEvent {
+  data: Data
+  rawData: MessageEvent['data']
+}
+
+export type WSEvent<K extends keyof WebSocketEventMap, Data = unknown> = K extends 'message'
+  ? OnMessage<Data>
+  : WebSocketEventMap[K]
+
+export class EdenWS<T extends InputSchema<any> = {}> {
   ws: WebSocket
 
   constructor(public url: string) {
     this.ws = new WebSocket(url)
   }
 
-  send(data: Schema['body'] | Schema['body'][]) {
+  send(data: MaybeArray<T['body'] | T['body']>) {
     if (Array.isArray(data)) {
       data.forEach((datum) => this.send(datum))
 
@@ -24,7 +32,7 @@ export class EdenWS<in out Schema extends InputSchema<any> = {}> {
 
   on<K extends keyof WebSocketEventMap>(
     type: K,
-    listener: (event: Treaty.WSEvent<K, Schema['response']>) => void,
+    listener: (event: WSEvent<K, T['response']>) => void,
     options?: boolean | AddEventListenerOptions,
   ) {
     return this.addEventListener(type, listener, options)
@@ -41,7 +49,7 @@ export class EdenWS<in out Schema extends InputSchema<any> = {}> {
   }
 
   subscribe(
-    onMessage: (event: Treaty.WSEvent<'message', Schema['response']>) => void,
+    onMessage: (event: WSEvent<'message', T['response']>) => void,
     options?: boolean | AddEventListenerOptions,
   ) {
     return this.addEventListener('message', onMessage, options)
@@ -49,7 +57,7 @@ export class EdenWS<in out Schema extends InputSchema<any> = {}> {
 
   addEventListener<K extends keyof WebSocketEventMap>(
     type: K,
-    listener: (event: Treaty.WSEvent<K, Schema['response']>) => void,
+    listener: (event: WSEvent<K, T['response']>) => void,
     options?: boolean | AddEventListenerOptions,
   ) {
     this.ws.addEventListener(
@@ -57,12 +65,10 @@ export class EdenWS<in out Schema extends InputSchema<any> = {}> {
       (ws) => {
         if (type === 'message') {
           const data = parseMessageEvent(ws as MessageEvent)
-
-          listener({
-            ...ws,
-            data,
-          } as any)
-        } else listener(ws as any)
+          listener({ ...ws, data } as any)
+        } else {
+          listener(ws as any)
+        }
       },
       options,
     )
