@@ -28,3 +28,8 @@ export type IntersectionError<TKey extends string> =
 export type ProtectedIntersection<TType, TWith> = keyof TType & keyof TWith extends never
   ? TType & TWith
   : IntersectionError<string & keyof TType & keyof TWith>
+
+/**
+ * Simple utility that overrides top level properties from `T` with the matching properties from `U`.
+ */
+export type Override<T, U> = Omit<T, keyof U> & U

@@ -56,3 +56,15 @@ export function getAbortController(
 
   return null
 }
+
+export const httpQueryMethods = ['get', 'options', 'head'] as const
+
+export const httpMutationMethods = ['post', 'put', 'path', 'delete'] as const
+
+export const httpSubscriptionMethods = ['connect', 'subscribe'] as const
+
+export type HttpQueryMethod = (typeof httpQueryMethods)[number]
+
+export type HttpMutationMethod = (typeof httpMutationMethods)[number]
+
+export type HttpSubscriptionMethod = (typeof httpSubscriptionMethods)[number]
