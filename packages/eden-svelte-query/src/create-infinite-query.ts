@@ -1,24 +1,43 @@
-import type { EdenClient, EdenRequestParams, InferRouteOptions } from '@elysiajs/eden'
+import type {
+  EdenClient,
+  EdenRequestParams,
+  InferRouteError,
+  InferRouteOptions,
+  InferRouteOutput,
+} from '@elysiajs/eden'
 import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
-import type { CreateInfiniteQueryOptions } from '@tanstack/svelte-query'
+import type {
+  CreateInfiniteQueryOptions,
+  CreateInfiniteQueryResult,
+  InfiniteData,
+  SkipToken,
+  StoreOrVal,
+} from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 
 import type { EdenCreateQueryBaseOptions } from './create-query'
+import type { EdenHookResult } from './hook'
 import { getQueryKey } from './query-key'
 import type { EdenQueryRequestOptions } from './request'
 import type { DistributiveOmit } from './utils/types'
 
 /**
- * Merges the valid input for a GET request (i.e. params and query) into one object.
+ * Key in params or query that indicates GET routes that are eligible for infinite queries.
  */
-export type MergedGetInput<T extends RouteSchema> = T['params'] & T['query']
+export type InfiniteCursorKey = 'cursor'
+
+/**
+ * When providing request input to infinite queries, omit the "cursor" and "direction" properties
+ * since these will be set by the integration.
+ */
+export type ReservedInfiniteQueryKeys = InfiniteCursorKey | 'direction'
 
 /**
  * Given T, which is presumably a {@link RouteSchema}, merge the "params" and "query" types,
  * then extract the "cursor".
  */
 export type ExtractCursorType<T> =
-  T extends Record<string, any> ? MergedGetInput<T>['cursor'] : unknown
+  T extends Record<string, any> ? (T['params'] & T['query'])['cursor'] : unknown
 
 export type EdenCreateInfiniteQueryOptions<TInput, TOutput, TError> = DistributiveOmit<
   CreateInfiniteQueryOptions<TOutput, TError, TOutput, TOutput, any, ExtractCursorType<TInput>>,
@@ -85,9 +104,7 @@ export function createEdenInfiniteQueryOptions(
 
       if (resolvedParams.options.query) {
         ;(resolvedParams.options.query as any)['cursor'] = context.pageParam
-      }
-
-      if (resolvedParams.options.params) {
+      } else if (resolvedParams.options.params) {
         ;(resolvedParams.options.params as any)['cursor'] = context.pageParam
       }
 
@@ -104,3 +121,20 @@ export function createEdenInfiniteQueryOptions(
 
   return infiniteQueryOptions
 }
+
+export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfiniteQueryResult<
+  InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+  TError
+> &
+  EdenHookResult
+
+export type EdenCreateInfiniteQuery<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> = (
+  input: StoreOrVal<TInput | SkipToken>,
+  options: StoreOrVal<EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>>,
+) => EdenCreateInfiniteQueryResult<TOutput, TError, TInput>

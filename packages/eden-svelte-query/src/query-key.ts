@@ -1,4 +1,5 @@
 import type { InferRouteOptions } from '@elysiajs/eden'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
 
 /**
  * A well-defined query type used when creating query keys for a specific type of operation.
@@ -34,4 +35,22 @@ export function getQueryKey(
 
   const input = { body: options?.body, params: options?.params, query: options?.query }
   return [path, { ...(hasInput && { input }), ...(hasType && { type }) }]
+}
+
+export function createEdenQueryKey(paths: string[], args: any, type: EdenQueryType = 'any') {
+  const pathsCopy: any[] = [...paths]
+
+  /**
+   * Only sometimes method, i.e. since invalidations can be partial and not include it.
+   * @example 'get'
+   */
+  const method = pathsCopy[pathsCopy.length - 1]
+
+  if (isHttpMethod(method)) {
+    pathsCopy.pop()
+  }
+
+  const queryKey = getQueryKey(pathsCopy, args[0], type)
+
+  return queryKey
 }

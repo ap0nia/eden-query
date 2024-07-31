@@ -16,15 +16,15 @@ import {
 import type { AnyElysia, RouteSchema } from 'elysia'
 import { derived, type Readable } from 'svelte/store'
 
-import { createEdenQueryOptions, type EdenCreateQueryOptions } from '../create-query'
-import type { EdenQueryKey } from '../query-key'
-import { isStore } from '../utils/is-store'
+import { createEdenQueryOptions, type EdenCreateQueryOptions } from './create-query'
+import type { EdenQueryKey } from './query-key'
+import { isStore } from './utils/is-store'
 
 /**
  * A function that accepts a callback that's called with a proxy object.
  * Invoking the proxy object returns strongly typed query options.
  */
-export type EdenTreatyCreateQueries<T extends AnyElysia> = <
+export type EdenCreateQueries<T extends AnyElysia> = <
   TData extends any[],
   TCombinedResult = QueriesResults<TData>,
 >(

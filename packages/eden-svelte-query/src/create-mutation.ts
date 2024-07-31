@@ -1,18 +1,29 @@
-import type { EdenClient, EdenRequestParams } from '@elysiajs/eden'
+import type {
+  EdenClient,
+  EdenRequestParams,
+  InferRouteBody,
+  InferRouteError,
+  InferRouteOptions,
+  InferRouteOutput,
+} from '@elysiajs/eden'
 import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
 import {
+  type CreateBaseMutationResult,
   createMutation,
   type CreateMutationOptions,
   type CreateMutationResult,
   type DefaultError,
+  type MutateOptions,
   type QueryClient,
   type StoreOrVal,
 } from '@tanstack/svelte-query'
-import { derived } from 'svelte/store'
+import type { RouteSchema } from 'elysia'
+import { derived, type Readable } from 'svelte/store'
 
 import type { EdenCreateQueryBaseOptions } from './create-query'
 import type { EdenQueryKey, EdenQueryKeyOptions } from './query-key'
 import type { EdenQueryRequestOptions } from './request'
+import type { Override } from './utils/types'
 
 export type EdenCreateMutationOptions<
   TInput,
@@ -145,3 +156,52 @@ export function createEdenMutationOptions(
 
   return treatyMutationOptions
 }
+
+export type EdenCreateMutation<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteBody<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> = <TContext = unknown>(
+  options?: StoreOrVal<EdenCreateMutationOptions<TInput, TOutput, TError, TContext>>,
+) => /**
+ * TODO: move this to internal query file.
+ */
+Readable<
+  Override<
+    CreateBaseMutationResult<TOutput, TError, TInput, TContext>,
+    {
+      mutateAsync: EdenAsyncMutationFunction<TRoute>
+      mutate: EdenMutationFunction<TRoute>
+    }
+  >
+>
+
+export type EdenAsyncMutationFunction<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TBody = InferRouteBody<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> = <TContext = unknown>(
+  variables: TBody,
+  ...args: {} extends TInput
+    ? [options?: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
+    : [options: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
+) => Promise<TOutput>
+
+export type EdenMutationFunction<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TBody = InferRouteBody<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> = <TContext = unknown>(
+  variables: TBody,
+  ...args: {} extends TInput
+    ? [options?: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
+    : [options: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
+) => void

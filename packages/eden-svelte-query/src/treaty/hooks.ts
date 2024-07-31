@@ -1,137 +1,110 @@
-import type {
-  EdenClient,
-  EdenRequestOptions,
-  InferRouteBody,
-  InferRouteError,
-  InferRouteOptions,
-  InferRouteOutput,
-} from '@elysiajs/eden'
+import type { EdenClient, EdenRequestOptions, InferRouteOptions } from '@elysiajs/eden'
 import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
 } from '@elysiajs/eden/http.js'
 import {
-  type CreateBaseMutationResult,
-  type CreateBaseQueryOptions,
   createInfiniteQuery,
-  type CreateInfiniteQueryResult,
   type CreateMutationOptions,
   createQuery,
-  type CreateQueryResult,
-  type DefinedCreateQueryResult,
-  type InfiniteData,
-  type InitialDataFunction,
-  type MutateOptions,
-  type SkipToken,
   type StoreOrVal,
 } from '@tanstack/svelte-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
-import { derived, type Readable, readable } from 'svelte/store'
+import { derived, readable } from 'svelte/store'
 
 import {
   createEdenInfiniteQueryOptions,
+  type EdenCreateInfiniteQuery,
   type EdenCreateInfiniteQueryOptions,
-  type ExtractCursorType,
+  type InfiniteCursorKey,
 } from '../create-infinite-query'
 import {
   createEdenMutation,
   createEdenMutationOptions,
-  type EdenCreateMutationOptions,
+  type EdenCreateMutation,
 } from '../create-mutation'
 import {
   createEdenQueryOptions,
-  type EdenCreateQueryBaseOptions,
+  type EdenCreateQuery,
   type EdenCreateQueryOptions,
 } from '../create-query'
 import type { EdenQueryKey } from '../query-key'
 import type { EdenQueryRequestOptions } from '../request'
 import { isStore } from '../utils/is-store'
-import type { DistributiveOmit, Override } from '../utils/types'
-import type { InfiniteCursorKey } from './context'
-
-export type EdenDefinedCreateQueryOptions<
-  TOutput,
-  TData,
-  TError,
-  TQueryOptsData = TOutput,
-> = DistributiveOmit<
-  CreateBaseQueryOptions<TOutput, TError, TData, TQueryOptsData, any>,
-  'queryKey'
-> &
-  EdenCreateQueryBaseOptions & {
-    initialData: InitialDataFunction<TQueryOptsData> | TQueryOptsData
-  }
 
 /**
  * The root proxy maps Elysia._routes to svelte-query hooks.
  */
-export type EdenTreatyQueryRoot<T extends AnyElysia> = T extends {
+export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {
   _routes: infer TSchema extends Record<string, any>
 }
-  ? EdenTreatyQueryRootMapping<TSchema>
+  ? EdenTreatyQueryHooksImplementation<TSchema>
   : 'Please install Elysia before using Eden'
 
 /**
  * Implementation.
  */
-export type EdenTreatyQueryRootMapping<
+export type EdenTreatyQueryHooksImplementation<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
 > = {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? TreatyQueryRootMapping<TSchema[K], K, TPath>
-    : EdenTreatyQueryRootMapping<TSchema[K], [...TPath, K]>
+    ? EdenTreatyQueryRouteHooks<TSchema[K], K, TPath>
+    : EdenTreatyQueryHooksImplementation<TSchema[K], [...TPath, K]>
 }
 
 /**
- * Map a {@link RouteSchema} to an object with hooks.
+ * Maps a {@link RouteSchema} to an object with hooks.
+ *
+ * Defines available hooks for a specific route.
+ *
  * @example { createQuery: ..., createInfiniteQuery: ... }
  */
-export type TreatyQueryRootMapping<
+export type EdenTreatyQueryRouteHooks<
   TRoute extends RouteSchema,
   TMethod,
   TPath extends any[] = [],
 > = TMethod extends HttpQueryMethod
-  ? TreatyQueryMapping<TRoute, TPath>
+  ? EdenTreatyQueryMapping<TRoute, TPath>
   : TMethod extends HttpMutationMethod
-    ? TreatyMutationMapping<TRoute, TPath>
+    ? EdenTreatyMutationMapping<TRoute, TPath>
     : TMethod extends HttpSubscriptionMethod
-      ? TreatySubscriptionMapping<TRoute, TPath>
+      ? EdenTreatySubscriptionMapping<TRoute, TPath>
       : never
 
 /**
- * Hooks for a query procedure.
+ * Available hooks gassumingthat the route supports createQuery.
  */
-export type TreatyQueryMapping<
+export type EdenTreatyQueryMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
 > = {
-  createQuery: TreatyCreateQuery<TRoute, TPath>
+  createQuery: EdenCreateQuery<TRoute, TPath>
 } & (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
-  ? TreatyInfiniteQueryMapping<TRoute, TPath>
+  ? EdenTreatyInfiniteQueryMapping<TRoute, TPath>
   : {})
 
 /**
- * Hooks for an infinite-query procedure.
+ * Available hooks assuming that the route supports createInfiniteQuery.
  */
-export type TreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  createInfiniteQuery: TreatyCreateInfiniteQuery<TRoute, TPath>
+export type EdenTreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
+  createInfiniteQuery: EdenCreateInfiniteQuery<TRoute, TPath>
 }
 
 /**
- * Hooks for a mutation procedure.
+ * Available hooks assuming that the route supports createMutation.
  */
-export type TreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  createMutation: EdenTreatyCreateMutation<TRoute, TPath>
+export type EdenTreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
+  createMutation: EdenCreateMutation<TRoute, TPath>
 }
 
 /**
- * TODO: Hooks for a subscription procedure.
+ * @TODO: Available hooks assuming that the route supports createSubscription.
  */
-export type TreatySubscriptionMapping<
+export type EdenTreatySubscriptionMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute>,
@@ -140,107 +113,8 @@ export type TreatySubscriptionMapping<
   queryKey: EdenQueryKey<TPath>
 }
 
-export interface TreatyCreateQuery<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-> {
-  <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<TInput | SkipToken>,
-    options: StoreOrVal<EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
-  ): EdenDefinedCreateQueryResult<TData, TError>
-
-  <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<TInput | SkipToken>,
-    options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
-  ): EdenCreateQueryResult<TData, TError>
-}
-
-export type EdenHookResult = {
-  eden: {
-    path: string
-  }
-}
-
-export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfiniteQueryResult<
-  InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
-  TError
-> &
-  EdenHookResult
-
-export type EdenCreateQueryResult<TData, TError> = CreateQueryResult<TData, TError> & EdenHookResult
-
-export type EdenDefinedCreateQueryResult<TData, TError> = DefinedCreateQueryResult<TData, TError> &
-  EdenHookResult
-
-export type TreatyCreateInfiniteQuery<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-> = (
-  input: StoreOrVal<TInput | SkipToken>,
-  options: StoreOrVal<EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>>,
-) => EdenCreateInfiniteQueryResult<TOutput, TError, TInput>
-
-export type EdenTreatyCreateMutation<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput = InferRouteBody<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-> = <TContext = unknown>(
-  options?: StoreOrVal<EdenCreateMutationOptions<TInput, TOutput, TError, TContext>>,
-) => /**
- * TODO: move this to internal query file.
- */
-Readable<
-  Override<
-    CreateBaseMutationResult<TOutput, TError, TInput, TContext>,
-    {
-      mutateAsync: EdenTreatyAsyncMutationFunction<TRoute>
-      mutate: EdenTreatyMutationFunction<TRoute>
-    }
-  >
->
-
-export type EdenTreatyAsyncMutationFunction<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput extends Record<string, any> = InferRouteOptions<TRoute>,
-  TBody = TInput['body'],
-  TParams = Omit<TInput, 'body'>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-> = <TContext = unknown>(
-  variables: TBody,
-  ...args: {} extends TParams
-    ? [options?: TParams & MutateOptions<TOutput, TError, TBody, TContext>]
-    : [options: TParams & MutateOptions<TOutput, TError, TBody, TContext>]
-) => Promise<TOutput>
-
-export type EdenTreatyMutationFunction<
-  TRoute extends RouteSchema,
-  _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
-  TBody = InferRouteBody<TRoute>,
-  TOutput = InferRouteOutput<TRoute>,
-  TError = InferRouteError<TRoute>,
-> = <TContext = unknown>(
-  variables: TBody,
-  ...args: {} extends TInput
-    ? [options?: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
-    : [options: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
-) => void
-
 /**
- * Inner proxy. __Does not recursively create more proxies!__
- *
- * Once the first property has been decided from the top-level proxy,
- * future property accesses will mutate a locally scoped array.
+ * Inner proxy.
  */
 export function createEdenTreatyQueryProxyRoot(
   client: EdenClient,

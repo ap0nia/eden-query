@@ -1,7 +1,23 @@
-import { EdenClient, type EdenRequestParams, type InferRouteOptions } from '@elysiajs/eden'
+import {
+  EdenClient,
+  type EdenRequestParams,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+} from '@elysiajs/eden'
 import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
-import type { CreateBaseQueryOptions, UndefinedInitialDataOptions } from '@tanstack/svelte-query'
+import type {
+  CreateBaseQueryOptions,
+  CreateQueryResult,
+  DefinedCreateQueryResult,
+  InitialDataFunction,
+  SkipToken,
+  StoreOrVal,
+  UndefinedInitialDataOptions,
+} from '@tanstack/svelte-query'
+import type { RouteSchema } from 'elysia'
 
+import type { EdenHookResult } from './hook'
 import { getQueryKey } from './query-key'
 import type { EdenQueryRequestOptions } from './request'
 import type { DistributiveOmit } from './utils/types'
@@ -91,4 +107,40 @@ export function createEdenQueryOptions(
   }
 
   return baseQueryOptions
+}
+
+export type EdenDefinedCreateQueryOptions<
+  TOutput,
+  TData,
+  TError,
+  TQueryOptsData = TOutput,
+> = DistributiveOmit<
+  CreateBaseQueryOptions<TOutput, TError, TData, TQueryOptsData, any>,
+  'queryKey'
+> &
+  EdenCreateQueryBaseOptions & {
+    initialData: InitialDataFunction<TQueryOptsData> | TQueryOptsData
+  }
+
+export type EdenCreateQueryResult<TData, TError> = CreateQueryResult<TData, TError> & EdenHookResult
+
+export type EdenDefinedCreateQueryResult<TData, TError> = DefinedCreateQueryResult<TData, TError> &
+  EdenHookResult
+
+export interface EdenCreateQuery<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> {
+  <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
+    input: StoreOrVal<TInput | SkipToken>,
+    options: StoreOrVal<EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
+  ): EdenDefinedCreateQueryResult<TData, TError>
+
+  <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
+    input: StoreOrVal<TInput | SkipToken>,
+    options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
+  ): EdenCreateQueryResult<TData, TError>
 }

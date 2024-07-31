@@ -5,8 +5,6 @@ import {
   type InferRouteOptions,
   type InferRouteOutput,
 } from '@elysiajs/eden'
-import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
-import { noop } from '@elysiajs/eden/utils/noop.js'
 import {
   type CancelOptions,
   type CreateInfiniteQueryOptions,
@@ -34,10 +32,12 @@ import {
   createEdenInfiniteQueryOptions,
   type EdenCreateInfiniteQueryOptions,
   type ExtractCursorType,
+  type InfiniteCursorKey,
+  type ReservedInfiniteQueryKeys,
 } from '../create-infinite-query'
 import { createEdenQueryOptions } from '../create-query'
 import { mergeDehydrated } from '../dehydrate'
-import { type EdenQueryKey, type EdenQueryType, getQueryKey } from '../query-key'
+import { createEdenQueryKey, type EdenQueryKey } from '../query-key'
 import type { EdenQueryRequestOptions } from '../request'
 import type { DeepPartial, DistributiveOmit, Override } from '../utils/types'
 
@@ -55,34 +55,6 @@ export type EdenFetchInfiniteQueryOptions<TInput, TOutput, TError> = Distributiv
     initialCursor?: ExtractCursorType<TInput>
   }
 
-export function createTreatyQueryKey(paths: string[], args: any, type: EdenQueryType = 'any') {
-  const pathsCopy: any[] = [...paths]
-
-  /**
-   * Only sometimes method, i.e. since invalidations can be partial and not include it.
-   * @example 'get'
-   */
-  const method = pathsCopy[pathsCopy.length - 1]
-
-  if (isHttpMethod(method)) {
-    pathsCopy.pop()
-  }
-
-  const queryKey = getQueryKey(pathsCopy, args[0], type)
-
-  return queryKey
-}
-/**
- * Key in params or query that indicates GET routes that are eligible for infinite queries.
- */
-export type InfiniteCursorKey = 'cursor'
-
-/**
- * When providing request input to infinite queries, omit the "cursor" and "direction" properties
- * since these will be set by the integration.
- */
-export type ReservedInfiniteQueryKeys = InfiniteCursorKey | 'direction'
-
 /**
  */
 export type EdenTreatyQueryContext<
@@ -91,32 +63,32 @@ export type EdenTreatyQueryContext<
 > = T extends {
   _routes: infer TSchema extends Record<string, any>
 }
-  ? RootContext<TConfig> & EdenTreatyQueryContextMapping<TSchema>
+  ? RootContext<TConfig> & EdenTreatyQueryContextImplementation<TSchema>
   : 'Please install Elysia before using Eden'
 
 /**
  * Implementation.
  */
-export type EdenTreatyQueryContextMapping<
+export type EdenTreatyQueryContextImplementation<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
 > = {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? TreatyContextHooksMapping<TSchema[K], [...TPath, K]>
-    : InnerContextProxy<TSchema[K]>
+    ? EdenTreatyContextHooks<TSchema[K], [...TPath, K]>
+    : EdenTreatyQueryContextInner<TSchema[K]>
 }
 
 /**
  * Almost the same as {@link EdenTreatyQueryContext}, but extends {@link SharedContext}
  * instead of {@link RootContext}.
  */
-export type InnerContextProxy<
+export type EdenTreatyQueryContextInner<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
 > = SharedContext & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? TreatyContextHooksMapping<TSchema[K], [...TPath, K]>
-    : InnerContextProxy<TSchema[K], [...TPath, K]>
+    ? EdenTreatyContextHooks<TSchema[K], [...TPath, K]>
+    : EdenTreatyQueryContextInner<TSchema[K], [...TPath, K]>
 }
 
 /**
@@ -136,13 +108,13 @@ type SharedContext = {
 /**
  * Entrypoint for assigning utility hooks to a procedure.
  */
-type TreatyContextHooksMapping<
+type EdenTreatyContextHooks<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
 > = TreatyQueryContext<TRoute, TPath> &
   (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
-    ? TreatyInfiniteQueryContext<TRoute, TPath>
+    ? EdenTreatyInfiniteQueryContext<TRoute, TPath>
     : {})
 
 /**
@@ -200,9 +172,9 @@ type TreatyQueryContext<
 }
 
 /**
- * Hooks for infinite query procedures.
+ * Available hooks assuming that the route supports infinite queries.
  */
-type TreatyInfiniteQueryContext<
+type EdenTreatyInfiniteQueryContext<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
@@ -240,10 +212,7 @@ type TreatyInfiniteQueryContext<
 }
 
 /**
- * Inner proxy. __Does not recursively create more proxies!__
- *
- * Once the first property has been decided from the top-level proxy,
- * future property accesses will mutate a locally scoped array.
+ * Inner proxy.
  */
 export function createInnerContextProxy(
   client: EdenClient,
@@ -269,8 +238,8 @@ export function createInnerContextProxy(
 
   const paths = [...originalPaths]
 
-  const innerProxy = new Proxy(noop, {
-    get: (_target, path): any => {
+  const innerProxy = new Proxy(() => {}, {
+    get: (_target, path, _receiver): any => {
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
       return createInnerContextProxy(client, config, nextPaths)
     },
@@ -339,22 +308,22 @@ export function createInnerContextProxy(
         }
 
         case 'invalidate': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createEdenQueryKey(paths, args)
           return queryClient.invalidateQueries({ queryKey, ...args[0] }, args[1])
         }
 
         case 'refetch': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createEdenQueryKey(paths, args)
           return queryClient.refetchQueries({ queryKey, ...args[0] }, args[1])
         }
 
         case 'cancel': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createEdenQueryKey(paths, args)
           return queryClient.cancelQueries({ queryKey, ...args[0] }, args[1])
         }
 
         case 'reset': {
-          const queryKey = createTreatyQueryKey(paths, args)
+          const queryKey = createEdenQueryKey(paths, args)
           return queryClient.resetQueries({ queryKey, ...args[0] }, args[1])
         }
 
@@ -391,7 +360,7 @@ export function createContext<
     return innerProxy[path]
   }
 
-  const context: any = new Proxy(noop, {
+  const context: any = new Proxy(() => {}, {
     get: (_, path) => {
       return topLevelProperties[path as keyof {}] ?? defaultHandler(path)
     },
