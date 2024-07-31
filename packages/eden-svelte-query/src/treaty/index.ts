@@ -1,7 +1,7 @@
 import { EdenClient, type EdenLink, type EdenRequestOptions } from '@elysiajs/eden'
 import { LOOPBACK_ADDRESSES } from '@elysiajs/eden/constants.js'
 import { httpLink } from '@elysiajs/eden/links/http-link.js'
-import { createQueries, type QueryClient } from '@tanstack/svelte-query'
+import { createQueries, QueryClient } from '@tanstack/svelte-query'
 import type { AnyElysia } from 'elysia'
 import { getContext, setContext } from 'svelte'
 
@@ -19,7 +19,7 @@ type EdenTreatySetContext = (
 ) => void
 
 type EdenTreatyCreateContext<T extends AnyElysia> = (
-  queryClient: QueryClient,
+  queryClient?: QueryClient,
   configOverride?: EdenTreatyQueryConfig,
 ) => EdenTreatyQueryContext<T>
 
@@ -66,7 +66,10 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
     return getContext(EDEN_CONTEXT_KEY)
   }
 
-  const setContextHelper = (queryClient: QueryClient, configOverride?: EdenTreatyQueryConfig) => {
+  const setContextHelper = (
+    queryClient = new QueryClient(),
+    configOverride?: EdenTreatyQueryConfig,
+  ) => {
     const resolvedConfig = { ...config, ...configOverride, queryClient }
     const contextProxy = createContext(client, resolvedConfig)
     setContext(EDEN_CONTEXT_KEY, contextProxy)
@@ -79,8 +82,8 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
   }
 
   const topLevelProperties = {
-    createContext: (newConfig?: EdenRequestOptions) => {
-      const resolvedConfig = { ...config, ...newConfig }
+    createContext: (queryClient: QueryClient, newConfig?: EdenRequestOptions) => {
+      const resolvedConfig = { ...config, ...newConfig, queryClient }
       const resolvedDomain = resolveDomain(resolvedConfig)
       return createContext(client, { ...resolvedConfig, domain: resolvedDomain })
     },

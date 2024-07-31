@@ -1,18 +1,31 @@
 <script lang="ts">
-  import { QueryClientProvider } from '@tanstack/svelte-query'
+  import { QueryClientProvider, hydrate } from '@tanstack/svelte-query'
 
-  import { browser } from '$app/environment'
   import { eden } from '$lib/eden'
 
   import type { LayoutData } from './$types'
 
   export let data: LayoutData
 
-  $: if (browser) {
-    eden.setContext(data.queryClient)
-  }
+  $: eden.setContext(data.queryClient)
+  $: hydrate(data.queryClient, data.dehydrated)
 </script>
 
 <QueryClientProvider client={data.queryClient}>
+  <header>
+    <nav>
+      <ul>
+        <li>
+          <a href="/">home</a>
+        </li>
+        <li>
+          <a href="/hello-preload">hello with preloading</a>
+        </li>
+        <li>
+          <a href="/hello-ssr">hello with ssr</a>
+        </li>
+      </ul>
+    </nav>
+  </header>
   <slot />
 </QueryClientProvider>

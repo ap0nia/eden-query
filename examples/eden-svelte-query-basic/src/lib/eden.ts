@@ -10,8 +10,6 @@ import SuperJSON from 'superjson'
 import type { App } from '../server'
 
 export const eden = createEdenTreatyQuery<App>({
-  domain: '/api',
-  keepDomain: true,
   links: [
     httpBatchLink({
       endpoint: '/api/batch',
