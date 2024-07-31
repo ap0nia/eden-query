@@ -36,10 +36,7 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
 
         promise
           .then((result) => {
-            /**
-             * TODO: support result.meta?
-             */
-            observer.next({ result, context: undefined })
+            observer.next(result)
             observer.complete()
           })
           .catch((cause) => {

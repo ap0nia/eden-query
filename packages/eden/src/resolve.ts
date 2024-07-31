@@ -374,7 +374,9 @@ export async function resolveEdenRequest<
     }
   }
 
-  const url = params.domain + path + q
+  const domain = params.domain ?? ''
+
+  const url = domain + path + q
 
   const elysia = typeof params.domain === 'string' ? undefined : params.domain
 

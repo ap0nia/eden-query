@@ -1,0 +1,27 @@
+{
+  "name": "eden-svelte-query-basic",
+  "version": "0.0.1",
+  "scripts": {
+    "postinstall": "svelte-kit sync",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "type": "module",
+  "dependencies": {
+    "@elysiajs/eden-svelte-query": "workspace:^",
+    "@tanstack/svelte-query": "^5.51.15",
+    "elysia": "^1.1.4",
+    "superjson": "^2.2.1"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-auto": "^3.2.2",
+    "@sveltejs/kit": "^2.5.18",
+    "@sveltejs/vite-plugin-svelte": "^3.1.1",
+    "svelte": "^4.2.18",
+    "svelte-check": "^3.8.5",
+    "typescript": "^5.5.4",
+    "typescript-svelte-plugin": "^0.3.40",
+    "vite": "^5.3.5"
+  }
+}

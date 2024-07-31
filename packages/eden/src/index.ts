@@ -1,6 +1,6 @@
 export * from './client'
 export * from './infer'
-export type { EdenLink } from './links/internal/operation'
+export * from './links'
 export * from './plugins'
 export * from './request'
 export * from './resolve'

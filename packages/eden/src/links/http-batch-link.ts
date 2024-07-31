@@ -216,12 +216,7 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
         const path = batchOps.map((operation) => operation.params.path).join(',')
         const input = batchOps.map((operation) => operation.params.options?.query)
 
-        const url = getUrl({
-          ...resolvedFactoryOptions,
-          type,
-          path,
-          input,
-        })
+        const url = getUrl({ ...resolvedFactoryOptions, type, path, input })
 
         return url.length <= resolvedFactoryOptions.maxURLLength
       },
