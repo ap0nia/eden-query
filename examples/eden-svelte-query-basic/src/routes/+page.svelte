@@ -5,7 +5,6 @@
 </script>
 
 <main>
-
   {#if $hello.isLoading}
     <h1>loading...</h1>
   {:else if $hello.isError}

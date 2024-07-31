@@ -297,6 +297,8 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
         }
 
         const promise = resolveEdenRequest(resolvedParams).then((result) => {
+          console.log('done', { result })
+
           /**
            * result.data should be an array of JSON data from each request in the batch.
            */

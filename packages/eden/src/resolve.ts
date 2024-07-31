@@ -213,9 +213,19 @@ export async function parseResponse<T extends AnyElysia = AnyElysia, TRaw extend
 
   if (response.status >= 300 || response.status < 200) {
     const error = new EdenFetchError(response.status, data)
-    return { data: null, error, status: response.status }
+    return {
+      data: null,
+      error,
+      status: response.status,
+      statusText: response.statusText,
+    }
   } else {
-    return { data, error: null, status: response.status }
+    return {
+      data,
+      error: null,
+      status: response.status,
+      statusText: response.statusText,
+    }
   }
 }
 

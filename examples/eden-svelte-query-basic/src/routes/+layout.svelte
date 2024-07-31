@@ -24,6 +24,9 @@
         <li>
           <a href="/hello-ssr">hello with ssr</a>
         </li>
+        <li>
+          <a href="/batch">batch</a>
+        </li>
       </ul>
     </nav>
   </header>

@@ -17,8 +17,10 @@ export type BatchPluginOptions = {
   endpoint?: string
 }
 
-async function unBatchRequests(request: Request): Promise<BatchedRequestData[]> {
-  const batchedRequests = await unBatchRequestData(request)
+async function unBatchRequests(request: Request, body?: any): Promise<BatchedRequestData[]> {
+  const batchedRequests = body
+    ? unBatchRequestJsonData(body)
+    : await unBatchRequestFormData(request)
   const batchedHeaders = unBatchHeaders(request)
   const batchedQueries = unBatchQueries(request)
 
@@ -74,7 +76,7 @@ async function unBatchRequests(request: Request): Promise<BatchedRequestData[]> 
   return batchedRequests
 }
 
-async function unBatchRequestData(request: Request): Promise<BatchedRequestData[]> {
+async function unBatchRequestFormData(request: Request): Promise<BatchedRequestData[]> {
   const result: BatchedRequestData[] = []
 
   const formData = await request.formData?.()
@@ -109,6 +111,39 @@ async function unBatchRequestData(request: Request): Promise<BatchedRequestData[
       console.error(`Failed to add request with key: ${id} to batch: `, e)
     }
   })
+
+  return result
+}
+
+function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[] {
+  const result: BatchedRequestData[] = []
+
+  // Unbatch basic request information.
+  for (const [key, value] of Object.entries(body)) {
+    const [id, property] = key.split('.')
+
+    if (id == null || property == null) continue
+
+    try {
+      const index = Number(id)
+      const definedResult: any = { ...result[index] }
+
+      set(definedResult, property, value)
+
+      if (property.startsWith('body')) {
+        const [_prefix, bodyKey] = property.split('.')
+
+        if (bodyKey != null) {
+          definedResult.rawBody ??= {}
+          definedResult.rawBody[bodyKey] = value
+        }
+      }
+
+      result[index] = definedResult
+    } catch (e) {
+      console.error(`Failed to add request with key: ${id} to batch: `, e)
+    }
+  }
 
   return result
 }
@@ -162,7 +197,7 @@ export function batchPlugin(options?: BatchPluginOptions) {
        * Handler for batch requests using POST.
        */
       .post(endpoint, async (context) => {
-        const requests = await unBatchRequests(context.request)
+        const requests = await unBatchRequests(context.request, context.body)
 
         const originalUrl = new URL(context.request.url)
 
