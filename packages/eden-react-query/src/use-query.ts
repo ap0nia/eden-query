@@ -6,7 +6,7 @@ import {
   type InferRouteOptions,
   type InferRouteOutput,
 } from '@elysiajs/eden'
-import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 import type {
   DefinedUseQueryResult,
   FetchQueryOptions,

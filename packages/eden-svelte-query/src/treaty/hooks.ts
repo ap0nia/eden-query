@@ -3,7 +3,7 @@ import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
-} from '@elysiajs/eden/http.js'
+} from '@elysiajs/eden/http.ts'
 import {
   createInfiniteQuery,
   type CreateMutationOptions,

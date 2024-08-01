@@ -12,6 +12,7 @@ import type {
 } from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
+import { createUseQueriesProxy } from './use-queries'
 import type { DistributiveOmit } from './utils/types'
 
 /**
@@ -76,5 +77,5 @@ export function createUseSuspenseQueriesProxy<T extends AnyElysia = AnyElysia>(
   client: EdenClient<T>,
   paths: string[] = [],
 ): EdenUseSuspenseQueriesProxy<T> {
-  return createUseQueriesProxy(client, paths)
+  return createUseQueriesProxy(client, paths) as any
 }

@@ -22,9 +22,12 @@
     "connector",
     "tanstack-query"
   ],
+  "workspaces": [
+    "examples/*",
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
     "postinstall": "changeset init && husky install"
   },
   "devDependencies": {

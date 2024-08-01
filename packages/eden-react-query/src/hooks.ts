@@ -3,7 +3,7 @@ import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
-} from '@elysiajs/eden/http.js'
+} from '@elysiajs/eden/http.ts'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 import { derived, readable } from 'svelte/store'

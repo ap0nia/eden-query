@@ -17,6 +17,7 @@
     "elysia": "^1.1.4"
   },
   "devDependencies": {
+    "tsup": "^8.2.3",
     "typescript": "^5.5.4"
   }
 }

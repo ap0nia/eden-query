@@ -1,13 +1,14 @@
 import {
   EdenClient,
   type EdenClientError as EdenClientError,
+  type EdenClientOptions,
   type EdenRequestParams,
   type InferRouteBody,
   type InferRouteError,
   type InferRouteOptions,
   type InferRouteOutput,
 } from '@elysiajs/eden'
-import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.js'
+import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.ts'
 import {
   type CancelOptions,
   type FetchQueryOptions,
@@ -30,7 +31,6 @@ import {
 import type { AnyElysia, RouteSchema } from 'elysia'
 import * as React from 'react'
 
-import type { CreateEdenClient } from '.'
 import {
   type EdenMutationKey,
   type EdenQueryKey as EdenQueryKey,
@@ -47,6 +47,10 @@ import type {
 import type { EdenUseMutationOptions } from './use-mutation'
 import type { EdenFetchQueryOptions } from './use-query'
 import type { DeepPartial, Override, ProtectedIntersection } from './utils/types'
+
+export type CreateEdenClient<T extends AnyElysia = AnyElysia> = (
+  options: EdenClientOptions<T>,
+) => EdenClient<T>
 
 export interface EdenCreateReactQueryUtilsOptions<T extends AnyElysia, _TSSRContext = any> {
   /**

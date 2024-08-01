@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { EdenHookResult } from './hook'
+import type { EdenHookResult } from './hook'
 
 /**
  * Makes a stable reference of the `trpc` prop

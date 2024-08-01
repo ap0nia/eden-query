@@ -6,7 +6,7 @@ import type {
   InferRouteOptions,
   InferRouteOutput,
 } from '@elysiajs/eden'
-import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 import {
   type CreateBaseMutationResult,
   createMutation,

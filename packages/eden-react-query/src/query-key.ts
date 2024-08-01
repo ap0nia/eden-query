@@ -1,5 +1,5 @@
 import type { InferRouteOptions } from '@elysiajs/eden'
-import { isHttpMethod } from '@elysiajs/eden/utils/http.js'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 
 /**
  * A well-defined query type used when creating query keys for a specific type of operation.

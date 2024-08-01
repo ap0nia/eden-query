@@ -1,6 +1,6 @@
 import { EdenClient, type EdenLink, type EdenRequestOptions } from '@elysiajs/eden'
-import { LOOPBACK_ADDRESSES } from '@elysiajs/eden/constants.js'
-import { httpLink } from '@elysiajs/eden/links/http-link.js'
+import { LOOPBACK_ADDRESSES } from '@elysiajs/eden/constants.ts'
+import { httpLink } from '@elysiajs/eden/links/http-link.ts'
 import { createQueries, QueryClient } from '@tanstack/svelte-query'
 import type { AnyElysia } from 'elysia'
 import { getContext, setContext } from 'svelte'
