@@ -9,6 +9,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@elysiajs/cors": "^1.1.0",
     "@elysiajs/eden": "workspace:^",
     "@elysiajs/eden-react-query": "workspace:^",
     "@tanstack/react-query": "^5.51.16",

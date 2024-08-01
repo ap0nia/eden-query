@@ -4,6 +4,7 @@ import {
   type EdenRequestOptions,
   type EdenRequestParams,
 } from '@elysiajs/eden'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 import type {
   CancelOptions,
   InfiniteData,
@@ -459,15 +460,39 @@ export function createRootHooks<
   }
 
   function useQuery(
-    path: readonly string[],
+    originalPaths: readonly string[],
     input: any,
     options?: EdenUseQueryOptions<unknown, unknown, TError>,
   ): EdenUseQueryResult<unknown, TError> {
     const context = useContext()
 
+    const paths = [...originalPaths]
+
+    /**
+     * This may be the method, or part of a route.
+     *
+     * e.g. since invalidations can be partial and not include it.
+     *
+     * @example
+     *
+     * Let there be a GET endpoint at /api/hello/world
+     *
+     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+     *
+     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+     *
+     * In the GET request, the last item is the method and can be safely popped.
+     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+     */
+    let method = paths[paths.length - 1]
+
+    if (isHttpMethod(method)) {
+      paths.pop()
+    }
+
     const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
 
-    const queryKey = getQueryKey(path, input, 'query')
+    const queryKey = getQueryKey(paths, input, 'query')
 
     const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
@@ -488,12 +513,15 @@ export function createRootHooks<
     const shouldAbortOnUnmount =
       options?.eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
+    const path = '/' + paths.join('/')
+
     if (isInputSkipToken) {
       queryOptions.queryFn = input
     } else {
       const params: EdenRequestParams = {
         ...config,
         ...ssrQueryOptions.eden,
+        path,
         fetcher: ssrQueryOptions.eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
       }
 
@@ -537,7 +565,7 @@ export function createRootHooks<
 
     const hook = __useQuery(resolvedQueryOptions, queryClient) as EdenUseQueryResult<any, TError>
 
-    hook.eden = useHookResult({ path })
+    hook.eden = useHookResult({ path: paths })
 
     return hook
   }
@@ -932,20 +960,21 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
       return createEdenTreatyReactQueryProxy(rootHooks, config, nextPaths)
     },
     apply: (_target, _thisArg, args) => {
+      const pathsCopy = [...paths]
       /**
        * @example 'createQuery'
        */
-      const hook = paths.pop() ?? ''
+      const hook = pathsCopy.pop() ?? ''
 
       if (hook === 'useMutation') {
-        return rootHooks.useMutation([...paths], ...args)
+        return rootHooks.useMutation(pathsCopy, ...args)
       }
 
       const [input, ...rest] = args
 
       const options = rest[0] || {}
 
-      return (rootHooks as any)[hook]([...paths], input, options)
+      return (rootHooks as any)[hook](pathsCopy, input, options)
     },
   })
 

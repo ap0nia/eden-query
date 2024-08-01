@@ -1,4 +1,4 @@
-import type { MaybeArray } from 'elysia'
+import type { AnyElysia, MaybeArray } from 'elysia'
 
 import { BATCH_ENDPOINT } from '../constants'
 import type { HTTPHeaders } from '../http'
@@ -25,6 +25,7 @@ export type HTTPBatchRequesterOptions = {
     | ((operations: NonEmptyArray<Operation>) => HTTPHeaders | Promise<HTTPHeaders>)
   transformer?: DataTransformerOptions
   method?: BatchMethod
+  domain?: AnyElysia | string
 }
 
 export type GetInputParams = {
@@ -207,6 +208,10 @@ const generateBatchParams = {
 function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
   const resolvedFactoryOptions = { maxURLLength: Infinity, ...options }
 
+  const domain = resolvedFactoryOptions.domain
+
+  const transformer = resolvedFactoryOptions.transformer
+
   const createBatchLoader = (type: OperationType): BatchLoader<Operation> => {
     return {
       validate: (batchOps) => {
@@ -226,8 +231,12 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
 
           if (firstOperation != null) {
             const requesterOptions: RequesterOptions = {
-              transformer: options?.transformer,
+              transformer,
               ...firstOperation,
+            }
+
+            if (domain != null) {
+              requesterOptions.params = { ...requesterOptions.params, domain }
             }
 
             const singleResult = universalRequester(requesterOptions)
@@ -251,8 +260,6 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
         const cancel = () => {
           abortController?.abort()
         }
-
-        const transformer = resolvedFactoryOptions.transformer
 
         const path = resolvedFactoryOptions?.endpoint ?? BATCH_ENDPOINT
 
@@ -282,6 +289,7 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
         const headers = { ...defaultHeaders, ...batchParams.headers }
 
         const resolvedParams: EdenRequestParams<any, true> = {
+          domain,
           transformer,
           path,
           method,
@@ -297,8 +305,6 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
         }
 
         const promise = resolveEdenRequest(resolvedParams).then((result) => {
-          console.log('done', { result })
-
           /**
            * result.data should be an array of JSON data from each request in the batch.
            */

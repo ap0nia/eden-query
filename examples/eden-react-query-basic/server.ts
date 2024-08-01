@@ -1,3 +1,4 @@
+import { cors } from '@elysiajs/cors'
 import { batchPlugin } from '@elysiajs/eden-react-query'
 import { Elysia, t } from 'elysia'
 import SuperJSON from 'superjson'
@@ -123,6 +124,7 @@ export const app = new Elysia({ prefix: '/api' })
       },
     })
   })
+  .use(cors())
   /**
    * Use the batch plugin after all transforms have been defined so it inherits them.
    */

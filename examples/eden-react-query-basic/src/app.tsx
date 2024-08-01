@@ -2,6 +2,7 @@ import { httpBatchLink } from '@elysiajs/eden-react-query'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import SuperJSON from 'superjson'
 
 import { eden } from './lib/eden'
 import Home from './routes/index'
@@ -20,7 +21,8 @@ export function App() {
     return eden.createClient({
       links: [
         httpBatchLink({
-          endpoint: 'http://localhost:3000/api',
+          domain: 'http://localhost:3000/api',
+          transformer: SuperJSON,
         }),
       ],
     })
