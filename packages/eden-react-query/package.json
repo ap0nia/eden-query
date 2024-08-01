@@ -1,0 +1,24 @@
+{
+  "name": "@elysiajs/eden-react-query",
+  "version": "0.0.0",
+  "description": "elysia.js eden and react-query integration",
+  "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ap0nia/eden-query",
+    "directory": "packages/eden-react-query"
+  },
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@elysiajs/eden": "workspace:^",
+    "@tanstack/react-query": "^5.51.16",
+    "elysia": "^1.1.4",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "typescript": "^5.5.4"
+  }
+}
