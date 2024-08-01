@@ -1,10 +1,21 @@
-import { EdenClient } from '@elysiajs/eden'
+import {
+  EdenClient,
+  type EdenClientError as EdenClientError,
+  type EdenRequestParams,
+  type InferRouteBody,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+} from '@elysiajs/eden'
+import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.js'
 import {
   type CancelOptions,
+  type FetchQueryOptions,
   type InfiniteData,
   type InvalidateOptions,
   type InvalidateQueryFilters,
   type MutationOptions,
+  Query,
   QueryClient,
   type QueryFilters,
   type QueryKey,
@@ -13,19 +24,36 @@ import {
   type ResetOptions,
   type SetDataOptions,
   type Updater,
+  type UseInfiniteQueryOptions,
+  type UseQueryOptions,
 } from '@tanstack/react-query'
-import type { AnyElysia } from 'elysia'
+import type { AnyElysia, RouteSchema } from 'elysia'
 import * as React from 'react'
 
-import type { EdenMutationKey, EdenQueryKey as EdenQueryKey } from './query-key'
-import type { EdenFetchInfiniteQueryOptions } from './use-infinite-query'
+import type { CreateEdenClient } from '.'
+import {
+  type EdenMutationKey,
+  type EdenQueryKey as EdenQueryKey,
+  type EdenQueryType,
+  getMutationKey,
+  getQueryKey,
+} from './query-key'
+import type {
+  EdenFetchInfiniteQueryOptions,
+  EdenUseInfiniteQueryOptions,
+  ExtractCursorType,
+  InfiniteCursorKey,
+} from './use-infinite-query'
+import type { EdenUseMutationOptions } from './use-mutation'
 import type { EdenFetchQueryOptions } from './use-query'
+import type { DeepPartial, Override, ProtectedIntersection } from './utils/types'
 
-export interface CreateQueryUtilsOptions<T extends AnyElysia> {
+export interface EdenCreateReactQueryUtilsOptions<T extends AnyElysia, _TSSRContext = any> {
   /**
    * The `TRPCClient`
    */
   client: EdenClient<T>
+
   /**
    * The `QueryClient` from `react-query`
    */
@@ -41,7 +69,7 @@ export interface EdenQueryUtils<TRouter extends AnyElysia> {
    */
   fetchQuery: (
     queryKey: EdenQueryKey,
-    opts?: EdenFetchQueryOptions<unknown, TRPCClientError<TRouter>>,
+    opts?: EdenFetchQueryOptions<unknown, EdenClientError<TRouter>>,
   ) => Promise<unknown>
 
   /**
@@ -49,7 +77,7 @@ export interface EdenQueryUtils<TRouter extends AnyElysia> {
    */
   fetchInfiniteQuery: (
     queryKey: EdenQueryKey,
-    opts?: EdenFetchInfiniteQueryOptions<unknown, unknown, TRPCClientError<TRouter>>,
+    opts?: EdenFetchInfiniteQueryOptions<unknown, unknown, EdenClientError<TRouter>>,
   ) => Promise<InfiniteData<unknown, unknown>>
 
   /**
@@ -57,7 +85,7 @@ export interface EdenQueryUtils<TRouter extends AnyElysia> {
    */
   prefetchQuery: (
     queryKey: EdenQueryKey,
-    opts?: EdenFetchQueryOptions<unknown, TRPCClientError<TRouter>>,
+    opts?: EdenFetchQueryOptions<unknown, EdenClientError<TRouter>>,
   ) => Promise<void>
 
   /**
@@ -65,7 +93,7 @@ export interface EdenQueryUtils<TRouter extends AnyElysia> {
    */
   prefetchInfiniteQuery: (
     queryKey: EdenQueryKey,
-    opts?: EdenFetchInfiniteQueryOptions<unknown, unknown, TRPCClientError<TRouter>>,
+    opts?: EdenFetchInfiniteQueryOptions<unknown, unknown, EdenClientError<TRouter>>,
   ) => Promise<void>
 
   /**
@@ -73,7 +101,7 @@ export interface EdenQueryUtils<TRouter extends AnyElysia> {
    */
   ensureQueryData: (
     queryKey: EdenQueryKey,
-    opts?: EdenFetchQueryOptions<unknown, TRPCClientError<TRouter>>,
+    opts?: EdenFetchQueryOptions<unknown, EdenClientError<TRouter>>,
   ) => Promise<unknown>
 
   /**
@@ -222,76 +250,533 @@ export type EdenProvider<TRouter extends AnyElysia, TSSRContext> = (
 ) => JSX.Element
 
 /**
+ * @internal
+ */
+export interface EdenContextState<TRouter extends AnyElysia, TSSRContext = undefined>
+  extends Required<EdenContextProps<TRouter, TSSRContext>>,
+    EdenQueryUtils<TRouter> {}
+
+export const contextProps: (keyof EdenContextPropsBase<any, any>)[] = [
+  'client',
+  'ssrContext',
+  'ssrState',
+  'abortOnUnmount',
+]
+
+/**
+ * this is the type that is used to add in procedures that can be used on
+ * an entire router
+ */
+type DecorateRouter = {
+  /**
+   * Invalidate the full router
+   * @link https://trpc.io/docs/v10/useContext#query-invalidation
+   * @link https://tanstack.com/query/v5/docs/framework/react/guides/query-invalidation
+   */
+  invalidate(
+    input?: undefined,
+    filters?: InvalidateQueryFilters,
+    options?: InvalidateOptions,
+  ): Promise<void>
+}
+
+/**
+ * @internal
+ */
+export type DecoratedProcedureUtilsRecord<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = DecorateRouter & {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? DecoratedProcedureUtilsHooks<TSchema[K], TPath, K>
+    : DecoratedProcedureUtilsRecord<TSchema[K], [...TPath, K]>
+} // Add functions that should be available at utils root
+
+/**
+ * Entrypoint for assigning utility hooks to a procedure.
+ */
+type DecoratedProcedureUtilsHooks<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TMethod = '',
+  TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
+> = TMethod extends HttpQueryMethod
+  ? DecorateQueryProcedure<TRoute, TPath> &
+      (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
+        ? DecorateInfiniteQueryProcedure<TRoute, TPath>
+        : {})
+  : TMethod extends HttpMutationMethod
+    ? DecorateMutationProcedure<TRoute, TPath>
+    : never
+
+export type DecorateQueryProcedure<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
+> = {
+  fetch: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<TOutput>
+
+  prefetch: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<void>
+
+  ensureData: (input: TInput, options?: EdenFetchQueryOptions<TOutput, TError>) => Promise<TOutput>
+
+  invalidate: (
+    input?: DeepPartial<TInput>,
+    filters?: Override<
+      InvalidateQueryFilters,
+      {
+        predicate?: (
+          query: Query<TInput, TError, TInput, TKey /** TODO: TKey omit infinite input */>,
+        ) => boolean
+      }
+    >,
+    options?: InvalidateOptions,
+  ) => Promise<void>
+
+  refetch: (
+    input?: TInput,
+    filters?: RefetchQueryFilters,
+    options?: RefetchOptions,
+  ) => Promise<void>
+
+  cancel: (input?: TInput, filters?: QueryFilters, options?: CancelOptions) => Promise<void>
+
+  reset: (input?: TInput, options?: ResetOptions) => Promise<void>
+
+  setData: (
+    input: TInput,
+    updater: Updater<TOutput | undefined, TOutput | undefined>,
+    options?: SetDataOptions,
+  ) => void
+
+  /**
+   * @link https://tanstack.com/query/v5/docs/reference/QueryClient#queryclientsetquerydata
+   */
+  setQueriesData(
+    /**
+     * The input of the procedure
+     */
+    input: TInput,
+    filters: QueryFilters,
+    updater: Updater<TOutput | undefined, TOutput | undefined>,
+    options?: SetDataOptions,
+  ): [QueryKey, TOutput]
+
+  getData: (input: TInput) => TOutput | undefined
+
+  options: (
+    input: TInput,
+    options?: UseQueryOptions<TOutput, TError>,
+  ) => UseQueryOptions<TOutput, TError>
+}
+
+export type DecorateInfiniteQueryProcedure<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
+> = {
+  fetchInfinite: (
+    input: TInput,
+    options?: EdenFetchInfiniteQueryOptions<TInput, TOutput, TError>,
+  ) => Promise<InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>>>
+
+  prefetchInfinite: (
+    input: TInput,
+    options?: EdenFetchQueryOptions<TOutput, TError>,
+  ) => Promise<void>
+
+  getInfiniteData: (
+    input: TInput,
+  ) => InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined
+
+  setInfiniteData: (
+    input: TInput,
+    updater: Updater<
+      InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined,
+      InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined
+    >,
+    options?: SetDataOptions,
+  ) => void
+
+  infiniteOptions: (
+    input: TInput,
+    options?: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
+  ) => UseInfiniteQueryOptions<TOutput, TError, TOutput, TKey>
+}
+
+export type DecorateMutationProcedure<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+  TInput = InferRouteBody<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+  _TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
+> = {
+  setMutationDefaults(
+    options:
+      | EdenUseMutationOptions<TInput, TError, TOutput>
+      | ((args: {
+          canonicalMutationFn: NonNullable<
+            EdenUseMutationOptions<TInput, TError, TOutput>['mutationFn']
+          >
+        }) => EdenUseMutationOptions<TInput, TError, TOutput>),
+  ): void
+
+  getMutationDefaults(): EdenUseMutationOptions<TInput, TError, TOutput> | undefined
+
+  isMutating(): number
+}
+
+/**
+ * @internal
+ */
+export type DecoratedTRPCContextProps<
+  TElysia extends AnyElysia,
+  TSSRContext,
+> = EdenContextPropsBase<TElysia, TSSRContext> & {
+  client: CreateEdenClient<TElysia>
+}
+
+export type CreateReactUtils<TElysia extends AnyElysia, TSSRContext> = ProtectedIntersection<
+  DecoratedTRPCContextProps<TElysia, TSSRContext>,
+  DecoratedProcedureUtilsRecord<TElysia['_routes']>
+>
+
+/**
+ * @internal
+ */
+export function createReactQueryUtils<TRouter extends AnyElysia, TSSRContext>(
+  context: EdenContextState<TRouter, TSSRContext>,
+): CreateReactUtils<TRouter, TSSRContext> {
+  // const clientProxy = createTRPCClientProxy(context.client)
+
+  const proxy = createReactQueryUtilsProxy(context)
+
+  const utils = new Proxy(() => {}, {
+    get: (_target, path: string, _receiver): any => {
+      const contextName = path as (typeof contextProps)[number]
+
+      // if (contextName === 'client') {
+      //   return clientProxy
+      // }
+
+      if (contextProps.includes(contextName)) {
+        return context[contextName]
+      }
+
+      return proxy[path as never]
+    },
+  })
+
+  return utils as any
+}
+
+export function getQueryType(utilName: string): EdenQueryType {
+  switch (utilName) {
+    case 'fetch':
+    case 'ensureData':
+    case 'prefetch':
+    case 'getData':
+    case 'setData':
+    case 'setQueriesData':
+      return 'query'
+
+    case 'fetchInfinite':
+    case 'prefetchInfinite':
+    case 'getInfiniteData':
+    case 'setInfiniteData':
+      return 'infinite'
+
+    case 'setMutationDefaults':
+    case 'getMutationDefaults':
+    case 'isMutating':
+    case 'cancel':
+    case 'invalidate':
+    case 'refetch':
+    case 'reset':
+      return 'any'
+  }
+
+  return 'any'
+}
+
+export function createReactQueryUtilsProxy<TRouter extends AnyElysia, TSSRContext>(
+  context: EdenContextState<TRouter, TSSRContext>,
+  paths: string[] = [],
+): CreateReactUtils<TRouter, TSSRContext> {
+  const proxy = new Proxy(() => {}, {
+    get: (_target, path: string, _receiver) => {
+      const nextPaths = [...paths, path]
+      return createReactQueryUtilsProxy(context, nextPaths)
+    },
+    apply: (_target, _thisArg, argArray) => {
+      const pathsCopy = [...paths]
+
+      const lastArg = pathsCopy.pop() ?? ''
+
+      const argsCopy = [...argArray]
+
+      const input = argsCopy.shift() // args can now be spread when input removed
+
+      const queryType = getQueryType(lastArg)
+
+      const queryKey = getQueryKey(pathsCopy, input, queryType)
+
+      switch (lastArg) {
+        case 'fetch': {
+          return context.fetchQuery(queryKey, ...argsCopy)
+        }
+
+        case 'fetchInfinite': {
+          return context.fetchInfiniteQuery(queryKey, argsCopy[0])
+        }
+
+        case 'prefetch': {
+          return context.prefetchQuery(queryKey, ...argsCopy)
+        }
+
+        case 'prefetchInfinite': {
+          return context.prefetchInfiniteQuery(queryKey, argsCopy[0])
+        }
+
+        case 'ensureData': {
+          return context.ensureQueryData(queryKey, ...argsCopy)
+        }
+
+        case 'invalidate': {
+          return context.invalidateQueries(queryKey, ...argsCopy)
+        }
+
+        case 'reset': {
+          return context.resetQueries(queryKey, ...argsCopy)
+        }
+
+        case 'refetch': {
+          return context.refetchQueries(queryKey, ...argsCopy)
+        }
+
+        case 'cancel': {
+          return context.cancelQuery(queryKey, ...argsCopy)
+        }
+
+        case 'setData': {
+          return context.setQueryData(queryKey, argsCopy[0], argsCopy[1])
+        }
+
+        case 'setQueriesData': {
+          return context.setQueriesData(queryKey, argsCopy[0], argsCopy[1], argsCopy[2])
+        }
+
+        case 'setInfiniteData': {
+          return context.setInfiniteQueryData(queryKey, argsCopy[0], argsCopy[1])
+        }
+
+        case 'getData': {
+          return context.getQueryData(queryKey)
+        }
+
+        case 'getInfiniteData': {
+          return context.getInfiniteQueryData(queryKey)
+        }
+
+        case 'setMutationDefaults': {
+          return context.setMutationDefaults(getMutationKey(pathsCopy), input)
+        }
+
+        case 'getMutationDefaults': {
+          return context.getMutationDefaults(getMutationKey(pathsCopy))
+        }
+
+        case 'isMutating': {
+          return context.isMutating({ mutationKey: getMutationKey(pathsCopy) })
+        }
+
+        default: {
+          throw new TypeError(`eden.${paths.join('.')} is not a function`)
+        }
+      }
+    },
+  })
+
+  return proxy as any
+}
+
+/**
  * Creates a set of utility functions that can be used to interact with `react-query`
- * @param opts the `TRPCClient` and `QueryClient` to use
+ * @param options the `TRPCClient` and `QueryClient` to use
  * @returns a set of utility functions that can be used to interact with `react-query`
  * @internal
  */
 export function createUtilityFunctions<T extends AnyElysia>(
-  opts: CreateQueryUtilsOptions<T>,
+  options: EdenCreateReactQueryUtilsOptions<T>,
 ): EdenQueryUtils<T> {
-  const { client, queryClient } = opts
+  const { client, queryClient } = options
 
   return {
-    fetchQuery: (queryKey, opts) => {
-      return queryClient.fetchQuery({
-        ...opts,
-        queryKey,
-        queryFn: () => client.query(...getClientArgs(queryKey, opts)),
-      })
-    },
+    fetchQuery: async (queryKey, options) => {
+      const path = '/' + queryKey[0].join('/')
 
-    fetchInfiniteQuery: (queryKey, opts) => {
-      return queryClient.fetchInfiniteQuery({
-        ...opts,
+      let input: any = queryKey[1]?.input
+
+      const params: EdenRequestParams = { path, options: input, ...options }
+
+      const queryOptions: FetchQueryOptions<unknown, any, unknown, QueryKey, never> = {
+        ...options,
         queryKey,
-        queryFn: ({ pageParam, direction }) => {
-          return client.query(...getClientArgs(queryKey, opts, { pageParam, direction }))
+        queryFn: async () => {
+          const resolvedParams: EdenRequestParams = { ...params }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
         },
-        initialPageParam: opts?.initialCursor ?? null,
-      })
+      }
+
+      return await queryClient.fetchQuery(queryOptions)
     },
 
-    prefetchQuery: (queryKey, opts) => {
-      return queryClient.prefetchQuery({
-        ...opts,
-        queryKey,
-        queryFn: () => client.query(...getClientArgs(queryKey, opts)),
-      })
-    },
+    fetchInfiniteQuery: async (queryKey, options) => {
+      const path = '/' + queryKey[0].join('/')
 
-    prefetchInfiniteQuery: (queryKey, opts) => {
-      return queryClient.prefetchInfiniteQuery({
-        ...opts,
+      let input: any = queryKey[1]?.input
+
+      const params: EdenRequestParams = { path, options: input, ...options }
+
+      return await queryClient.fetchInfiniteQuery({
+        ...options,
         queryKey,
-        queryFn: ({ pageParam, direction }) => {
-          return client.query(...getClientArgs(queryKey, opts, { pageParam, direction }))
+        queryFn: async (context) => {
+          const resolvedParams = { ...params }
+
+          if (resolvedParams.options?.query != null) {
+            ;(resolvedParams.options.query as any)['cursor'] = context.pageParam
+            ;(resolvedParams.options.query as any)['direction'] = context.direction
+          }
+
+          if (resolvedParams.options?.params != null) {
+            ;(resolvedParams.options.params as any)['cursor'] = context.pageParam
+            ;(resolvedParams.options.params as any)['direction'] = context.direction
+          }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
         },
-        initialPageParam: opts?.initialCursor ?? null,
+        initialPageParam: options?.initialCursor ?? null,
       })
     },
 
-    ensureQueryData: (queryKey, opts) => {
-      return queryClient.ensureQueryData({
-        ...opts,
+    prefetchQuery: async (queryKey, options) => {
+      const path = '/' + queryKey[0].join('/')
+
+      let input: any = queryKey[1]?.input
+
+      const params: EdenRequestParams = { path, options: input, ...options }
+
+      return await queryClient.prefetchQuery({
+        ...options,
         queryKey,
-        queryFn: () => client.query(...getClientArgs(queryKey, opts)),
+        queryFn: async () => {
+          const resolvedParams = { ...params }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
       })
     },
 
-    invalidateQueries: (queryKey, filters, options) => {
-      return queryClient.invalidateQueries({ ...filters, queryKey }, options)
-    },
-    resetQueries: (queryKey, filters, options) => {
-      return queryClient.resetQueries({ ...filters, queryKey }, options)
+    prefetchInfiniteQuery: async (queryKey, options) => {
+      const path = '/' + queryKey[0].join('/')
+
+      let input: any = queryKey[1]?.input
+
+      const params: EdenRequestParams = { path, options: input, ...options }
+
+      return await queryClient.prefetchInfiniteQuery({
+        ...options,
+        queryKey,
+        queryFn: async (context) => {
+          const resolvedParams = { ...params }
+
+          if (resolvedParams.options?.query != null) {
+            ;(resolvedParams.options.query as any)['cursor'] = context.pageParam
+            ;(resolvedParams.options.query as any)['direction'] = context.direction
+          }
+
+          if (resolvedParams.options?.params != null) {
+            ;(resolvedParams.options.params as any)['cursor'] = context.pageParam
+            ;(resolvedParams.options.params as any)['direction'] = context.direction
+          }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+        initialPageParam: options?.initialCursor ?? null,
+      })
     },
 
-    refetchQueries: (queryKey, filters, options) => {
-      return queryClient.refetchQueries({ ...filters, queryKey }, options)
+    ensureQueryData: async (queryKey, options) => {
+      const path = '/' + queryKey[0].join('/')
+
+      let input: any = queryKey[1]?.input
+
+      const params: EdenRequestParams = { path, options: input, ...options }
+
+      return await queryClient.ensureQueryData({
+        ...options,
+        queryKey,
+        queryFn: async () => {
+          const resolvedParams: EdenRequestParams = { ...params }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+      })
     },
 
-    cancelQuery: (queryKey, options) => {
-      return queryClient.cancelQueries({ queryKey }, options)
+    invalidateQueries: async (queryKey, filters, options) => {
+      return await queryClient.invalidateQueries({ ...filters, queryKey }, options)
+    },
+
+    resetQueries: async (queryKey, filters, options) => {
+      return await queryClient.resetQueries({ ...filters, queryKey }, options)
+    },
+
+    refetchQueries: async (queryKey, filters, options) => {
+      return await queryClient.refetchQueries({ ...filters, queryKey }, options)
+    },
+
+    cancelQuery: async (queryKey, options) => {
+      return await queryClient.cancelQueries({ queryKey }, options)
     },
 
     setQueryData: (queryKey, updater, options) => {
@@ -315,10 +800,10 @@ export function createUtilityFunctions<T extends AnyElysia>(
     },
 
     setMutationDefaults: (mutationKey, options) => {
-      const path = mutationKey[0]
+      const path = '/' + mutationKey[0].join('/')
 
-      const canonicalMutationFn = (input: unknown) => {
-        return client.mutation(...getClientArgs([path, { input }], opts))
+      const canonicalMutationFn = async (input: unknown) => {
+        return await client.mutation({ path, body: input })
       }
 
       const mutationOptions =

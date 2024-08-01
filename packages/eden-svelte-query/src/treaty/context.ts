@@ -74,8 +74,8 @@ export type EdenTreatyQueryContextImplementation<
   TPath extends any[] = [],
 > = {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? EdenTreatyContextHooks<TSchema[K], [...TPath, K]>
-    : EdenTreatyQueryContextInner<TSchema[K]>
+    ? EdenTreatyContextHooks<TSchema[K], TPath, K>
+    : EdenTreatyQueryContextInner<TSchema[K], [...TPath, K]>
 }
 
 /**
@@ -111,6 +111,7 @@ type SharedContext = {
 type EdenTreatyContextHooks<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
+  _TMethod = '',
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
 > = TreatyQueryContext<TRoute, TPath> &
   (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
