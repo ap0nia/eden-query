@@ -1,11 +1,18 @@
-import type { EdenRequestOptions } from '@elysiajs/eden'
+import type {
+  EdenRequestOptions,
+  InferRouteError,
+  InferRouteOptions,
+  InferRouteOutput,
+} from '@elysiajs/eden'
 import type {
   FetchInfiniteQueryOptions,
   InfiniteData,
   InfiniteQueryObserverSuccessResult,
+  SkipToken,
   UseInfiniteQueryOptions,
   UseInfiniteQueryResult,
 } from '@tanstack/react-query'
+import type { RouteSchema } from 'elysia'
 
 import type { EdenHookResult } from './hook'
 import type { EdenQueryKey } from './query-key'
@@ -61,3 +68,14 @@ export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
     EdenUseQueryBaseOptions {
   initialCursor?: ExtractCursorType<TInput>
 }
+
+export type EdenUseInfiniteQuery<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> = (
+  input: TInput | SkipToken,
+  options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
+) => EdenUseInfiniteQueryResult<TOutput, TError, TInput>

@@ -61,6 +61,9 @@ export function createEdenQueryKey(paths: string[], args: any, type: EdenQueryTy
   return queryKey
 }
 
-export function getMutationKey(path: readonly string[]): EdenMutationKey {
-  return getQueryKey(path, undefined, 'any') as any
+export function getMutationKey(
+  path: string | string[] | readonly string[],
+  options?: EdenQueryKeyOptions,
+): EdenMutationKey {
+  return getQueryKey(path, options, 'any') as any
 }

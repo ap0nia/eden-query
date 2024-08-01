@@ -1,30 +1,35 @@
-import { createEdenTreatyReactQuery, httpBatchLink } from '@elysiajs/eden-react-query'
+import { httpBatchLink } from '@elysiajs/eden-react-query'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-import type { App as ElysiaApp } from '../server'
+import { eden } from './lib/eden'
+import Home from './routes/index'
 
-export const eden = createEdenTreatyReactQuery<ElysiaApp>()
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Home />,
+  },
+])
 
 export function App() {
   const [queryClient] = useState(() => new QueryClient())
 
-  const [trpcClient] = useState(() => {
+  const [edenClient] = useState(() => {
     return eden.createClient({
       links: [
         httpBatchLink({
-          endpoint: 'http://localhost:3000/trpc',
+          endpoint: 'http://localhost:3000/api',
         }),
       ],
     })
   })
 
   return (
-    <eden.Provider client={trpcClient} queryClient={queryClient}>
+    <eden.Provider client={edenClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <main>
-          <h1>Hello, World!</h1>
-        </main>
+        <RouterProvider router={router} />
       </QueryClientProvider>
     </eden.Provider>
   )

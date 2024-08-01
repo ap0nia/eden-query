@@ -46,6 +46,7 @@ import {
   type EdenCreateReactQueryUtilsOptions,
   type EdenProvider,
 } from './context'
+import type { EdenTreatyQueryHooks } from './hooks'
 import {
   type EdenMutationKey,
   type EdenQueryKey as EdenQueryKey,
@@ -910,13 +911,18 @@ export type EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext> = {
  * Infer the type of a `createReactQueryHooks` function
  * @internal
  */
-export type CreateEdenTreatyReactQueryHooks<
+export type CreateEdenTreatyReactQueryRootHooks<
   TElysia extends AnyElysia,
   TSSRContext = unknown,
 > = ReturnType<typeof createRootHooks<TElysia, TSSRContext>>
 
+export type CreateEdenTreatyReactQueryHooks<
+  TElysia extends AnyElysia,
+  TSSRContext = unknown,
+> = CreateEdenTreatyReactQueryRootHooks<TElysia, TSSRContext> & EdenTreatyQueryHooks<TElysia>
+
 export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>(
-  rootHooks: CreateEdenTreatyReactQueryHooks<T>,
+  rootHooks: CreateEdenTreatyReactQueryRootHooks<T>,
   config?: CreateEdenReactQueryOptions<T>,
   paths: string[] = [],
 ) {

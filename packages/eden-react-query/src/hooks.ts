@@ -1,18 +1,39 @@
-import type { EdenClient, EdenRequestOptions, InferRouteOptions } from '@elysiajs/eden'
+import type {
+  EdenClient,
+  EdenRequestOptions,
+  EdenRequestParams,
+  InferRouteOptions,
+} from '@elysiajs/eden'
 import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
 } from '@elysiajs/eden/http.ts'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
+import {
+  type UndefinedInitialDataOptions,
+  useInfiniteQuery,
+  type UseInfiniteQueryOptions,
+  type UseMutationOptions,
+  useQuery,
+} from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
-import { derived, readable } from 'svelte/store'
 
-import type { EdenQueryKey } from './query-key'
+import { type EdenQueryKey, getMutationKey, getQueryKey } from './query-key'
 import type { EdenQueryRequestOptions } from './request'
-import type { InfiniteCursorKey } from './use-infinite-query'
-import type { EdenUseMutation } from './use-mutation'
-import type { EdenUseQuery } from './use-query'
+import type {
+  EdenUseInfiniteQuery,
+  EdenUseInfiniteQueryOptions,
+  InfiniteCursorKey,
+} from './use-infinite-query'
+import type { EdenUseMutation, EdenUseMutationOptions } from './use-mutation'
+import type { EdenUseQuery, EdenUseQueryOptions } from './use-query'
+
+export type EdenUseMutationVariables = {
+  body: any
+  options: EdenQueryRequestOptions
+}
 
 /**
  * The root proxy maps Elysia._routes to svelte-query hooks.
@@ -62,7 +83,7 @@ export type EdenTreatyQueryMapping<
   TPath extends any[] = [],
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
 > = {
-  createQuery: EdenUseQuery<TRoute, TPath>
+  useQuery: EdenUseQuery<TRoute, TPath>
 } & (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
   ? EdenTreatyInfiniteQueryMapping<TRoute, TPath>
   : {})
@@ -71,14 +92,14 @@ export type EdenTreatyQueryMapping<
  * Available hooks assuming that the route supports createInfiniteQuery.
  */
 export type EdenTreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  createInfiniteQuery: EdenUseInfiniteQuery<TRoute, TPath>
+  useInfiniteQuery: EdenUseInfiniteQuery<TRoute, TPath>
 }
 
 /**
  * Available hooks assuming that the route supports createMutation.
  */
 export type EdenTreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  createMutation: EdenUseMutation<TRoute, TPath>
+  useMutation: EdenUseMutation<TRoute, TPath>
 }
 
 /**
@@ -126,7 +147,7 @@ export function createEdenTreatyQueryProxyRoot(
  */
 export function resolveEdenTreatyQueryProxy(
   client: EdenClient,
-  options?: EdenQueryRequestOptions,
+  config?: EdenQueryRequestOptions,
   originalPaths: string[] = [],
   args: any[] = [],
 ) {
@@ -138,86 +159,208 @@ export function resolveEdenTreatyQueryProxy(
   const hook = paths.pop()
 
   switch (hook) {
-    case 'createQuery': {
-      /**
-       * Main input will be provided as first argument.
-       */
-      const input = args[0] as StoreOrVal<InferRouteOptions>
+    case 'useQuery': {
+      const paths = [...originalPaths]
 
       /**
-       * Additional query options will be provided as the second argument to the `createQuery` call.
+       * This may be the method, or part of a route.
+       *
+       * e.g. since invalidations can be partial and not include it.
+       *
+       * @example
+       *
+       * Let there be a GET endpoint at /api/hello/world
+       *
+       * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+       *
+       * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+       *
+       * In the GET request, the last item is the method and can be safely popped.
+       * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
        */
-      const queryOptions = args[1] as StoreOrVal<EdenCreateQueryOptions<any, any, any>>
+      let method = paths[paths.length - 1]
 
-      // If both are not stores, then create the query options normally.
-
-      if (!isStore(input) && !isStore(queryOptions)) {
-        const treatyQueryOptions = createEdenQueryOptions(client, options, paths, args)
-        return createQuery(treatyQueryOptions)
+      if (isHttpMethod(method)) {
+        paths.pop()
       }
 
-      // Otherwise, convert both to stores and derive the query options.
+      const { eden, ...queryOptions } = (args[1] ?? {}) as EdenUseQueryOptions<any, any, any>
 
-      const readableInput = isStore(input) ? input : readable(input)
-      const readableQueryOptions = isStore(queryOptions) ? queryOptions : readable(queryOptions)
+      const params: EdenRequestParams = {
+        ...config,
+        ...eden,
+        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      }
 
-      const treatyQueryOptions = derived(
-        [readableInput, readableQueryOptions],
-        ([$input, $queryOptions]) => {
-          return createEdenQueryOptions(client, options, paths, [$input, $queryOptions])
+      const options = args[0] as InferRouteOptions
+
+      const baseQueryOptions: UndefinedInitialDataOptions = {
+        queryKey: getQueryKey(paths, options, 'query'),
+        queryFn: async (context) => {
+          const path = '/' + paths.join('/')
+
+          const resolvedParams = { path, method, options, ...params }
+
+          if (Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)) {
+            resolvedParams.fetch = { ...resolvedParams.fetch }
+            resolvedParams.fetch.signal = context.signal
+          }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
         },
-      )
+        ...queryOptions,
+      }
 
-      return createQuery(treatyQueryOptions)
+      return useQuery(baseQueryOptions)
     }
 
-    case 'createInfiniteQuery': {
+    case 'useInfiniteQuery': {
       /**
-       * Main input will be provided as first argument.
+       * This may be the method, or part of a route.
+       *
+       * e.g. since invalidations can be partial and not include it.
+       *
+       * @example
+       *
+       * Let there be a GET endpoint at /api/hello/world
+       *
+       * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+       *
+       * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+       *
+       * In the GET request, the last item is the method and can be safely popped.
+       * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
        */
-      const input = args[0] as StoreOrVal<InferRouteOptions>
+      let method = paths[paths.length - 1]
 
-      /**
-       * Additional query options will be provided as the second argument to the `createQuery` call.
-       */
-      const queryOptions = args[1] as StoreOrVal<EdenCreateInfiniteQueryOptions<any, any, any>>
-
-      // If both are not stores, then create the query options normally.
-
-      if (!isStore(input) && !isStore(queryOptions)) {
-        const treatyQueryOptions = createEdenInfiniteQueryOptions(client, options, paths, args)
-        return createInfiniteQuery(treatyQueryOptions)
+      if (isHttpMethod(method)) {
+        paths.pop()
       }
 
-      // Otherwise, convert both to stores and derive the query options.
+      const { eden, ...queryOptions } = (args[1] ?? {}) as EdenUseInfiniteQueryOptions<
+        any,
+        any,
+        any
+      >
 
-      const readableInput = isStore(input) ? input : readable(input)
+      const params: EdenRequestParams = {
+        ...config,
+        ...eden,
+        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      }
 
-      const readableQueryOptions = isStore(queryOptions) ? queryOptions : readable(queryOptions)
+      const path = '/' + paths.join('/')
 
-      const treatyQueryOptions = derived(
-        [readableInput, readableQueryOptions],
-        ([$input, $queryOptions]) => {
-          return createEdenInfiniteQueryOptions(client, options, paths, [$input, $queryOptions])
+      const options = args[0] as InferRouteOptions
+
+      const infiniteQueryOptions: UseInfiniteQueryOptions = {
+        queryKey: getQueryKey(paths, options, 'infinite'),
+        initialPageParam: 0,
+        queryFn: async (context) => {
+          const resolvedParams = { path, method, options: { ...options }, ...params }
+
+          if (Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)) {
+            resolvedParams.fetch = { ...resolvedParams.fetch }
+            resolvedParams.fetch.signal = context.signal
+          }
+
+          // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
+          // in the route params or query.
+          // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
+
+          if (resolvedParams.options.query) {
+            ;(resolvedParams.options.query as any)['cursor'] = context.pageParam
+          } else if (resolvedParams.options.params) {
+            ;(resolvedParams.options.params as any)['cursor'] = context.pageParam
+          }
+
+          const result = await client.query(resolvedParams)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
         },
-      )
+        ...queryOptions,
+      }
 
-      return createInfiniteQuery(treatyQueryOptions)
+      return useInfiniteQuery(infiniteQueryOptions)
     }
 
-    case 'createMutation': {
-      const mutationOptions = args[0] as StoreOrVal<CreateMutationOptions>
+    case 'useMutation': {
+      /**
+       * This may be the method, or part of a route.
+       *
+       * e.g. since invalidations can be partial and not include it.
+       *
+       * @example
+       *
+       * Let there be a GET endpoint at /api/hello/world
+       *
+       * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+       *
+       * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+       *
+       * In the GET request, the last item is the method and can be safely popped.
+       * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+       */
+      let method = paths[paths.length - 1]
 
-      if (!isStore(mutationOptions)) {
-        const treatyMutationOptions = createEdenMutationOptions(client, options, paths, args)
-        return createEdenMutation(treatyMutationOptions)
+      if (isHttpMethod(method)) {
+        paths.pop()
       }
 
-      const treatyMutationOptions = derived(mutationOptions, ($mutationOptions) => {
-        return createEdenMutationOptions(client, options, paths, [$mutationOptions])
-      })
+      const mutationOptions = args[0] as EdenUseMutationOptions<any, any, any> | undefined
 
-      return createEdenMutation(treatyMutationOptions)
+      const path = '/' + paths.join('/')
+
+      const treatyMutationOptions: UseMutationOptions = {
+        mutationKey: getMutationKey(paths, mutationOptions as any),
+        mutationFn: async (variables: any = {}) => {
+          const { body, options } = variables as EdenUseMutationVariables
+
+          const resolvedParams: EdenRequestParams = {
+            path,
+            method,
+            body,
+            ...mutationOptions?.eden,
+            ...options,
+          }
+
+          const result = await client.query(resolvedParams)
+
+          if (!('data' in result)) {
+            return result
+          }
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+        onSuccess: (data, variables, context) => {
+          if (config?.overrides?.createMutation?.onSuccess == null) {
+            return mutationOptions?.onSuccess?.(data, variables, context)
+          }
+
+          const meta: any = mutationOptions?.meta
+
+          const originalFn = () => mutationOptions?.onSuccess?.(data, variables, context)
+
+          return config.overrides.createMutation.onSuccess({ meta, originalFn })
+        },
+        ...mutationOptions,
+      }
+
+      return treatyMutationOptions
     }
 
     default: {

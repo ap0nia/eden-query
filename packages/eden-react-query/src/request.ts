@@ -29,4 +29,9 @@ export type EdenQueryRequestOptions<T extends AnyElysia = AnyElysia> =
      * Opt out of SSR for this query by passing `ssr: false`
      */
     ssr?: boolean
+
+    /**
+     * Overrides for svelte-query hooks.
+     */
+    overrides?: EdenQueryOverrides
   }
