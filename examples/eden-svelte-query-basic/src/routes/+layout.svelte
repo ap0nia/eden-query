@@ -27,6 +27,12 @@
         <li>
           <a href="/batch">batch</a>
         </li>
+        <li>
+          <a href="/mutation">mutation example with todos</a>
+        </li>
+        <li>
+          <a href="/reactive-input">reactive input box</a>
+        </li>
       </ul>
     </nav>
   </header>

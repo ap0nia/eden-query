@@ -357,7 +357,12 @@ export async function resolveEdenRequest<
     fetchInit.body = formData
   } else if (typeof params.body === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
-    fetchInit.body = JSON.stringify(params.body)
+
+    const transformer = getDataTransformer(params.transformer)
+
+    const body = transformer ? transformer.input.serialize(params.body) : params.body
+
+    fetchInit.body = JSON.stringify(body)
   } else if (params.body !== null) {
     fetchInit.headers['content-type'] = 'text/plain'
   }
