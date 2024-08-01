@@ -62,6 +62,10 @@ const rootController = new Elysia()
       }),
     },
   )
+  .get('/sleep', async () => {
+    await new Promise((resolve) => setTimeout(resolve, 5000))
+    return 'OK'
+  })
   .get('/todos', () => {
     return db.todos
   })

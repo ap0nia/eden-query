@@ -33,6 +33,9 @@
         <li>
           <a href="/reactive-input">reactive input box</a>
         </li>
+        <li>
+          <a href="/abort">abort</a>
+        </li>
       </ul>
     </nav>
   </header>
