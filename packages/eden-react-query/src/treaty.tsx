@@ -21,7 +21,6 @@ import type {
   UndefinedInitialDataInfiniteOptions,
   Updater,
   UseMutationOptions,
-  UseQueryOptions,
   UseSuspenseInfiniteQueryOptions,
   UseSuspenseQueryOptions,
 } from '@tanstack/react-query'
@@ -387,8 +386,8 @@ export function createRootHooks<
 
   const Context = (config?.context ?? TRPCContext) as React.Context<ProviderContext>
 
-  const createClient: CreateEdenClient<TElysia> = (opts) => {
-    return new EdenClient(opts)
+  const createClient: CreateEdenClient<TElysia> = (options) => {
+    return new EdenClient(options)
   }
 
   const TRPCProvider: EdenProvider<TElysia, TSSRContext> = (props) => {
@@ -464,8 +463,6 @@ export function createRootHooks<
     input: any,
     options?: EdenUseQueryOptions<unknown, unknown, TError>,
   ): EdenUseQueryResult<unknown, TError> {
-    const context = useContext()
-
     const paths = [...originalPaths]
 
     /**
@@ -490,6 +487,10 @@ export function createRootHooks<
       paths.pop()
     }
 
+    const path = '/' + paths.join('/')
+
+    const context = useContext()
+
     const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
 
     const queryKey = getQueryKey(paths, input, 'query')
@@ -502,30 +503,25 @@ export function createRootHooks<
       void prefetchQuery(queryKey, options)
     }
 
-    const ssrQueryOptions = useSSRQueryOptionsIfNeeded(queryKey, { ...defaultOptions, ...options })
+    const initialQueryOptions = { ...defaultOptions, ...options }
 
-    const queryOptions: UseQueryOptions<unknown, TError, any, any> = {
-      ...ssrQueryOptions,
-      ...options,
-      queryKey,
-    }
+    const { eden, ...queryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
 
-    const shouldAbortOnUnmount =
-      options?.eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+    const resolvedQueryOptions = { ...queryOptions, queryKey }
 
-    const path = '/' + paths.join('/')
+    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
     if (isInputSkipToken) {
-      queryOptions.queryFn = input
+      resolvedQueryOptions.queryFn = input
     } else {
       const params: EdenRequestParams = {
         ...config,
-        ...ssrQueryOptions.eden,
+        ...eden,
         path,
-        fetcher: ssrQueryOptions.eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
       }
 
-      queryOptions.queryFn = async (queryFunctionContext) => {
+      resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
         const resolvedParams = { ...params }
 
         if (shouldAbortOnUnmount) {
@@ -534,6 +530,8 @@ export function createRootHooks<
         }
 
         const result = await client.query(resolvedParams)
+
+        // TODO: how to get async iterable here?
 
         if (isAsyncIterable(result)) {
           const queryCache = queryClient.getQueryCache()
@@ -561,9 +559,9 @@ export function createRootHooks<
       }
     }
 
-    const resolvedQueryOptions = { ...ssrQueryOptions, ...queryOptions }
+    type HookResult = EdenUseQueryResult<any, TError>
 
-    const hook = __useQuery(resolvedQueryOptions, queryClient) as EdenUseQueryResult<any, TError>
+    const hook = __useQuery(resolvedQueryOptions, queryClient) as HookResult
 
     hook.eden = useHookResult({ path: paths })
 
@@ -571,27 +569,63 @@ export function createRootHooks<
   }
 
   function useSuspenseQuery(
-    path: readonly string[],
-    input: unknown,
+    originalPaths: readonly string[],
+    input: any,
     options?: EdenUseSuspenseQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseQueryResult<unknown, TError> {
+    const paths = [...originalPaths]
+
+    /**
+     * This may be the method, or part of a route.
+     *
+     * e.g. since invalidations can be partial and not include it.
+     *
+     * @example
+     *
+     * Let there be a GET endpoint at /api/hello/world
+     *
+     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+     *
+     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+     *
+     * In the GET request, the last item is the method and can be safely popped.
+     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+     */
+    let method = paths[paths.length - 1]
+
+    if (isHttpMethod(method)) {
+      paths.pop()
+    }
+
+    const queryKey = getQueryKey(paths, input, 'query')
+
     const context = useContext()
 
-    const queryKey = getQueryKey(path, input as any, 'query')
+    const { queryClient, abortOnUnmount } = context
+
+    const defaultOptions = queryClient.getQueryDefaults(queryKey)
+
+    const isInputSkipToken = input === skipToken
+
+    const { eden, ...queryOptions } = options ?? {}
+
+    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+
+    const path = '/' + paths.join('/')
 
     const params: EdenRequestParams = {
       ...config,
-      ...options?.eden,
-      fetcher: options?.eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      ...eden,
+      path,
+      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
     }
 
-    const shouldAbortOnUnmount =
-      options?.eden?.abortOnUnmount ?? config?.abortOnUnmount ?? context.abortOnUnmount
+    const resolvedQueryOptions = { ...defaultOptions, ...queryOptions, queryKey }
 
-    const queryOptions: UseSuspenseQueryOptions<unknown, TError, unknown, any> = {
-      ...options,
-      queryKey,
-      queryFn: async (queryFunctionContext) => {
+    if (isInputSkipToken) {
+      resolvedQueryOptions.queryFn = input
+    } else {
+      resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
         const resolvedParams = { ...params }
 
         if (shouldAbortOnUnmount) {
@@ -606,31 +640,55 @@ export function createRootHooks<
         }
 
         return result.data
-      },
+      }
     }
 
-    const queryClient = context.queryClient
+    type HookResult = EdenUseQueryResult<any, TError>
 
-    const hook = __useSuspenseQuery(queryOptions, queryClient) as EdenUseQueryResult<any, TError>
+    const hook = __useSuspenseQuery(resolvedQueryOptions, queryClient) as HookResult
 
-    hook.eden = useHookResult({ path })
+    hook.eden = useHookResult({ path: paths })
 
     return [hook.data, hook as any]
   }
 
   function useMutation(
-    paths: readonly string[],
+    originalPaths: readonly string[],
     options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
   ): EdenUseMutationResult<unknown, TError, unknown, unknown> {
+    const paths = [...originalPaths]
+
+    /**
+     * This may be the method, or part of a route.
+     *
+     * e.g. since invalidations can be partial and not include it.
+     *
+     * @example
+     *
+     * Let there be a GET endpoint at /api/hello/world
+     *
+     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+     *
+     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+     *
+     * In the GET request, the last item is the method and can be safely popped.
+     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+     */
+    let method = paths[paths.length - 1]
+
+    if (isHttpMethod(method)) {
+      paths.pop()
+    }
+
     const { client } = useContext()
 
     const queryClient = useQueryClient()
 
     const mutationKey = getMutationKey(paths)
 
-    const defaultOptions = queryClient.defaultMutationOptions(
-      queryClient.getMutationDefaults(mutationKey),
-    )
+    const mutationDefaults = queryClient.getMutationDefaults(mutationKey)
+
+    const defaultOptions = queryClient.defaultMutationOptions(mutationDefaults)
 
     const mutationOptions: UseMutationOptions<unknown, TError, unknown, unknown> = {
       ...options,
@@ -730,26 +788,56 @@ export function createRootHooks<
   }
 
   function useInfiniteQuery(
-    path: readonly string[],
-    input: unknown,
+    originalPaths: readonly string[],
+    input: any,
     options: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> {
-    const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = useContext()
+    const paths = [...originalPaths]
 
-    const queryKey = getQueryKey(path, input as any, 'infinite')
+    /**
+     * This may be the method, or part of a route.
+     *
+     * e.g. since invalidations can be partial and not include it.
+     *
+     * @example
+     *
+     * Let there be a GET endpoint at /api/hello/world
+     *
+     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+     *
+     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+     *
+     * In the GET request, the last item is the method and can be safely popped.
+     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+     */
+    let method = paths[paths.length - 1]
+
+    if (isHttpMethod(method)) {
+      paths.pop()
+    }
+
+    const path = '/' + paths.join('/')
+
+    const context = useContext()
+
+    const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = context
+
+    const queryKey = getQueryKey(path, input, 'infinite')
 
     const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
     const isInputSkipToken = input === skipToken
 
+    const initialQueryOptions = { ...defaultOptions, ...options }
+
     if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
-      void prefetchInfiniteQuery(queryKey, { ...defaultOptions, ...options } as any)
+      void prefetchInfiniteQuery(queryKey, initialQueryOptions as any)
     }
 
-    const ssrQueryOptions = useSSRQueryOptionsIfNeeded(queryKey, { ...defaultOptions, ...options })
+    const { eden, ...ssrQueryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
 
     // request option should take priority over global
-    const shouldAbortOnUnmount = options?.eden?.abortOnUnmount ?? abortOnUnmount
+    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
     type InfiniteQueryOptions = UndefinedInitialDataInfiniteOptions<
       unknown,
@@ -761,15 +849,13 @@ export function createRootHooks<
 
     const params: EdenRequestParams = {
       ...config,
-      ...options?.eden,
-      fetcher: options?.eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      ...eden,
+      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
     }
 
     const queryOptions = {
       ...ssrQueryOptions,
-      ...options,
-      initialPageParam: options.initialCursor ?? null,
-      persister: options.persister,
+      initialPageParam: ssrQueryOptions.initialCursor ?? null,
       queryKey,
     } as InfiniteQueryOptions
 
@@ -798,37 +884,65 @@ export function createRootHooks<
 
     const hook = __useInfiniteQuery(queryOptions, queryClient) as HookResult
 
-    hook.eden = useHookResult({ path })
+    hook.eden = useHookResult({ path: paths })
 
     return hook
   }
 
   function useSuspenseInfiniteQuery(
-    path: readonly string[],
-    input: unknown,
+    originalPaths: readonly string[],
+    input: any,
     options: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> {
+    const paths = [...originalPaths]
+
+    /**
+     * This may be the method, or part of a route.
+     *
+     * e.g. since invalidations can be partial and not include it.
+     *
+     * @example
+     *
+     * Let there be a GET endpoint at /api/hello/world
+     *
+     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+     *
+     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+     *
+     * In the GET request, the last item is the method and can be safely popped.
+     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+     */
+    let method = paths[paths.length - 1]
+
+    if (isHttpMethod(method)) {
+      paths.pop()
+    }
+
+    const path = '/' + paths.join('/')
+
+    const queryKey = getQueryKey(path, input, 'infinite')
+
     const context = useContext()
 
-    const queryKey = getQueryKey(path, input as any, 'infinite')
+    const { queryClient, abortOnUnmount } = context
 
-    const defaultOptions = context.queryClient.getQueryDefaults(queryKey)
+    const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
-    const ssrQueryOptions = useSSRQueryOptionsIfNeeded(queryKey, { ...defaultOptions, ...options })
+    const initialQueryOptions = { ...defaultOptions, ...options }
+
+    const { eden, ...ssrQueryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
 
     // request option should take priority over global
-    const shouldAbortOnUnmount = options?.eden?.abortOnUnmount ?? context.abortOnUnmount
+    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
     const params: EdenRequestParams = {
       ...config,
-      ...ssrQueryOptions.eden,
-      ...options?.eden,
-      fetcher: options?.eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      ...eden,
+      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
     }
 
     const queryOptions = {
       ...ssrQueryOptions,
-      ...options,
       initialPageParam: options.initialCursor ?? null,
       queryKey,
       queryFn: async (queryFunctionContext) => {
@@ -853,13 +967,15 @@ export function createRootHooks<
 
     const hook = __useSuspenseInfiniteQuery(queryOptions, context.queryClient) as HookResult
 
-    hook.eden = useHookResult({ path })
+    hook.eden = useHookResult({ path: paths })
 
     return [hook.data, hook] as any
   }
 
   const useQueries: EdenUseQueries<TElysia> = (queriesCallback) => {
-    const { ssrState, queryClient, prefetchQuery, client } = useContext()
+    const context = useContext()
+
+    const { ssrState, queryClient, prefetchQuery, client } = context
 
     const proxy = createUseQueriesProxy(client)
 
@@ -876,14 +992,17 @@ export function createRootHooks<
       const shouldSsr = queryOption.eden?.ssr !== false
 
       if (shouldSsr && !queryClient.getQueryCache().find({ queryKey: queryOption.queryKey })) {
-        void prefetchQuery(queryOption.queryKey, queryOption as any)
+        void prefetchQuery(queryOption.queryKey, queryOption)
       }
     }
+
     return __useQueries({ queries }, queryClient)
   }
 
   const useSuspenseQueries: EdenUseSuspenseQueries<TElysia> = (queriesCallback) => {
-    const { queryClient, client } = useContext()
+    const context = useContext()
+
+    const { queryClient, client } = context
 
     const proxy = createUseSuspenseQueriesProxy(client)
 
