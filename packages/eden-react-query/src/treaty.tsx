@@ -47,7 +47,6 @@ import {
   type EdenContextProps,
   type EdenContextState,
   type EdenProvider,
-  type EdenProviderProps,
 } from './context'
 import type { EdenTreatyQueryHooks } from './hooks'
 import {
@@ -393,39 +392,14 @@ export function createRootHooks<
     return new EdenClient(options)
   }
 
-  const TRPCProvider: EdenProvider<TElysia, TSSRContext> = (props) => {
-    const { abortOnUnmount = false, client, queryClient, ssrContext } = props
-
-    const [ssrState, setSSRState] = React.useState<SSRState>(props.ssrState ?? false)
-
-    const utilityFunctions = React.useMemo(() => {
-      return createUtilityFunctions({ client, queryClient })
-    }, [client, queryClient])
-
-    const contextValue = React.useMemo<ProviderContext>(() => {
-      return {
-        abortOnUnmount,
-        queryClient,
-        client,
-        ssrContext: ssrContext ?? null,
-        ssrState,
-        ...utilityFunctions,
-      }
-    }, [abortOnUnmount, client, utilityFunctions, queryClient, ssrContext, ssrState])
-
-    React.useEffect(() => {
-      // Only updating state to `mounted` if we are using SSR.
-      // This makes it so we don't have an unnecessary re-render when opting out of SSR.
-      setSSRState((state) => (state ? 'mounted' : false))
-    }, [])
-
-    return <Context.Provider value={contextValue}> {props.children} </Context.Provider>
-  }
-
-  const createContext = (props: EdenProviderProps<TElysia, TSSRContext>) => {
-    const { abortOnUnmount = false, client, queryClient, ssrContext } = props
-
-    const ssrState = props.ssrState ?? false
+  const createContext = (props: EdenContextProps<TElysia, TSSRContext>) => {
+    const {
+      abortOnUnmount = false,
+      client,
+      queryClient,
+      ssrContext = null,
+      ssrState = false,
+    } = props
 
     const utilityFunctions = createUtilityFunctions({ client, queryClient })
 
@@ -433,10 +407,28 @@ export function createRootHooks<
       abortOnUnmount,
       queryClient,
       client,
-      ssrContext: ssrContext ?? null,
+      ssrContext,
       ssrState,
       ...utilityFunctions,
     }
+  }
+
+  const TRPCProvider: EdenProvider<TElysia, TSSRContext> = (props) => {
+    const { abortOnUnmount = false, client, queryClient, ssrContext, children } = props
+
+    const [ssrState, setSSRState] = React.useState<SSRState>(props.ssrState ?? false)
+
+    const contextValue = React.useMemo<ProviderContext>(() => {
+      return createContext({ abortOnUnmount, client, queryClient, ssrContext, ssrState })
+    }, [abortOnUnmount, client, queryClient, ssrContext, ssrState])
+
+    React.useEffect(() => {
+      // Only updating state to `mounted` if we are using SSR.
+      // This makes it so we don't have an unnecessary re-render when opting out of SSR.
+      setSSRState((state) => (state ? 'mounted' : false))
+    }, [])
+
+    return <Context.Provider value={contextValue}>{children}</Context.Provider>
   }
 
   function useContext() {
@@ -1148,7 +1140,24 @@ export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContex
       }
 
       if (path === 'createUtils') {
-        return (context: EdenContextState<TElysia, TSSRContext>) => createReactQueryUtils(context)
+        return (props: EdenContextProps<TElysia, TSSRContext>) => {
+          const { abortOnUnmount = false, client, queryClient, ssrContext } = props
+
+          const ssrState = props.ssrState ?? false
+
+          const utilityFunctions = createUtilityFunctions({ client, queryClient })
+
+          const context = {
+            abortOnUnmount,
+            queryClient,
+            client,
+            ssrContext: ssrContext ?? null,
+            ssrState,
+            ...utilityFunctions,
+          }
+
+          return createReactQueryUtils(context)
+        }
       }
 
       if (Object.prototype.hasOwnProperty.call(rootHooks, path)) {
