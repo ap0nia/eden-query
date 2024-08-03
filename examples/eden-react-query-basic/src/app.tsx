@@ -5,8 +5,9 @@ import { createBrowserRouter, Link, Outlet, RouterProvider } from 'react-router-
 import SuperJSON from 'superjson'
 
 import { eden } from './lib/eden'
-import Home from './routes/+page'
-import HelloPreload, { load as helloPreloadLoader } from './routes/hello-preload/+page'
+import HomePage from './routes/+page'
+import BatchPage from './routes/batch/+page'
+import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
 
 export function App() {
   const [queryClient] = useState(() => new QueryClient())
@@ -15,8 +16,9 @@ export function App() {
     return eden.createClient({
       links: [
         httpBatchLink({
-          domain: 'http://localhost:3000',
+          endpoint: '/api/batch',
           transformer: SuperJSON,
+          domain: 'http://localhost:3000',
         }),
       ],
     })
@@ -49,8 +51,9 @@ export function App() {
                   <li>
                     <Link to="/hello-preload">hello with preloading</Link>
                   </li>
-                  <li>
-                    <Link to="/hello-ssr">hello with ssr</Link>
+                  <li style={{ opacity: 0.5, cursor: 'not-allowed' }}>
+                    {/* This is a single-page application with Vite, no SSR */}
+                    hello with ssr
                   </li>
                   <li>
                     <Link to="/batch">batch</Link>
@@ -74,12 +77,16 @@ export function App() {
         children: [
           {
             path: '/',
-            element: <Home />,
+            element: <HomePage />,
           },
           {
             path: '/hello-preload',
-            element: <HelloPreload />,
+            element: <HelloPreloadPage />,
             loader: helloPreloadLoader(utils),
+          },
+          {
+            path: '/batch',
+            element: <BatchPage />,
           },
         ],
       },
