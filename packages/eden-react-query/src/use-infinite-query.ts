@@ -69,6 +69,9 @@ export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   initialCursor?: ExtractCursorType<TInput>
 }
 
+/**
+ * @todo: remove "cursor" or equivalent from infinite input...
+ */
 export type EdenUseInfiniteQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],

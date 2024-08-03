@@ -135,12 +135,12 @@ export interface EdenCreateQuery<
   TError = InferRouteError<TRoute>,
 > {
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<TInput | SkipToken>,
+    input: StoreOrVal<{} extends TInput ? void | TInput : TInput>,
     options: StoreOrVal<EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
   ): EdenDefinedCreateQueryResult<TData, TError>
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<TInput | SkipToken>,
+    input: StoreOrVal<({} extends TInput ? void | TInput : TInput) | SkipToken>,
     options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
   ): EdenCreateQueryResult<TData, TError>
 }

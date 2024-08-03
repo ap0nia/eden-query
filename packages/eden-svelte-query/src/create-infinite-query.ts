@@ -128,6 +128,9 @@ export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = CreateInfinit
 > &
   EdenHookResult
 
+/**
+ * @todo: remove "cursor" or equivalent from infinite input...
+ */
 export type EdenCreateInfiniteQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
