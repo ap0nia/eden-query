@@ -42,9 +42,12 @@ import * as React from 'react'
 
 import {
   createReactQueryUtils,
+  type CreateReactUtils,
   createUtilityFunctions,
-  type EdenCreateReactQueryUtilsOptions,
+  type EdenContextProps,
+  type EdenContextState,
   type EdenProvider,
+  type EdenProviderProps,
 } from './context'
 import type { EdenTreatyQueryHooks } from './hooks'
 import {
@@ -417,6 +420,23 @@ export function createRootHooks<
     }, [])
 
     return <Context.Provider value={contextValue}> {props.children} </Context.Provider>
+  }
+
+  const createContext = (props: EdenProviderProps<TElysia, TSSRContext>) => {
+    const { abortOnUnmount = false, client, queryClient, ssrContext } = props
+
+    const ssrState = props.ssrState ?? false
+
+    const utilityFunctions = createUtilityFunctions({ client, queryClient })
+
+    return {
+      abortOnUnmount,
+      queryClient,
+      client,
+      ssrContext: ssrContext ?? null,
+      ssrState,
+      ...utilityFunctions,
+    }
   }
 
   function useContext() {
@@ -1018,6 +1038,7 @@ export function createRootHooks<
     createClient,
     useContext,
     useUtils: useContext,
+    createContext,
     useQuery,
     useSuspenseQuery,
     useQueries,
@@ -1038,12 +1059,20 @@ export type EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext> = {
    *
    * @link https://trpc.io/docs/v11/client/react/useUtils
    */
-  useContext(): EdenCreateReactQueryUtilsOptions<TElysia, TSSRContext>
+  useContext(): CreateReactUtils<TElysia, TSSRContext>
 
   /**
    * @link https://trpc.io/docs/v11/client/react/useUtils
    */
-  useUtils(): EdenCreateReactQueryUtilsOptions<TElysia, TSSRContext>
+  useUtils(): CreateReactUtils<TElysia, TSSRContext>
+
+  createContext(
+    props: EdenContextProps<TElysia, TSSRContext>,
+  ): EdenContextState<TElysia, TSSRContext>
+
+  createUtils(
+    context: EdenContextState<TElysia, TSSRContext>,
+  ): CreateReactUtils<TElysia, TSSRContext>
 
   Provider: EdenProvider<TElysia, TSSRContext>
 
@@ -1066,7 +1095,7 @@ export type CreateEdenTreatyReactQueryRootHooks<
 export type CreateEdenTreatyReactQueryHooks<
   TElysia extends AnyElysia,
   TSSRContext = unknown,
-> = CreateEdenTreatyReactQueryRootHooks<TElysia, TSSRContext> & EdenTreatyQueryHooks<TElysia>
+> = EdenTreatyReactQueryBase<TElysia, TSSRContext> & EdenTreatyQueryHooks<TElysia>
 
 export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>(
   rootHooks: CreateEdenTreatyReactQueryRootHooks<T>,
@@ -1110,14 +1139,16 @@ export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContex
   const edenTreatyReactQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       if (path === 'useContext' || path === 'useUtils') {
-        return () => {
-          const context = rootHooks.useUtils()
-
+        return (context = rootHooks.useUtils()) => {
           // create a stable reference of the utils context
           return React.useMemo(() => {
             return createReactQueryUtils(context)
           }, [context])
         }
+      }
+
+      if (path === 'createUtils') {
+        return (context: EdenContextState<TElysia, TSSRContext>) => createReactQueryUtils(context)
       }
 
       if (Object.prototype.hasOwnProperty.call(rootHooks, path)) {

@@ -9,6 +9,7 @@ import {
   type InferRouteOutput,
 } from '@elysiajs/eden'
 import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.ts'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 import {
   type CancelOptions,
   type FetchQueryOptions,
@@ -516,13 +517,19 @@ export function createReactQueryUtilsProxy<TRouter extends AnyElysia, TSSRContex
 ): CreateReactUtils<TRouter, TSSRContext> {
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
-      const nextPaths = [...paths, path]
+      const nextPaths = path === 'index' ? [...paths] : [...paths, path]
       return createReactQueryUtilsProxy(context, nextPaths)
     },
     apply: (_target, _thisArg, argArray) => {
       const pathsCopy = [...paths]
 
       const lastArg = pathsCopy.pop() ?? ''
+
+      let method = pathsCopy[pathsCopy.length - 1]
+
+      if (isHttpMethod(method)) {
+        pathsCopy.pop()
+      }
 
       const argsCopy = [...argArray]
 

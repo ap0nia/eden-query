@@ -11,7 +11,7 @@
     <p>Error: {$hello.error.message}</p>
   {:else}
     <p>
-      <b>Data:</b>
+      <b>Data: </b>
       <span>{$hello.data}</span>
     </p>
   {/if}

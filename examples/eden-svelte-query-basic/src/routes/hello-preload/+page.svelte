@@ -7,17 +7,16 @@
 <main>
   <div>
     {#if $hello.isLoading}
-      <h1>loading...</h1>
+      <p>loading...</p>
     {:else if $hello.isError}
-      <h1>Error: {$hello.error.message}</h1>
+      <p>Error: {$hello.error.message}</p>
     {:else}
-      <h1>
-        {$hello.data}
-      </h1>
+      <p>
+        <b>Data: </b>
+        <span>{$hello.data}</span>
+      </p>
     {/if}
   </div>
 
-  <p>
-    Since this page's query has been preloaded, a "loading" message should never be seen.
-  </p>
+  <p>Since this page's query has been preloaded, a "loading" message should never be seen.</p>
 </main>
