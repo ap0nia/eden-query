@@ -6,12 +6,13 @@
 
 <main>
   {#if $hello.isLoading}
-    <h1>loading...</h1>
+    <p>loading...</p>
   {:else if $hello.isError}
-    <h1>Error: {$hello.error.message}</h1>
+    <p>Error: {$hello.error.message}</p>
   {:else}
-    <h1>
-      {$hello.data}
-    </h1>
+    <p>
+      <b>Data:</b>
+      <span>{$hello.data}</span>
+    </p>
   {/if}
 </main>

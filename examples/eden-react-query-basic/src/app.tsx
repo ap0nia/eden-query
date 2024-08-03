@@ -5,7 +5,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import SuperJSON from 'superjson'
 
 import { eden } from './lib/eden'
-import Home from './routes/index'
+import Home from './routes/+page'
 
 const router = createBrowserRouter([
   {
@@ -21,7 +21,7 @@ export function App() {
     return eden.createClient({
       links: [
         httpBatchLink({
-          domain: 'http://localhost:3000/api',
+          domain: 'http://localhost:3000',
           transformer: SuperJSON,
         }),
       ],
@@ -31,6 +31,33 @@ export function App() {
   return (
     <eden.Provider client={edenClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
+        <header>
+          <nav>
+            <ul>
+              <li>
+                <a href="/">home</a>
+              </li>
+              <li>
+                <a href="/hello-preload">hello with preloading</a>
+              </li>
+              <li>
+                <a href="/hello-ssr">hello with ssr</a>
+              </li>
+              <li>
+                <a href="/batch">batch</a>
+              </li>
+              <li>
+                <a href="/mutation">mutation example with todos</a>
+              </li>
+              <li>
+                <a href="/reactive-input">reactive input box</a>
+              </li>
+              <li>
+                <a href="/abort">abort</a>
+              </li>
+            </ul>
+          </nav>
+        </header>
         <RouterProvider router={router} />
       </QueryClientProvider>
     </eden.Provider>
