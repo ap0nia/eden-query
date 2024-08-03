@@ -8,6 +8,7 @@ import { eden } from './lib/eden'
 import HomePage from './routes/+page'
 import BatchPage from './routes/batch/+page'
 import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
+import MutationPage from './routes/mutation/+page'
 
 export function App() {
   const [queryClient] = useState(() => new QueryClient())
@@ -87,6 +88,10 @@ export function App() {
           {
             path: '/batch',
             element: <BatchPage />,
+          },
+          {
+            path: '/mutation',
+            element: <MutationPage />,
           },
         ],
       },

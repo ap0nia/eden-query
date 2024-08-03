@@ -1,7 +1,7 @@
 <script lang="ts">
   import { eden } from '$lib/eden'
 
-  const todos = eden.api.todos.get.createQuery({})
+  const todos = eden.api.todos.get.createQuery()
 
   const addTodo = eden.api.todos.post.createMutation()
 

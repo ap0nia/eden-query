@@ -4,11 +4,14 @@ import type {
   InferRouteOptions,
   InferRouteOutput,
 } from '@elysiajs/eden'
-import type {
-  MutateOptions,
-  UseBaseMutationResult,
-  UseMutationOptions,
-  UseMutationResult,
+import {
+  type DefaultError,
+  type MutateOptions,
+  type QueryClient,
+  type UseBaseMutationResult,
+  useMutation,
+  type UseMutationOptions,
+  type UseMutationResult,
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
@@ -75,3 +78,34 @@ export type EdenMutationFunction<
     ? [options?: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
     : [options: TInput & MutateOptions<TOutput, TError, TBody, TContext>]
 ) => void
+
+/**
+ * In order to extend the {@link createMutation} API to allow query/headers to be
+ * passed in and forwarded properly, create custom wrapper around {@link createMutation} that
+ * can accept multiple arguments.
+ */
+export function useEdenMutation<
+  TData = unknown,
+  TError = DefaultError,
+  TVariables = void,
+  TContext = unknown,
+>(
+  options: UseMutationOptions<TData, TError, TVariables, TContext>,
+  queryClient?: QueryClient,
+): UseMutationResult<TData, TError, TVariables, TContext> {
+  const mutation = useMutation(options, queryClient)
+
+  const customMutation = {
+    ...mutation,
+    mutate: (body: any, options = {}) => {
+      const variables: EdenUseMutationVariables = { body, options }
+      return mutation.mutate(variables as any, options)
+    },
+    mutateAsync: async (body: any, options = {}) => {
+      const variables: EdenUseMutationVariables = { body, options }
+      return await mutation.mutateAsync(variables as any, options)
+    },
+  }
+
+  return customMutation
+}

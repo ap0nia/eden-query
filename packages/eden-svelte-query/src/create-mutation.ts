@@ -107,7 +107,9 @@ export function createEdenMutationOptions(
    */
   let method = paths[paths.length - 1]
 
-  if (isHttpMethod(method)) {
+  const methodIsHttpMethod = isHttpMethod(method)
+
+  if (methodIsHttpMethod) {
     paths.pop()
   }
 
@@ -122,10 +124,13 @@ export function createEdenMutationOptions(
 
       const resolvedParams: EdenRequestParams = {
         path,
-        method,
         body,
         ...mutationOptions?.eden,
         ...options,
+      }
+
+      if (methodIsHttpMethod) {
+        resolvedParams.method = method
       }
 
       const result = await client.query(resolvedParams)

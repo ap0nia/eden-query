@@ -29,7 +29,6 @@ import {
   QueryClient,
   skipToken,
   useInfiniteQuery as __useInfiniteQuery,
-  useMutation as __useMutation,
   useQueries as __useQueries,
   useQuery as __useQuery,
   useQueryClient,
@@ -61,10 +60,11 @@ import type {
   EdenUseInfiniteQueryOptions,
   EdenUseInfiniteQueryResult,
 } from './use-infinite-query'
-import type {
-  EdenUseMutationOptions,
-  EdenUseMutationResult,
-  EdenUseMutationVariables,
+import {
+  type EdenUseMutationOptions,
+  type EdenUseMutationResult,
+  type EdenUseMutationVariables,
+  useEdenMutation,
 } from './use-mutation'
 import { createUseQueriesProxy, type EdenUseQueries } from './use-queries'
 import type {
@@ -495,7 +495,9 @@ export function createRootHooks<
      */
     let method = paths[paths.length - 1]
 
-    if (isHttpMethod(method)) {
+    const methodIsHttpMethod = isHttpMethod(method)
+
+    if (methodIsHttpMethod) {
       paths.pop()
     }
 
@@ -531,6 +533,10 @@ export function createRootHooks<
         ...eden,
         path,
         fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      }
+
+      if (methodIsHttpMethod) {
+        params.method = method
       }
 
       resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
@@ -605,7 +611,9 @@ export function createRootHooks<
      */
     let method = paths[paths.length - 1]
 
-    if (isHttpMethod(method)) {
+    const methodIsHttpMethod = isHttpMethod(method)
+
+    if (methodIsHttpMethod) {
       paths.pop()
     }
 
@@ -630,6 +638,10 @@ export function createRootHooks<
       ...eden,
       path,
       fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+    }
+
+    if (methodIsHttpMethod) {
+      params.method = method
     }
 
     const resolvedQueryOptions = { ...defaultOptions, ...queryOptions, queryKey }
@@ -688,7 +700,8 @@ export function createRootHooks<
      */
     let method = paths[paths.length - 1]
 
-    if (isHttpMethod(method)) {
+    const methodIsHttpMethod = isHttpMethod(method)
+    if (methodIsHttpMethod) {
       paths.pop()
     }
 
@@ -712,6 +725,10 @@ export function createRootHooks<
 
         const resolvedParams: EdenRequestParams = { path, body, ...options }
 
+        if (methodIsHttpMethod) {
+          resolvedParams.method = method
+        }
+
         const result = await client.query(resolvedParams)
 
         if (!('data' in result)) {
@@ -725,13 +742,15 @@ export function createRootHooks<
         return result.data
       },
       onSuccess: (data, variables, context) => {
+        const onSuccess = options?.onSuccess ?? defaultOptions.onSuccess
+
         if (config?.overrides?.useMutation?.onSuccess == null) {
-          return mutationOptions?.onSuccess?.(data, variables, context)
+          return onSuccess?.(data, variables, context)
         }
 
-        const meta: any = mutationOptions?.meta ?? defaultOptions.meta
+        const meta: any = options?.meta ?? defaultOptions.meta
 
-        const originalFn = () => mutationOptions?.onSuccess?.(data, variables, context)
+        const originalFn = () => onSuccess?.(data, variables, context)
 
         return config.overrides.useMutation.onSuccess({ meta, originalFn, queryClient })
       },
@@ -739,7 +758,7 @@ export function createRootHooks<
 
     type HookResult = EdenUseMutationResult<unknown, TError, unknown, unknown>
 
-    const hook = __useMutation(mutationOptions, queryClient) as HookResult
+    const hook = useEdenMutation(mutationOptions, queryClient) as HookResult
 
     hook.eden = useHookResult({ path: paths })
 

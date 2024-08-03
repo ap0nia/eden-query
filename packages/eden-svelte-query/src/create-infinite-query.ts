@@ -71,19 +71,26 @@ export function createEdenInfiniteQueryOptions(
    */
   let method = paths[paths.length - 1]
 
-  if (isHttpMethod(method)) {
+  const methodIsHttpMethod = isHttpMethod(method)
+
+  if (methodIsHttpMethod) {
     paths.pop()
   }
+
+  const path = '/' + paths.join('/')
 
   const { eden, ...queryOptions } = (args[1] ?? {}) as EdenCreateInfiniteQueryOptions<any, any, any>
 
   const params: EdenRequestParams = {
     ...config,
     ...eden,
+    path,
     fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
   }
 
-  const path = '/' + paths.join('/')
+  if (methodIsHttpMethod) {
+    params.method = method
+  }
 
   const options = args[0] as InferRouteOptions
 
@@ -91,7 +98,7 @@ export function createEdenInfiniteQueryOptions(
     queryKey: getQueryKey(paths, options, 'infinite'),
     initialPageParam: 0,
     queryFn: async (context) => {
-      const resolvedParams = { path, method, options: { ...options }, ...params }
+      const resolvedParams = { options, ...params }
 
       if (Boolean(config?.abortOnUnmount) || Boolean(eden?.abortOnUnmount)) {
         resolvedParams.fetch = { ...resolvedParams.fetch }
