@@ -32,7 +32,9 @@ export default function Page() {
 
   return (
     <main>
-      <h1>Todos:</h1>
+      <h1>Mutation</h1>
+
+      <p>Todos:</p>
 
       <ul>
         {todos.data?.map((todo) => {

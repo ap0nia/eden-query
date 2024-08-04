@@ -11,6 +11,8 @@ export default function Page() {
 
   return (
     <main>
+      <h1>Abort</h1>
+
       <button onClick={toggle}>Toggle Component</button>
 
       <p>

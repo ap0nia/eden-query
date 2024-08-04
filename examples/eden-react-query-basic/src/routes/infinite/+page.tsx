@@ -24,6 +24,8 @@ export default function Page() {
 
   return (
     <main>
+      <h1>Infinite Query</h1>
+
       <ul>
         {pages.data?.pages.map((page, index) => {
           return (

@@ -5,6 +5,7 @@ import type {
   InferRouteOptions,
   InferRouteOutput,
 } from '@elysiajs/eden'
+import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 import type {
   QueriesOptions,
   QueriesResults,
@@ -62,9 +63,9 @@ export type UseQueriesHook<
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (
-  input: TInput,
+  input: {} extends TInput ? void | TInput : TInput,
   opts?: UseQueryOptionsForUseQueries<TOutput, TInput, TError>,
-) => UseQueryOptionsForUseQueries<TOutput, TError, TOutput, TKey>
+) => UseQueryOptions<TOutput, TError, TOutput, TKey>
 
 /**
  * @internal
@@ -80,14 +81,40 @@ type UseQueriesProxyArgs = [InferRouteOptions, (Partial<QueryOptions> & EdenUseQ
 
 export function createUseQueriesProxy<T extends AnyElysia = AnyElysia>(
   client: EdenClient<T>,
-  paths: string[] = [],
+  originalPaths: string[] = [],
 ): EdenUseQueriesProxy<T> {
   const useQueriesProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
-      const nextPaths = path === 'index' ? [...paths] : [...paths, path]
+      const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
       return createUseQueriesProxy(client, nextPaths)
     },
     apply: (_target, _thisArg, args: UseQueriesProxyArgs) => {
+      const paths = [...originalPaths]
+
+      /**
+       * This may be the method, or part of a route.
+       *
+       * e.g. since invalidations can be partial and not include it.
+       *
+       * @example
+       *
+       * Let there be a GET endpoint at /api/hello/world
+       *
+       * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
+       *
+       * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
+       *
+       * In the GET request, the last item is the method and can be safely popped.
+       * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
+       */
+      let method = paths[paths.length - 1]
+
+      const methodIsHttpMethod = isHttpMethod(method)
+
+      if (methodIsHttpMethod) {
+        paths.pop()
+      }
+
       const path = '/' + paths.join('/')
 
       const options = args[0]
@@ -97,7 +124,7 @@ export function createUseQueriesProxy<T extends AnyElysia = AnyElysia>(
       const resolvedParams: EdenRequestParams = { path, options, ...eden }
 
       const queryOptions: QueryOptions = {
-        queryKey: getQueryKey(paths, options, 'query'),
+        queryKey: getQueryKey(originalPaths, options, 'query'),
         queryFn: async (_context) => {
           const result = await client.query(resolvedParams)
 

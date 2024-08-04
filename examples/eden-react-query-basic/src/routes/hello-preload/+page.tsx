@@ -20,18 +20,22 @@ export default function Page() {
   const hello = eden.api.index.get.useQuery({})
   return (
     <main>
-      {hello.isLoading ? (
-        <p>Loading...</p>
-      ) : hello.isError ? (
-        <p>Error: {hello.error.message}</p>
-      ) : (
-        <p>
-          <b>Data: </b>
-          <span>{hello.data}</span>
-        </p>
-      )}
+      <h1>Preload</h1>
 
       <p>Since this page's query has been preloaded, a "loading" message should never be seen.</p>
+
+      <div>
+        {hello.isLoading ? (
+          <p>Loading...</p>
+        ) : hello.isError ? (
+          <p>Error: {hello.error.message}</p>
+        ) : (
+          <p>
+            <b>Data: </b>
+            <span>{hello.data}</span>
+          </p>
+        )}
+      </div>
     </main>
   )
 }

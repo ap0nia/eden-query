@@ -1,17 +1,17 @@
 import { eden } from '../../lib/eden'
 
 export default function Page() {
-  const hello = eden.api.index.get.useQuery({})
-
-  const bye = eden.api.bye.get.useQuery({})
+  const [hello, bye] = eden.useQueries((e) => {
+    return [e.api.index.get(), e.api.bye.get()]
+  })
 
   return (
     <main>
-      <h1>Batch</h1>
+      <h1>Use Queries</h1>
 
       <p>
-        Because two queries are launched concurrently, the request is actually made to a /batch
-        endpoint.
+        The two queries should be fetched concurrently like the batch example. But this time using
+        the useQueries API.
       </p>
 
       <div>

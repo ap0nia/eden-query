@@ -12,6 +12,7 @@ import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-pre
 import InfinitePage from './routes/infinite/+page'
 import MutationPage from './routes/mutation/+page'
 import ReactiveInputPage from './routes/reactive-input/+page'
+import UseQueriesPage from './routes/use-queries/+page'
 
 export function App() {
   const [queryClient] = useState(() => new QueryClient())
@@ -74,6 +75,9 @@ export function App() {
                   <li>
                     <Link to="/infinite">infinite</Link>
                   </li>
+                  <li>
+                    <Link to="/use-queries">use-queries</Link>
+                  </li>
                 </ul>
               </nav>
             </header>
@@ -110,6 +114,10 @@ export function App() {
           {
             path: '/infinite',
             element: <InfinitePage />,
+          },
+          {
+            path: '/use-queries',
+            element: <UseQueriesPage />,
           },
         ],
       },

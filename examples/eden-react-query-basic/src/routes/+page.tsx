@@ -5,16 +5,20 @@ export default function Page() {
 
   return (
     <main>
-      {hello.isLoading ? (
-        <p>Loading...</p>
-      ) : hello.isError ? (
-        <p>Error: {hello.error.message}</p>
-      ) : (
-        <p>
-          <b>Data: </b>
-          <span>{hello.data}</span>
-        </p>
-      )}
+      <h1>Home</h1>
+
+      <div>
+        {hello.isLoading ? (
+          <p>Loading...</p>
+        ) : hello.isError ? (
+          <p>Error: {hello.error.message}</p>
+        ) : (
+          <p>
+            <b>Data: </b>
+            <span>{hello.data}</span>
+          </p>
+        )}
+      </div>
     </main>
   )
 }
