@@ -6,6 +6,7 @@ import SuperJSON from 'superjson'
 
 import { eden } from './lib/eden'
 import HomePage from './routes/+page'
+import AbortPage from './routes/abort/+page'
 import BatchPage from './routes/batch/+page'
 import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
 import MutationPage from './routes/mutation/+page'
@@ -92,6 +93,10 @@ export function App() {
           {
             path: '/mutation',
             element: <MutationPage />,
+          },
+          {
+            path: '/abort',
+            element: <AbortPage />,
           },
         ],
       },

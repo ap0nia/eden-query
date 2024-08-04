@@ -6,7 +6,7 @@ import {
 
 import type { App as ElysiaApp } from '../../server'
 
-export const eden = createEdenTreatyReactQuery<ElysiaApp>()
+export const eden = createEdenTreatyReactQuery<ElysiaApp>({ abortOnUnmount: true })
 
 // export type InferInput = InferTreatyQueryInput<App>
 //
