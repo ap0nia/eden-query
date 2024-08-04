@@ -7,6 +7,8 @@
 </script>
 
 <main>
+  <h1>Batch</h1>
+
   <p>
     Because two queries are launched concurrently, the request is actually made to a /batch
     endpoint.

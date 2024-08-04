@@ -5,6 +5,8 @@
 </script>
 
 <main>
+  <h1>SSR</h1>
+
   <div>
     {#if $hello.isLoading}
       <h1>loading...</h1>

@@ -5,6 +5,8 @@
 </script>
 
 <main>
+  <h1>Preload</h1>
+
   <div>
     {#if $hello.isLoading}
       <p>loading...</p>

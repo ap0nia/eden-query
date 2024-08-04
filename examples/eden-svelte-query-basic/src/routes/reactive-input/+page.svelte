@@ -14,7 +14,9 @@
 </script>
 
 <main>
-  <h1>Matching Names</h1>
+  <h1>Reactive Input</h1>
+
+  <p>Matching Names</p>
 
   <p>The developer can optimize this reactive input by using debounce...</p>
 

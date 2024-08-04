@@ -9,6 +9,8 @@
 </script>
 
 <main>
+  <h1>Abort</h1>
+
   <button on:click|preventDefault={toggle}>Toggle Component</button>
 
   <p>
