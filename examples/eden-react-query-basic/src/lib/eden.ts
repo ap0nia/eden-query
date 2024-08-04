@@ -1,13 +1,13 @@
 import {
   createEdenTreatyReactQuery,
-  // type InferTreatyQueryInput,
-  // type InferTreatyQueryOutput,
+  type InferTreatyQueryInput,
+  type InferTreatyQueryOutput,
 } from '@elysiajs/eden-react-query'
 
-import type { App as ElysiaApp } from '../../server'
+import type { App } from '../../server'
 
-export const eden = createEdenTreatyReactQuery<ElysiaApp>({ abortOnUnmount: true })
+export const eden = createEdenTreatyReactQuery<App>({ abortOnUnmount: true })
 
-// export type InferInput = InferTreatyQueryInput<App>
-//
-// export type InferOutput = InferTreatyQueryOutput<App>
+export type InferInput = InferTreatyQueryInput<App>
+
+export type InferOutput = InferTreatyQueryOutput<App>

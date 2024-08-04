@@ -10,6 +10,7 @@ import AbortPage from './routes/abort/+page'
 import BatchPage from './routes/batch/+page'
 import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
 import MutationPage from './routes/mutation/+page'
+import ReactiveInputPage from './routes/reactive-input/+page'
 
 export function App() {
   const [queryClient] = useState(() => new QueryClient())
@@ -97,6 +98,10 @@ export function App() {
           {
             path: '/abort',
             element: <AbortPage />,
+          },
+          {
+            path: '/reactive-input',
+            element: <ReactiveInputPage />,
           },
         ],
       },

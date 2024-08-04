@@ -531,6 +531,11 @@ export function createRootHooks<
       const params: EdenRequestParams = {
         ...config,
         ...eden,
+        /**
+         * "options" property refers to input options like "query", "headers", "params".
+         * @todo: maybe rename to "input" so it's less confusing.
+         */
+        options: input,
         path,
         fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
       }
@@ -636,6 +641,11 @@ export function createRootHooks<
     const params: EdenRequestParams = {
       ...config,
       ...eden,
+      /**
+       * "options" property refers to input options like "query", "headers", "params".
+       * @todo: maybe rename to "input" so it's less confusing.
+       */
+      options: input,
       path,
       fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
     }
@@ -881,6 +891,8 @@ export function createRootHooks<
     const params: EdenRequestParams = {
       ...config,
       ...eden,
+      options: input,
+      path,
       fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
     }
 
@@ -894,11 +906,21 @@ export function createRootHooks<
       queryOptions.queryFn = input
     } else {
       queryOptions.queryFn = async (queryFunctionContext) => {
-        const resolvedParams = { ...params }
+        const resolvedParams = { ...params, options: { ...input } }
 
         if (shouldAbortOnUnmount) {
           resolvedParams.fetch = { ...resolvedParams.fetch }
           resolvedParams.fetch.signal = queryFunctionContext.signal
+        }
+
+        // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
+        // in the route params or query.
+        // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
+
+        if (resolvedParams.options.query) {
+          ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
+        } else if (resolvedParams.options.params) {
+          ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
         }
 
         const result = await client.query(resolvedParams)
@@ -969,6 +991,8 @@ export function createRootHooks<
     const params: EdenRequestParams = {
       ...config,
       ...eden,
+      path,
+      options: input,
       fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
     }
 
@@ -977,11 +1001,21 @@ export function createRootHooks<
       initialPageParam: options.initialCursor ?? null,
       queryKey,
       queryFn: async (queryFunctionContext) => {
-        const resolvedParams = { ...params }
+        const resolvedParams = { ...params, options: { ...input } }
 
         if (shouldAbortOnUnmount) {
           resolvedParams.fetch = { ...resolvedParams.fetch }
           resolvedParams.fetch.signal = queryFunctionContext.signal
+        }
+
+        // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
+        // in the route params or query.
+        // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
+
+        if (resolvedParams.options.query) {
+          ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
+        } else if (resolvedParams.options.params) {
+          ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
         }
 
         const result = await context.client.query(resolvedParams)
@@ -1188,4 +1222,66 @@ export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContex
   })
 
   return edenTreatyReactQuery as any
+}
+
+import type { InferRouteBody, InferRouteOptions, InferRouteOutput } from '@elysiajs/eden'
+import type { HttpQueryMethod } from '@elysiajs/eden/http.ts'
+import type { RouteSchema } from 'elysia'
+
+export type InferTreatyQueryIO<T extends AnyElysia> = T extends {
+  _routes: infer TSchema extends Record<string, any>
+}
+  ? InferTreatyQueryIOMapping<TSchema>
+  : 'Please install Elysia before using Eden'
+
+export type InferTreatyQueryIOMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? {
+        input: K extends HttpQueryMethod
+          ? InferRouteOptions<TSchema[K], Extract<K, string>>
+          : [
+              InferRouteBody<TSchema[K], Extract<K, string>>,
+              InferRouteOptions<TSchema[K], Extract<K, string>>,
+            ]
+        output: InferRouteOutput<TSchema[K]>
+      }
+    : InferTreatyQueryIOMapping<TSchema[K], [...TPath, K]>
+}
+
+export type InferTreatyQueryInput<T extends AnyElysia> = T extends {
+  _routes: infer TSchema extends Record<string, any>
+}
+  ? InferTreatyQueryInputMapping<TSchema>
+  : 'Please install Elysia before using Eden'
+
+export type InferTreatyQueryInputMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? K extends HttpQueryMethod
+      ? InferRouteOptions<TSchema[K], Extract<K, string>>
+      : [
+          InferRouteBody<TSchema[K], Extract<K, string>>,
+          InferRouteOptions<TSchema[K], Extract<K, string>>,
+        ]
+    : InferTreatyQueryInputMapping<TSchema[K], [...TPath, K]>
+}
+
+export type InferTreatyQueryOutput<T extends AnyElysia> = T extends {
+  _routes: infer TSchema extends Record<string, any>
+}
+  ? InferTreatyQueryOutputMapping<TSchema>
+  : 'Please install Elysia before using Eden'
+
+export type InferTreatyQueryOutputMapping<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+> = {
+  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+    ? InferRouteOutput<TSchema[K]>
+    : InferTreatyQueryOutputMapping<TSchema[K], [...TPath, K]>
 }
