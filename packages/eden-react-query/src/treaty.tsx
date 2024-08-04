@@ -917,10 +917,12 @@ export function createRootHooks<
         // in the route params or query.
         // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
 
-        if (resolvedParams.options.query) {
-          ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
-        } else if (resolvedParams.options.params) {
-          ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
+        if (queryFunctionContext.pageParam != null) {
+          if (resolvedParams.options.query) {
+            ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
+          } else if (resolvedParams.options.params) {
+            ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
+          }
         }
 
         const result = await client.query(resolvedParams)
@@ -1012,10 +1014,12 @@ export function createRootHooks<
         // in the route params or query.
         // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
 
-        if (resolvedParams.options.query) {
-          ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
-        } else if (resolvedParams.options.params) {
-          ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
+        if (queryFunctionContext.pageParam != null) {
+          if (resolvedParams.options.query) {
+            ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
+          } else if (resolvedParams.options.params) {
+            ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
+          }
         }
 
         const result = await context.client.query(resolvedParams)

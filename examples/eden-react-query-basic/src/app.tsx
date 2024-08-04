@@ -9,6 +9,7 @@ import HomePage from './routes/+page'
 import AbortPage from './routes/abort/+page'
 import BatchPage from './routes/batch/+page'
 import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
+import InfinitePage from './routes/infinite/+page'
 import MutationPage from './routes/mutation/+page'
 import ReactiveInputPage from './routes/reactive-input/+page'
 
@@ -70,6 +71,9 @@ export function App() {
                   <li>
                     <Link to="/abort">abort</Link>
                   </li>
+                  <li>
+                    <Link to="/infinite">infinite</Link>
+                  </li>
                 </ul>
               </nav>
             </header>
@@ -102,6 +106,10 @@ export function App() {
           {
             path: '/reactive-input',
             element: <ReactiveInputPage />,
+          },
+          {
+            path: '/infinite',
+            element: <InfinitePage />,
           },
         ],
       },

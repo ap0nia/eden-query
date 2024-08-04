@@ -19,6 +19,13 @@ const names = [
   'Pardofelis',
 ]
 
+export const pages = [
+  [1, 2, 3],
+  [4, 5, 6],
+  [7, 8, 9],
+  [10, 11, 12],
+]
+
 type Todo = {
   id: string
   completed: boolean
@@ -92,6 +99,17 @@ const rootController = new Elysia()
     },
     {
       body: t.String(),
+    },
+  )
+  .get(
+    '/pages',
+    (context) => {
+      return pages[context.query.cursor ?? 0]
+    },
+    {
+      query: t.Object({
+        cursor: t.Optional(t.Number()),
+      }),
     },
   )
 
