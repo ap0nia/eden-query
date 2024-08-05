@@ -38,7 +38,9 @@ export type ParsedPathAndMethod = {
  *
  * const method = 'get'
  */
-export function parsePathsAndMethod(originalPaths: string[]): ParsedPathAndMethod {
+export function parsePathsAndMethod(
+  originalPaths: string[] | readonly string[],
+): ParsedPathAndMethod {
   /**
    * Don't mutate the original array.
    */

@@ -24,6 +24,10 @@ export type EdenClientOptions<T extends AnyElysia> = {
   links: EdenLink<T>[]
 }
 
+export type EdenCreateClient<T extends AnyElysia = AnyElysia> = (
+  options: EdenClientOptions<T>,
+) => EdenClient<T>
+
 /**
  * TODO: placeholder for TRPCClientError<TInferrable>.
  */

@@ -18,7 +18,7 @@ import type { RouteSchema } from 'elysia'
 import type { DistributiveOmit } from '../../utils/types'
 import { parsePathsAndMethod } from '../internal/helpers'
 import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
-import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
+import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 import { getQueryKey } from '../internal/query-key'
 import type { EdenQueryRequestOptions } from '../internal/query-request-options'
 
@@ -40,11 +40,13 @@ export type EdenDefinedUseQueryOptions<
     initialData: InitialDataFunction<TQueryOptsData> | TQueryOptsData
   }
 
-export type EdenUseQueryResult<TData, TError> = UseQueryResult<TData, TError> &
-  EdenQueryHookExtension
+export type EdenUseQueryResult<TData, TError> = WithEdenQueryExtension<
+  UseQueryResult<TData, TError>
+>
 
-export type EdenDefinedUseQueryResult<TData, TError> = DefinedUseQueryResult<TData, TError> &
-  EdenQueryHookExtension
+export type EdenDefinedUseQueryResult<TData, TError> = WithEdenQueryExtension<
+  DefinedUseQueryResult<TData, TError>
+>
 
 export interface EdenUseQuery<
   TRoute extends RouteSchema,

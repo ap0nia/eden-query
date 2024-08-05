@@ -17,7 +17,7 @@ import type { RouteSchema } from 'elysia'
 
 import type { Override } from '../../utils/types'
 import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
-import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
+import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
 export type EdenUseMutationOptions<
   TInput,
@@ -27,7 +27,7 @@ export type EdenUseMutationOptions<
 > = UseMutationOptions<TOutput, TError, TInput, TContext> & EdenUseQueryBaseOptions
 
 export type EdenUseMutationResult<TData, TError, TVariables, TContext, TInput> =
-  EdenQueryHookExtension &
+  WithEdenQueryExtension<
     Override<
       UseBaseMutationResult<TData, TError, TVariables, TContext>,
       {
@@ -35,6 +35,7 @@ export type EdenUseMutationResult<TData, TError, TVariables, TContext, TInput> =
         mutate: EdenMutationFunction<TData, TError, TVariables, TInput>
       }
     >
+  >
 
 export type EdenUseMutation<
   TRoute extends RouteSchema,

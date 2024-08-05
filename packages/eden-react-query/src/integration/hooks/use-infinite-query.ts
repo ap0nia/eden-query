@@ -11,7 +11,7 @@ import type { RouteSchema } from 'elysia'
 import type { DistributiveOmit } from '../../utils/types'
 import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
 import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
-import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
+import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
 export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<
@@ -22,14 +22,16 @@ export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   initialCursor?: ExtractCursorType<TInput>
 }
 
-export type EdenUseInfiniteQueryResult<TData, TError, TInput> = EdenQueryHookExtension &
+export type EdenUseInfiniteQueryResult<TData, TError, TInput> = WithEdenQueryExtension<
   UseInfiniteQueryResult<InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>, TError>
+>
 
-export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = EdenQueryHookExtension &
+export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = WithEdenQueryExtension<
   InfiniteQueryObserverSuccessResult<
     InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
     TError
   >
+>
 
 export type EdenUseInfiniteQuery<
   TRoute extends RouteSchema,

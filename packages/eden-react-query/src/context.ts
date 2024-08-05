@@ -68,7 +68,7 @@ export interface EdenCreateReactQueryUtilsOptions<T extends AnyElysia, _TSSRCont
 /**
  * @internal
  */
-export interface EdenQueryUtils<TRouter extends AnyElysia> {
+export type EdenQueryUtils<TRouter extends AnyElysia> = {
   /**
    * @link https://tanstack.com/query/v5/docs/reference/QueryClient#queryclientfetchquery
    */
@@ -237,14 +237,6 @@ export interface EdenContextPropsBase<TElysia extends AnyElysia, TSSRContext> {
   abortOnUnmount?: boolean
 }
 
-export interface EdenContextProps<TRouter extends AnyElysia, TSSRContext>
-  extends EdenContextPropsBase<TRouter, TSSRContext> {
-  /**
-   * The react-query `QueryClient`
-   */
-  queryClient: QueryClient
-}
-
 export interface EdenProviderProps<TRouter extends AnyElysia, TSSRContext>
   extends EdenContextProps<TRouter, TSSRContext> {
   children: React.ReactNode
@@ -253,13 +245,6 @@ export interface EdenProviderProps<TRouter extends AnyElysia, TSSRContext>
 export type EdenProvider<TRouter extends AnyElysia, TSSRContext> = (
   props: EdenProviderProps<TRouter, TSSRContext>,
 ) => JSX.Element
-
-/**
- * @internal
- */
-export interface EdenContextState<TRouter extends AnyElysia, TSSRContext = undefined>
-  extends Required<EdenContextProps<TRouter, TSSRContext>>,
-    EdenQueryUtils<TRouter> {}
 
 export const contextProps: (keyof EdenContextPropsBase<any, any>)[] = [
   'client',
@@ -832,3 +817,18 @@ export function createUtilityFunctions<T extends AnyElysia>(
     },
   }
 }
+
+export type EdenContextProps<TRouter extends AnyElysia, TSSRContext> = EdenContextPropsBase<
+  TRouter,
+  TSSRContext
+> & {
+  /**
+   * The react-query `QueryClient`
+   */
+  queryClient: QueryClient
+}
+
+export type EdenContextState<TRouter extends AnyElysia, TSSRContext = undefined> = Required<
+  EdenContextProps<TRouter, TSSRContext>
+> &
+  EdenQueryUtils<TRouter>

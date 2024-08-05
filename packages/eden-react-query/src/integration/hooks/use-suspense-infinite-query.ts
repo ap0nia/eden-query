@@ -7,7 +7,7 @@ import type {
 import type { DistributiveOmit } from '../../utils/types'
 import type { ExtractCursorType } from '../internal/infinite-query'
 import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
-import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
+import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
 export interface EdenUseSuspenseInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<
@@ -30,9 +30,10 @@ export interface EdenUseSuspenseInfiniteQueryOptions<TInput, TOutput, TError>
  */
 export type EdenUseSuspenseInfiniteQueryResult<TData, TError, TInput> = [
   InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
-  UseSuspenseInfiniteQueryResult<
-    InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
-    TError
-  > &
-    EdenQueryHookExtension,
+  WithEdenQueryExtension<
+    UseSuspenseInfiniteQueryResult<
+      InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+      TError
+    >
+  >,
 ]

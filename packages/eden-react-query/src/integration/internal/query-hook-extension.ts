@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 /**
  * Additional properties appended to react-query hooks by the library.
  *
@@ -9,16 +11,17 @@
  *
  * const edenPath = hello.eden.path
  */
-export type EdenQueryHookExtension = {
+export type WithEdenQueryExtension<T = {}> = T & {
   /**
+   * Additional object appended by eden-query.
    */
-  eden: EdenQueryHookExtensionImplementation
+  eden: EdenExtendedQueryHooks
 }
 
 /**
- * The actual top-level properties.
+ * Additional hooks added to the original react-query hook result.
  */
-export type EdenQueryHookExtensionImplementation = {
+export type EdenExtendedQueryHooks = {
   /**
    * The path used to make the request.
    *
@@ -27,4 +30,24 @@ export type EdenQueryHookExtensionImplementation = {
    * '/api/a/index'
    */
   path: string
+}
+
+export type EdenQueryExtensionInput = {
+  path: readonly string[]
+}
+
+export function withEdenQueryExtension<T extends WithEdenQueryExtension>(
+  originalHook: T,
+  input: EdenQueryExtensionInput,
+): T {
+  const path = input.path.join('.')
+
+  const memoizedEden = useMemo(() => {
+    const eden: EdenExtendedQueryHooks = { path }
+    return eden
+  }, [path])
+
+  originalHook.eden = memoizedEden
+
+  return originalHook
 }
