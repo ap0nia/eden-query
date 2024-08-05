@@ -9,7 +9,6 @@ import {
   type InferRouteOutput,
 } from '@elysiajs/eden'
 import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.ts'
-import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
 import {
   type CancelOptions,
   type FetchQueryOptions,
@@ -32,21 +31,13 @@ import {
 import type { AnyElysia, RouteSchema } from 'elysia'
 import * as React from 'react'
 
-import {
-  type EdenMutationKey,
-  type EdenQueryKey as EdenQueryKey,
-  type EdenQueryType,
-  getMutationKey,
-  getQueryKey,
-} from './query-key'
-import type {
-  EdenFetchInfiniteQueryOptions,
-  EdenUseInfiniteQueryOptions,
-  ExtractCursorType,
-  InfiniteCursorKey,
-} from './use-infinite-query'
-import type { EdenUseMutationOptions } from './use-mutation'
-import type { EdenFetchQueryOptions } from './use-query'
+import type { EdenFetchInfiniteQueryOptions } from './integration/hooks/fetch-infinite'
+import type { EdenFetchQueryOptions } from './integration/hooks/fetch-query'
+import type { EdenUseInfiniteQueryOptions } from './integration/hooks/use-infinite-query'
+import type { EdenUseMutationOptions } from './integration/hooks/use-mutation'
+import { parsePathsAndMethod } from './integration/internal/helpers'
+import type { ExtractCursorType, InfiniteCursorKey } from './integration/internal/infinite-query'
+import type { EdenMutationKey, EdenQueryKey, EdenQueryType } from './integration/internal/query-key'
 import type { DeepPartial, Override, ProtectedIntersection } from './utils/types'
 
 export type CreateEdenClient<T extends AnyElysia = AnyElysia> = (
@@ -615,20 +606,26 @@ export function createUtilityFunctions<T extends AnyElysia>(
   const { client, queryClient } = options
 
   return {
-    fetchQuery: async (queryKey, options) => {
-      const path = '/' + queryKey[0].join('/')
+    fetchQuery: async (queryKey, options = {}) => {
+      const { path, method } = parsePathsAndMethod(queryKey[0])
 
-      let input: any = queryKey[1]?.input
+      const { eden, ...queryOptions } = options
 
-      const params: EdenRequestParams = { path, options: input, ...options }
-
-      const queryOptions: FetchQueryOptions<unknown, any, unknown, QueryKey, never> = {
-        ...options,
+      const edenQueryOptions: FetchQueryOptions<unknown, any, unknown, QueryKey, never> = {
+        ...queryOptions,
         queryKey,
         queryFn: async () => {
-          const resolvedParams: EdenRequestParams = { ...params }
+          let options: any = queryKey[1]?.input
 
-          const result = await client.query(resolvedParams)
+          const params: EdenRequestParams = {
+            ...eden,
+            options,
+            path,
+            method,
+            fetcher: eden?.fetcher ?? globalThis.fetch,
+          }
+
+          const result = await client.query(params)
 
           if (result.error != null) {
             throw result.error
@@ -638,7 +635,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
         },
       }
 
-      return await queryClient.fetchQuery(queryOptions)
+      return await queryClient.fetchQuery(edenQueryOptions)
     },
 
     fetchInfiniteQuery: async (queryKey, options) => {
