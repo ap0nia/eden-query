@@ -1,4 +1,5 @@
 import type { EdenRequestOptions } from '@elysiajs/eden'
+import type { QueryClient } from '@tanstack/react-query'
 import type { AnyElysia, MaybePromise } from 'elysia'
 
 /**
@@ -48,7 +49,15 @@ export type EdenQueryOverrides = {
  */
 export type UseMutationOverrides = {
   onSuccess: (opts: {
-    originalFn: () => unknown
+    /**
+     * Calls the original function that was defined in the query's `onSuccess` option
+     */
+    originalFn: () => MaybePromise<unknown>
+
+    queryClient: QueryClient
+    /**
+     * Meta data passed in from the `useMutation()` hook
+     */
     meta: Record<string, unknown>
   }) => MaybePromise<unknown>
 }

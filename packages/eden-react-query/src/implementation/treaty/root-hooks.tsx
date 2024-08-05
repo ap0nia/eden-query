@@ -1,31 +1,99 @@
+import type { EdenClientError, EdenCreateClient, EdenRequestParams } from '@elysiajs/eden'
+import { EdenClient } from '@elysiajs/eden'
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UndefinedInitialDataInfiniteOptions,
+  UseMutationOptions,
+  UseSuspenseInfiniteQueryOptions,
+} from '@tanstack/react-query'
 import {
-  EdenClient,
-  type EdenClientError,
-  type EdenCreateClient,
-  type EdenRequestParams,
-} from '@elysiajs/eden'
-import { skipToken } from '@tanstack/react-query'
+  hashKey,
+  skipToken,
+  useInfiniteQuery as __useInfiniteQuery,
+  useQueries as __useQueries,
+  useQuery as __useQuery,
+  useQueryClient,
+  useSuspenseInfiniteQuery as __useSuspenseInfiniteQuery,
+  useSuspenseQueries as __useSuspenseQueries,
+  useSuspenseQuery as __useSuspenseQuery,
+} from '@tanstack/react-query'
 import type { AnyElysia } from 'elysia'
 import * as React from 'react'
 
-import {
-  createUtilityFunctions,
-  type EdenContextProps,
-  type EdenContextState,
-  type EdenProvider,
-  EdenQueryContext,
-  type SSRState,
-} from '../../context'
+import type { EdenContextProps, EdenContextState, EdenProvider, SSRState } from '../../context'
+import { createUtilityFunctions, EdenQueryContext } from '../../context'
+import type {
+  EdenUseInfiniteQueryOptions,
+  EdenUseInfiniteQueryResult,
+} from '../../integration/hooks/use-infinite-query'
+import type {
+  EdenUseMutationOptions,
+  EdenUseMutationResult,
+  EdenUseMutationVariables,
+} from '../../integration/hooks/use-mutation'
+import { useEdenMutation } from '../../integration/hooks/use-mutation'
 import type { EdenUseQueryOptions, EdenUseQueryResult } from '../../integration/hooks/use-query'
+import type { EdenUseSubscriptionOptions } from '../../integration/hooks/use-subscription'
+import type {
+  EdenUseSuspenseInfiniteQueryOptions,
+  EdenUseSuspenseInfiniteQueryResult,
+} from '../../integration/hooks/use-suspense-infinite-query'
+import type {
+  EdenUseSuspenseQueryOptions,
+  EdenUseSuspenseQueryResult,
+} from '../../integration/hooks/use-suspense-query'
 import { parsePathsAndMethod } from '../../integration/internal/helpers'
-import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
+import { appendEdenQueryExtension } from '../../integration/internal/query-hook-extension'
+import type { EdenQueryKey } from '../../integration/internal/query-key'
+import { getMutationKey, getQueryKey } from '../../integration/internal/query-key'
+import type { EdenQueryRequestOptions } from '../../integration/internal/query-request-options'
 import { isAsyncIterable } from '../../utils/is-async-iterable'
+
+export type CreateEdenTreatyQueryRootHooksConfig<T extends AnyElysia = AnyElysia> =
+  EdenQueryRequestOptions<T> & {
+    /**
+     * Override the default context provider
+     * @default undefined
+     */
+    context?: React.Context<any>
+  }
+
+function isServerQuery(
+  ssrState: SSRState,
+  options: EdenUseQueryOptions<any, any, any> = {},
+  defaultOpts: Partial<QueryObserverOptions>,
+  isInputSkipToken: boolean,
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+): boolean {
+  // Not server.
+  if (typeof window !== 'undefined') return false
+
+  // Invalid SSR state for server.
+  if (ssrState !== 'prepass') return false
+
+  // Did not enable SSR.
+  if (options?.eden?.ssr === false) return false
+
+  // Query is not enabled.
+  if (options?.enabled || defaultOpts?.enabled) return false
+
+  // Skip this query.
+  if (isInputSkipToken) return false
+
+  // Query has already been cached.
+  if (queryClient.getQueryCache().find({ queryKey })) return false
+
+  return true
+}
 
 export function createEdenTreatyQueryRootHooks<
   TElysia extends AnyElysia,
   TSSRContext = unknown,
   TError = EdenClientError<TElysia>,
->(config?: CreateEdenReactQueryOptions<TElysia>) {
+>(config?: CreateEdenTreatyQueryRootHooksConfig<TElysia>) {
   type ProviderContext = EdenContextState<TElysia, TSSRContext>
 
   const Context = (config?.context ?? EdenQueryContext) as React.Context<ProviderContext>
@@ -73,7 +141,7 @@ export function createEdenTreatyQueryRootHooks<
     return <Context.Provider value={contextValue}>{children}</Context.Provider>
   }
 
-  function useContext() {
+  const useContext = () => {
     const context = React.useContext(Context)
 
     if (!context) {
@@ -89,10 +157,10 @@ export function createEdenTreatyQueryRootHooks<
    * Hack to make sure errors return `status`='error` when doing SSR
    * @link https://github.com/trpc/trpc/pull/1645
    */
-  function useSSRQueryOptionsIfNeeded<TOptions extends { retryOnMount?: boolean } | undefined>(
+  const useSSRQueryOptionsIfNeeded = <TOptions extends { retryOnMount?: boolean } | undefined>(
     queryKey: EdenQueryKey,
     options: TOptions,
-  ): TOptions {
+  ): TOptions => {
     const { queryClient, ssrState } = useContext()
 
     const resolvedOptions = { ...options } as NonNullable<TOptions>
@@ -112,11 +180,11 @@ export function createEdenTreatyQueryRootHooks<
     return resolvedOptions
   }
 
-  function useQuery(
+  const useQuery = (
     originalPaths: readonly string[],
     input: any,
     options?: EdenUseQueryOptions<unknown, unknown, TError>,
-  ): EdenUseQueryResult<unknown, TError> {
+  ): EdenUseQueryResult<unknown, TError> => {
     const context = useContext()
 
     const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
@@ -139,8 +207,6 @@ export function createEdenTreatyQueryRootHooks<
 
     const resolvedQueryOptions = { ...queryOptions, queryKey }
 
-    const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
     if (isInputSkipToken) {
       resolvedQueryOptions.queryFn = input
     } else {
@@ -151,10 +217,12 @@ export function createEdenTreatyQueryRootHooks<
           ...config,
           ...eden,
           options,
-          method,
           path,
+          method,
           fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
         }
+
+        const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
         if (shouldForwardSignal) {
           params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
@@ -194,7 +262,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useQuery(resolvedQueryOptions, queryClient) as HookResult
 
-    hook.eden = useHookResult({ path: paths })
+    appendEdenQueryExtension(hook, { path: paths })
 
     return hook
   }
@@ -204,37 +272,13 @@ export function createEdenTreatyQueryRootHooks<
     input: any,
     options?: EdenUseSuspenseQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseQueryResult<unknown, TError> {
-    const paths = [...originalPaths]
-
-    /**
-     * This may be the method, or part of a route.
-     *
-     * e.g. since invalidations can be partial and not include it.
-     *
-     * @example
-     *
-     * Let there be a GET endpoint at /api/hello/world
-     *
-     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
-     *
-     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
-     *
-     * In the GET request, the last item is the method and can be safely popped.
-     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
-     */
-    let method = paths[paths.length - 1]
-
-    const methodIsHttpMethod = isHttpMethod(method)
-
-    if (methodIsHttpMethod) {
-      paths.pop()
-    }
-
-    const queryKey = getQueryKey(paths, input, 'query')
-
     const context = useContext()
 
     const { queryClient, abortOnUnmount } = context
+
+    const { paths, path, method } = parsePathsAndMethod(originalPaths)
+
+    const queryKey = getQueryKey(paths, input, 'query')
 
     const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
@@ -244,38 +288,28 @@ export function createEdenTreatyQueryRootHooks<
 
     const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
-    const path = '/' + paths.join('/')
-
-    const params: EdenRequestParams = {
-      ...config,
-      ...eden,
-      /**
-       * "options" property refers to input options like "query", "headers", "params".
-       * @todo: maybe rename to "input" so it's less confusing.
-       */
-      options: input,
-      path,
-      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-    }
-
-    if (methodIsHttpMethod) {
-      params.method = method
-    }
-
     const resolvedQueryOptions = { ...defaultOptions, ...queryOptions, queryKey }
 
     if (isInputSkipToken) {
       resolvedQueryOptions.queryFn = input
     } else {
-      resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
-        const resolvedParams = { ...params }
+      const options = input
 
-        if (shouldAbortOnUnmount) {
-          resolvedParams.fetch = { ...resolvedParams.fetch }
-          resolvedParams.fetch.signal = queryFunctionContext.signal
+      resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
+        const params: EdenRequestParams = {
+          ...config,
+          ...eden,
+          options,
+          path,
+          method,
+          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
         }
 
-        const result = await context.client.query(resolvedParams)
+        if (shouldAbortOnUnmount) {
+          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
+        }
+
+        const result = await context.client.query(params)
 
         if (result.error != null) {
           throw result.error
@@ -289,7 +323,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useSuspenseQuery(resolvedQueryOptions, queryClient) as HookResult
 
-    hook.eden = useHookResult({ path: paths })
+    appendEdenQueryExtension(hook, { path: paths })
 
     return [hook.data, hook as any]
   }
@@ -297,35 +331,14 @@ export function createEdenTreatyQueryRootHooks<
   function useMutation(
     originalPaths: readonly string[],
     options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
-  ): EdenUseMutationResult<unknown, TError, unknown, unknown> {
-    const paths = [...originalPaths]
+  ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> {
+    const context = useContext()
 
-    /**
-     * This may be the method, or part of a route.
-     *
-     * e.g. since invalidations can be partial and not include it.
-     *
-     * @example
-     *
-     * Let there be a GET endpoint at /api/hello/world
-     *
-     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
-     *
-     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
-     *
-     * In the GET request, the last item is the method and can be safely popped.
-     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
-     */
-    let method = paths[paths.length - 1]
-
-    const methodIsHttpMethod = isHttpMethod(method)
-    if (methodIsHttpMethod) {
-      paths.pop()
-    }
-
-    const { client } = useContext()
+    const { client } = context
 
     const queryClient = useQueryClient()
+
+    const { paths, path, method } = parsePathsAndMethod(originalPaths)
 
     const mutationKey = getMutationKey(paths)
 
@@ -339,15 +352,15 @@ export function createEdenTreatyQueryRootHooks<
       mutationFn: async (variables: any = {}) => {
         const { body, options } = variables as EdenUseMutationVariables
 
-        const path = '/' + paths.join('/')
-
-        const resolvedParams: EdenRequestParams = { path, body, ...options }
-
-        if (methodIsHttpMethod) {
-          resolvedParams.method = method
+        const params: EdenRequestParams = {
+          ...config,
+          options,
+          body,
+          path,
+          method,
         }
 
-        const result = await client.query(resolvedParams)
+        const result = await client.query(params)
 
         if (!('data' in result)) {
           return result
@@ -374,11 +387,11 @@ export function createEdenTreatyQueryRootHooks<
       },
     }
 
-    type HookResult = EdenUseMutationResult<unknown, TError, unknown, unknown>
+    type HookResult = EdenUseMutationResult<any, any, any, any, any>
 
     const hook = useEdenMutation(mutationOptions, queryClient) as HookResult
 
-    hook.eden = useHookResult({ path: paths })
+    appendEdenQueryExtension(hook, { path: paths })
 
     return hook
   }
@@ -441,52 +454,25 @@ export function createEdenTreatyQueryRootHooks<
     input: any,
     options: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> {
-    const paths = [...originalPaths]
-
-    /**
-     * This may be the method, or part of a route.
-     *
-     * e.g. since invalidations can be partial and not include it.
-     *
-     * @example
-     *
-     * Let there be a GET endpoint at /api/hello/world
-     *
-     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
-     *
-     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
-     *
-     * In the GET request, the last item is the method and can be safely popped.
-     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
-     */
-    let method = paths[paths.length - 1]
-
-    if (isHttpMethod(method)) {
-      paths.pop()
-    }
-
-    const path = '/' + paths.join('/')
-
     const context = useContext()
 
     const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = context
+
+    const { paths, path, method } = parsePathsAndMethod(originalPaths)
 
     const queryKey = getQueryKey(path, input, 'infinite')
 
     const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
-    const isInputSkipToken = input === skipToken
-
     const initialQueryOptions = { ...defaultOptions, ...options }
+
+    const isInputSkipToken = input === skipToken
 
     if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
       void prefetchInfiniteQuery(queryKey, initialQueryOptions as any)
     }
 
     const { eden, ...ssrQueryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
-
-    // request option should take priority over global
-    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
 
     type InfiniteQueryOptions = UndefinedInitialDataInfiniteOptions<
       unknown,
@@ -495,14 +481,6 @@ export function createEdenTreatyQueryRootHooks<
       any,
       unknown
     >
-
-    const params: EdenRequestParams = {
-      ...config,
-      ...eden,
-      options: input,
-      path,
-      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-    }
 
     const queryOptions = {
       ...ssrQueryOptions,
@@ -514,11 +492,21 @@ export function createEdenTreatyQueryRootHooks<
       queryOptions.queryFn = input
     } else {
       queryOptions.queryFn = async (queryFunctionContext) => {
-        const resolvedParams = { ...params, options: { ...input } }
+        const options = { ...input }
 
-        if (shouldAbortOnUnmount) {
-          resolvedParams.fetch = { ...resolvedParams.fetch }
-          resolvedParams.fetch.signal = queryFunctionContext.signal
+        const params = {
+          ...config,
+          ...eden,
+          options,
+          path,
+          method,
+          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+        }
+
+        const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+
+        if (shouldForwardSignal) {
+          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
         }
 
         // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
@@ -526,14 +514,14 @@ export function createEdenTreatyQueryRootHooks<
         // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
 
         if (queryFunctionContext.pageParam != null) {
-          if (resolvedParams.options.query) {
-            ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
-          } else if (resolvedParams.options.params) {
-            ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
+          if (params.options.query) {
+            ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
+          } else if (params.options.params) {
+            ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
           }
         }
 
-        const result = await client.query(resolvedParams)
+        const result = await client.query(params)
 
         if (result.error != null) {
           throw result.error
@@ -547,7 +535,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useInfiniteQuery(queryOptions, queryClient) as HookResult
 
-    hook.eden = useHookResult({ path: paths })
+    appendEdenQueryExtension(hook, { path: paths })
 
     return hook
   }
@@ -557,37 +545,13 @@ export function createEdenTreatyQueryRootHooks<
     input: any,
     options: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> {
-    const paths = [...originalPaths]
-
-    /**
-     * This may be the method, or part of a route.
-     *
-     * e.g. since invalidations can be partial and not include it.
-     *
-     * @example
-     *
-     * Let there be a GET endpoint at /api/hello/world
-     *
-     * GET request to /api/hello/world -> paths = ['api', 'hello', 'world', 'get']
-     *
-     * Invalidation request for all routes under /api/hello -> paths = ['api', 'hello']
-     *
-     * In the GET request, the last item is the method and can be safely popped.
-     * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
-     */
-    let method = paths[paths.length - 1]
-
-    if (isHttpMethod(method)) {
-      paths.pop()
-    }
-
-    const path = '/' + paths.join('/')
-
-    const queryKey = getQueryKey(path, input, 'infinite')
-
     const context = useContext()
 
     const { queryClient, abortOnUnmount } = context
+
+    const { paths, path, method } = parsePathsAndMethod(originalPaths)
+
+    const queryKey = getQueryKey(path, input, 'infinite')
 
     const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
@@ -595,27 +559,26 @@ export function createEdenTreatyQueryRootHooks<
 
     const { eden, ...ssrQueryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
 
-    // request option should take priority over global
-    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
-    const params: EdenRequestParams = {
-      ...config,
-      ...eden,
-      path,
-      options: input,
-      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-    }
-
     const queryOptions = {
       ...ssrQueryOptions,
       initialPageParam: options.initialCursor ?? null,
       queryKey,
       queryFn: async (queryFunctionContext) => {
-        const resolvedParams = { ...params, options: { ...input } }
+        const options = { ...input }
 
-        if (shouldAbortOnUnmount) {
-          resolvedParams.fetch = { ...resolvedParams.fetch }
-          resolvedParams.fetch.signal = queryFunctionContext.signal
+        const params = {
+          ...config,
+          ...eden,
+          options,
+          path,
+          method,
+          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+        }
+
+        const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+
+        if (shouldForwardSignal) {
+          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
         }
 
         // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
@@ -623,14 +586,14 @@ export function createEdenTreatyQueryRootHooks<
         // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
 
         if (queryFunctionContext.pageParam != null) {
-          if (resolvedParams.options.query) {
-            ;(resolvedParams.options.query as any)['cursor'] = queryFunctionContext.pageParam
-          } else if (resolvedParams.options.params) {
-            ;(resolvedParams.options.params as any)['cursor'] = queryFunctionContext.pageParam
+          if (params.options.query) {
+            ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
+          } else if (params.options.params) {
+            ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
           }
         }
 
-        const result = await context.client.query(resolvedParams)
+        const result = await context.client.query(params)
 
         if (result.error != null) {
           throw result.error
@@ -644,7 +607,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useSuspenseInfiniteQuery(queryOptions, context.queryClient) as HookResult
 
-    hook.eden = useHookResult({ path: paths })
+    appendEdenQueryExtension(hook, { path: paths })
 
     return [hook.data, hook] as any
   }

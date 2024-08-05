@@ -36,7 +36,7 @@ export type EdenQueryExtensionInput = {
   path: readonly string[]
 }
 
-export function withEdenQueryExtension<T extends WithEdenQueryExtension>(
+export function appendEdenQueryExtension<T extends WithEdenQueryExtension>(
   originalHook: T,
   input: EdenQueryExtensionInput,
 ): T {
