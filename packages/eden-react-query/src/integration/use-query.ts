@@ -21,18 +21,9 @@ import type { RouteSchema } from 'elysia'
 import type { EdenQueryHookExtension } from '../hook'
 import type { DistributiveOmit } from '../utils/types'
 import { parsePathsAndMethod } from './helpers'
+import type { EdenUseQueryBaseOptions } from './query-base-options'
 import { type EdenQueryKey, getQueryKey } from './query-key'
 import type { EdenQueryRequestOptions } from './query-request-options'
-
-/**
- * Additional options for queries.
- */
-export type EdenUseQueryBaseOptions = {
-  /**
-   * eden-related options
-   */
-  eden?: EdenQueryRequestOptions
-}
 
 export type EdenUseQueryOptions<
   TOutput,
@@ -82,11 +73,13 @@ export type EdenFetchQueryOptions<TOutput, TError> = DistributiveOmit<
 > &
   EdenRequestOptions
 
-export interface EdenQueryOptions<TData, TError>
-  extends DistributiveOmit<QueryOptions<TData, TError, TData, any>, 'queryKey'>,
-    EdenUseQueryBaseOptions {
-  queryKey: EdenQueryKey
-}
+export type EdenQueryOptions<TData, TError> = DistributiveOmit<
+  QueryOptions<TData, TError, TData, any>,
+  'queryKey'
+> &
+  EdenUseQueryBaseOptions & {
+    queryKey: EdenQueryKey
+  }
 
 export function useEdenQueryOptions(
   client: EdenClient,
@@ -118,7 +111,9 @@ export function useEdenQueryOptions(
         fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
       }
 
-      if (config?.abortOnUnmount ?? eden?.abortOnUnmount) {
+      const shouldForwardSignal = config?.abortOnUnmount ?? eden?.abortOnUnmount
+
+      if (shouldForwardSignal) {
         params.fetch = { ...params.fetch, signal: context.signal }
       }
 
