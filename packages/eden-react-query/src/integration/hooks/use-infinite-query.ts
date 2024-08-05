@@ -8,10 +8,10 @@ import type {
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryHookExtension } from '../hook'
-import type { DistributiveOmit } from '../utils/types'
+import type { DistributiveOmit } from '../../utils/types'
+import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
+import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
 import type { ExtractCursorType, ReservedInfiniteQueryKeys } from './infinite-query'
-import type { EdenUseQueryBaseOptions } from './query-base-options'
 
 export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<

@@ -15,9 +15,9 @@ import {
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryHookExtension } from '../hook'
-import type { Override } from '../utils/types'
-import type { EdenUseQueryBaseOptions } from './query-base-options'
+import type { Override } from '../../utils/types'
+import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
+import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
 
 export type EdenUseMutationOptions<
   TInput,

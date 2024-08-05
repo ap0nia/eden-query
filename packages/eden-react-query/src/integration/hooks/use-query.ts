@@ -15,12 +15,12 @@ import type {
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
-import type { EdenQueryHookExtension } from '../hook'
-import type { DistributiveOmit } from '../utils/types'
-import { parsePathsAndMethod } from './helpers'
-import type { EdenUseQueryBaseOptions } from './query-base-options'
-import { getQueryKey } from './query-key'
-import type { EdenQueryRequestOptions } from './query-request-options'
+import type { DistributiveOmit } from '../../utils/types'
+import { parsePathsAndMethod } from '../internal/helpers'
+import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
+import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
+import { getQueryKey } from '../internal/query-key'
+import type { EdenQueryRequestOptions } from '../internal/query-request-options'
 
 export type EdenUseQueryOptions<
   TOutput,
