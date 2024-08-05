@@ -236,10 +236,26 @@ export type EdenRequestParams<
   T extends AnyElysia = AnyElysia,
   TRaw extends boolean = false,
 > = EdenRequestOptions<T, TRaw> & {
+  /**
+   */
   domain?: T | string
+
+  /**
+   * Fetch options for a "query" method, i.e. "GET", "HEAD", "OPTIONS".
+   */
   options?: InferRouteOptions
+
+  /**
+   * The request body for "POST", "PATCH", etc. requests.
+   */
   body?: InferRouteBody
+
+  /**
+   */
   path?: string
+
+  /**
+   */
   method?: string
 }
 

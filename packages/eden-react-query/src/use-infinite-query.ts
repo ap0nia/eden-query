@@ -14,7 +14,7 @@ import type {
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
-import type { EdenHookResult } from './hook'
+import type { EdenQueryHookExtension } from './hook'
 import type { EdenQueryKey } from './query-key'
 import type { EdenUseQueryBaseOptions } from './use-query'
 import type { DistributiveOmit } from './utils/types'
@@ -40,13 +40,13 @@ export type ExtractCursorType<T> =
 /**
  * @internal
  */
-export type EdenUseInfiniteQueryResult<TData, TError, TInput> = EdenHookResult &
+export type EdenUseInfiniteQueryResult<TData, TError, TInput> = EdenQueryHookExtension &
   UseInfiniteQueryResult<InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>, TError>
 
 /**
  * @internal
  */
-export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = EdenHookResult &
+export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = EdenQueryHookExtension &
   InfiniteQueryObserverSuccessResult<
     InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
     TError

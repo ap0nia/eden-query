@@ -15,7 +15,7 @@ import {
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
-import type { EdenHookResult } from './hook'
+import type { EdenQueryHookExtension } from './hook'
 import type { EdenQueryRequestOptions } from './request'
 import type { EdenUseQueryBaseOptions } from './use-query'
 import type { Override } from './utils/types'
@@ -27,7 +27,7 @@ export interface EdenUseMutationOptions<TInput, TError, TOutput, TContext = unkn
 /**
  * @internal
  */
-export type EdenUseMutationResult<TData, TError, TVariables, TContext> = EdenHookResult &
+export type EdenUseMutationResult<TData, TError, TVariables, TContext> = EdenQueryHookExtension &
   UseMutationResult<TData, TError, TVariables, TContext>
 
 export type EdenUseMutationVariables = {

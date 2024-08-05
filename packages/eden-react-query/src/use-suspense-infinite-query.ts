@@ -4,7 +4,7 @@ import type {
   UseSuspenseInfiniteQueryResult,
 } from '@tanstack/react-query'
 
-import type { EdenHookResult } from './hook'
+import type { EdenQueryHookExtension } from './hook'
 import type { ExtractCursorType } from './use-infinite-query'
 import type { EdenUseQueryBaseOptions } from './use-query'
 import type { DistributiveOmit } from './utils/types'
@@ -34,5 +34,5 @@ export type EdenUseSuspenseInfiniteQueryResult<TData, TError, TInput> = [
     InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
     TError
   > &
-    EdenHookResult,
+    EdenQueryHookExtension,
 ]
