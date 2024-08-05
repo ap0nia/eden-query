@@ -1,6 +1,5 @@
 import {
   EdenClient,
-  type EdenRequestOptions,
   type EdenRequestParams,
   type InferRouteError,
   type InferRouteOptions,
@@ -8,9 +7,7 @@ import {
 } from '@elysiajs/eden'
 import type {
   DefinedUseQueryResult,
-  FetchQueryOptions,
   InitialDataFunction,
-  QueryOptions,
   SkipToken,
   UndefinedInitialDataOptions,
   UseBaseQueryOptions,
@@ -22,7 +19,7 @@ import type { EdenQueryHookExtension } from '../hook'
 import type { DistributiveOmit } from '../utils/types'
 import { parsePathsAndMethod } from './helpers'
 import type { EdenUseQueryBaseOptions } from './query-base-options'
-import { type EdenQueryKey, getQueryKey } from './query-key'
+import { getQueryKey } from './query-key'
 import type { EdenQueryRequestOptions } from './query-request-options'
 
 export type EdenUseQueryOptions<
@@ -66,20 +63,6 @@ export interface EdenUseQuery<
     options?: EdenUseQueryOptions<TQueryFnData, TData, TError, TOutput>,
   ): EdenUseQueryResult<TData, TError>
 }
-
-export type EdenFetchQueryOptions<TOutput, TError> = DistributiveOmit<
-  FetchQueryOptions<TOutput, TError>,
-  'queryKey'
-> &
-  EdenRequestOptions
-
-export type EdenQueryOptions<TData, TError> = DistributiveOmit<
-  QueryOptions<TData, TError, TData, any>,
-  'queryKey'
-> &
-  EdenUseQueryBaseOptions & {
-    queryKey: EdenQueryKey
-  }
 
 export function useEdenQueryOptions(
   client: EdenClient,
