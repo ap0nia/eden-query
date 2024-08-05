@@ -48,17 +48,14 @@ import { parsePathsAndMethod } from '../../integration/internal/helpers'
 import { appendEdenQueryExtension } from '../../integration/internal/query-hook-extension'
 import type { EdenQueryKey } from '../../integration/internal/query-key'
 import { getMutationKey, getQueryKey } from '../../integration/internal/query-key'
-import type { EdenQueryRequestOptions } from '../../integration/internal/query-request-options'
+import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
+import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
 import { isAsyncIterable } from '../../utils/is-async-iterable'
-
-export type CreateEdenTreatyQueryRootHooksConfig<T extends AnyElysia = AnyElysia> =
-  EdenQueryRequestOptions<T> & {
-    /**
-     * Override the default context provider
-     * @default undefined
-     */
-    context?: React.Context<any>
-  }
+import type { EdenTreatyQueryConfig } from './config'
+import type { EdenTreatyUseQueries } from './use-queries'
+import { createTreatyUseQueriesProxy } from './use-queries'
+import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
+import { createTreatyUseSuspenseQueriesProxy } from './use-suspense-queries'
 
 function isServerQuery(
   ssrState: SSRState,
@@ -93,7 +90,7 @@ export function createEdenTreatyQueryRootHooks<
   TElysia extends AnyElysia,
   TSSRContext = unknown,
   TError = EdenClientError<TElysia>,
->(config?: CreateEdenTreatyQueryRootHooksConfig<TElysia>) {
+>(config?: EdenTreatyQueryConfig<TElysia>) {
   type ProviderContext = EdenContextState<TElysia, TSSRContext>
 
   const Context = (config?.context ?? EdenQueryContext) as React.Context<ProviderContext>
@@ -267,11 +264,11 @@ export function createEdenTreatyQueryRootHooks<
     return hook
   }
 
-  function useSuspenseQuery(
+  const useSuspenseQuery = (
     originalPaths: readonly string[],
     input: any,
     options?: EdenUseSuspenseQueryOptions<unknown, unknown, TError>,
-  ): EdenUseSuspenseQueryResult<unknown, TError> {
+  ): EdenUseSuspenseQueryResult<unknown, TError> => {
     const context = useContext()
 
     const { queryClient, abortOnUnmount } = context
@@ -328,10 +325,10 @@ export function createEdenTreatyQueryRootHooks<
     return [hook.data, hook as any]
   }
 
-  function useMutation(
+  const useMutation = (
     originalPaths: readonly string[],
     options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
-  ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> {
+  ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
     const context = useContext()
 
     const { client } = context
@@ -397,11 +394,11 @@ export function createEdenTreatyQueryRootHooks<
   }
 
   /* istanbul ignore next -- @preserve */
-  function useSubscription(
+  const useSubscription = (
     path: readonly string[],
     input: unknown,
     opts: EdenUseSubscriptionOptions<unknown, TError>,
-  ) {
+  ) => {
     const enabled = opts?.enabled ?? input !== skipToken
 
     const queryKey = hashKey(getQueryKey(path, input as any, 'any'))
@@ -449,11 +446,11 @@ export function createEdenTreatyQueryRootHooks<
     }, [queryKey, enabled])
   }
 
-  function useInfiniteQuery(
+  const useInfiniteQuery = (
     originalPaths: readonly string[],
     input: any,
     options: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
-  ): EdenUseInfiniteQueryResult<unknown, TError, unknown> {
+  ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
     const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = context
@@ -540,11 +537,11 @@ export function createEdenTreatyQueryRootHooks<
     return hook
   }
 
-  function useSuspenseInfiniteQuery(
+  const useSuspenseInfiniteQuery = (
     originalPaths: readonly string[],
     input: any,
     options: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
-  ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> {
+  ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
     const { queryClient, abortOnUnmount } = context
@@ -612,14 +609,14 @@ export function createEdenTreatyQueryRootHooks<
     return [hook.data, hook] as any
   }
 
-  const useQueries: EdenUseQueries<TElysia> = (queriesCallback) => {
+  const useQueries: EdenTreatyUseQueries<TElysia> = (queriesCallback) => {
     const context = useContext()
 
     const { ssrState, queryClient, prefetchQuery, client } = context
 
-    const proxy = createUseQueriesProxy(client)
+    const proxy = createTreatyUseQueriesProxy(client)
 
-    const queries: readonly EdenQueryOptions<any, any>[] = queriesCallback(proxy)
+    const queries: readonly EdenUseQueryOptionsForUseQueries<any, any>[] = queriesCallback(proxy)
 
     // Not SSR.
     if (!(typeof window === 'undefined' && ssrState === 'prepass')) {
@@ -627,26 +624,25 @@ export function createEdenTreatyQueryRootHooks<
     }
 
     for (const query of queries) {
-      const queryOption = query as EdenQueryOptions<any, any>
+      const shouldSsr = query.eden?.ssr !== false
 
-      const shouldSsr = queryOption.eden?.ssr !== false
-
-      if (shouldSsr && !queryClient.getQueryCache().find({ queryKey: queryOption.queryKey })) {
-        void prefetchQuery(queryOption.queryKey, queryOption)
+      if (shouldSsr && !queryClient.getQueryCache().find(query)) {
+        void prefetchQuery(query.queryKey, query)
       }
     }
 
     return __useQueries({ queries }, queryClient)
   }
 
-  const useSuspenseQueries: EdenUseSuspenseQueries<TElysia> = (queriesCallback) => {
+  const useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia> = (queriesCallback) => {
     const context = useContext()
 
     const { queryClient, client } = context
 
-    const proxy = createUseSuspenseQueriesProxy(client)
+    const proxy = createTreatyUseSuspenseQueriesProxy(client)
 
-    const queries: readonly UseSuspenseQueryOptions<any, any>[] = queriesCallback(proxy)
+    const queries: readonly EdenUseQueryOptionsForUseSuspenseQueries<any, any>[] =
+      queriesCallback(proxy)
 
     const hook = __useSuspenseQueries({ queries }, queryClient)
 
