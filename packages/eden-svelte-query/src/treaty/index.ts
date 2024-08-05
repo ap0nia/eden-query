@@ -7,6 +7,7 @@ import { getContext, setContext } from 'svelte'
 
 import { EDEN_CONTEXT_KEY } from '../constants'
 import { createEdenCreateQueriesProxy, type EdenCreateQueries } from '../create-queries'
+import type { EdenQueryOptions } from '../create-query'
 import type { EdenQueryRequestOptions } from '../request'
 import { createContext, type EdenTreatyQueryContext } from './context'
 import { createEdenTreatyQueryProxyRoot, type EdenTreatyQueryHooks } from './hooks'
@@ -78,7 +79,12 @@ export function createTreatyQueryProxy<T extends AnyElysia>(
   const createQueriesProxy = createEdenCreateQueriesProxy<T>(client, config)
 
   const edenCreateQueries: EdenCreateQueries<T> = (callback) => {
-    return createQueries(callback(createQueriesProxy) as any)
+    const queries: readonly EdenQueryOptions<any, any>[] = callback(createQueriesProxy)
+
+    /**
+     * @fixme: specify readonly from the core library...
+     */
+    return createQueries({ queries: queries as any })
   }
 
   const topLevelProperties = {

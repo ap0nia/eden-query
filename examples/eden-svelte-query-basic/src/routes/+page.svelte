@@ -2,6 +2,10 @@
   import { eden } from '$lib/eden'
 
   const hello = eden.api.index.get.createQuery({})
+
+  eden.createQueries(q => {
+    return [q.api.index.get()]
+  })
 </script>
 
 <main>

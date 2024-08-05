@@ -28,10 +28,7 @@ export type EdenCreateQueries<T extends AnyElysia> = <
   TData extends any[],
   TCombinedResult = QueriesResults<TData>,
 >(
-  callback: (t: EdenCreateQueriesProxy<T>) => {
-    queries: StoreOrVal<[...QueriesOptions<TData>]>
-    combine?: (result: QueriesResults<TData>) => TCombinedResult
-  },
+  callback: (t: EdenCreateQueriesProxy<T>) => readonly [...QueriesOptions<TData>],
 ) => Readable<TCombinedResult>
 
 /**
@@ -67,7 +64,7 @@ export type CreateQueriesHook<
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (
-  input: TInput,
+  input: {} extends TInput ? void | TInput : TInput,
   opts?: Partial<EdenCreateQueryOptions<TOutput, TInput, TError>>,
 ) => CreateQueryOptions<TOutput, TError, TOutput, TKey>
 

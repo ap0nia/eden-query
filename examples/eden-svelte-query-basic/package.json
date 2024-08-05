@@ -1,13 +1,12 @@
 {
   "name": "eden-svelte-query-basic",
   "version": "0.0.1",
+  "type": "module",
   "scripts": {
-    "postinstall": "svelte-kit sync",
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview"
   },
-  "type": "module",
   "dependencies": {
     "@elysiajs/eden-svelte-query": "workspace:^",
     "@tanstack/svelte-query": "^5.51.15",

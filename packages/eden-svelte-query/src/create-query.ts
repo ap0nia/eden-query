@@ -11,6 +11,7 @@ import type {
   CreateQueryResult,
   DefinedCreateQueryResult,
   InitialDataFunction,
+  QueryOptions,
   SkipToken,
   StoreOrVal,
   UndefinedInitialDataOptions,
@@ -18,7 +19,7 @@ import type {
 import type { RouteSchema } from 'elysia'
 
 import type { EdenHookResult } from './hook'
-import { getQueryKey } from './query-key'
+import { type EdenQueryKey, getQueryKey } from './query-key'
 import type { EdenQueryRequestOptions } from './request'
 import type { DistributiveOmit } from './utils/types'
 
@@ -150,4 +151,10 @@ export interface EdenCreateQuery<
     input: StoreOrVal<({} extends TInput ? void | TInput : TInput) | SkipToken>,
     options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
   ): EdenCreateQueryResult<TData, TError>
+}
+
+export interface EdenQueryOptions<TData, TError>
+  extends DistributiveOmit<QueryOptions<TData, TError, TData, any>, 'queryKey'>,
+    EdenCreateQueryBaseOptions {
+  queryKey: EdenQueryKey
 }
