@@ -634,6 +634,25 @@ export function createEdenTreatyQueryRootHooks<
     return __useQueries({ queries }, queryClient)
   }
 
+  const createUtils = (props: EdenContextProps<TElysia, TSSRContext>) => {
+    const { abortOnUnmount = false, client, queryClient, ssrContext } = props
+
+    const ssrState = props.ssrState ?? false
+
+    const utilityFunctions = createUtilityFunctions({ client, queryClient })
+
+    const context = {
+      abortOnUnmount,
+      queryClient,
+      client,
+      ssrContext: ssrContext ?? null,
+      ssrState,
+      ...utilityFunctions,
+    }
+
+    return createReactQueryUtils(context)
+  }
+
   const useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia> = (queriesCallback) => {
     const context = useContext()
 
@@ -654,6 +673,7 @@ export function createEdenTreatyQueryRootHooks<
     createClient,
     useContext,
     useUtils: useContext,
+    createUtils,
     createContext,
     useQuery,
     useSuspenseQuery,

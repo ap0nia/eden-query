@@ -1,9 +1,10 @@
 import type { AnyElysia } from 'elysia'
 import { useMemo } from 'react'
 
-import { createUtilityFunctions, type EdenContextProps } from '../../context'
 import type { EdenTreatyQueryConfig } from './config'
 import { createEdenTreatyQueryRootHooks } from './root-hooks'
+
+const useContextAliases = ['useContext', 'useUtils']
 
 export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContext = unknown>(
   config?: EdenTreatyQueryConfig<TElysia>,
@@ -14,34 +15,12 @@ export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContex
 
   const edenTreatyReactQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
-      if (path === 'useContext' || path === 'useUtils') {
-        return (context = rootHooks.useUtils()) => {
-          // create a stable reference of the utils context
-          return useMemo(() => {
-            return createReactQueryUtils(context)
-          }, [context])
+      if (useContextAliases.includes(path)) {
+        const customUseContext = (context = rootHooks.useUtils()) => {
+          // Create and return a stable reference of the utils context.
+          return useMemo(() => createReactQueryUtils(context), [context])
         }
-      }
-
-      if (path === 'createUtils') {
-        return (props: EdenContextProps<TElysia, TSSRContext>) => {
-          const { abortOnUnmount = false, client, queryClient, ssrContext } = props
-
-          const ssrState = props.ssrState ?? false
-
-          const utilityFunctions = createUtilityFunctions({ client, queryClient })
-
-          const context = {
-            abortOnUnmount,
-            queryClient,
-            client,
-            ssrContext: ssrContext ?? null,
-            ssrState,
-            ...utilityFunctions,
-          }
-
-          return createReactQueryUtils(context)
-        }
+        return customUseContext
       }
 
       if (Object.prototype.hasOwnProperty.call(rootHooks, path)) {
