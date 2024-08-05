@@ -685,3 +685,7 @@ export function createEdenTreatyQueryRootHooks<
     useSuspenseInfiniteQuery,
   }
 }
+
+export type EdenTreatyQueryRootHooks<TElysia extends AnyElysia, TSSRContext = unknown> = ReturnType<
+  typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>
+>

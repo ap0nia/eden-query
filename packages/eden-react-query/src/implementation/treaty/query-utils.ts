@@ -217,12 +217,12 @@ export type EdenTreatyQueryUtilsUniversalUtils = {
   ): Promise<void>
 }
 
-export function createTreatyQueryUtils<TRouter extends AnyElysia, TSSRContext>(
+export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   // const clientProxy = createTRPCClientProxy(context.client)
 
-  const proxy = createTreatyQueryUtilsProxy(context)
+  const proxy = createEdenTreatyQueryUtilsProxy(context)
 
   const utils = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
@@ -243,14 +243,14 @@ export function createTreatyQueryUtils<TRouter extends AnyElysia, TSSRContext>(
   return utils as any
 }
 
-export function createTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRContext>(
+export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
   originalPaths: string[] = [],
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
-      return createTreatyQueryUtilsProxy(context, nextPaths)
+      return createEdenTreatyQueryUtilsProxy(context, nextPaths)
     },
     apply: (_target, _thisArg, argArray) => {
       const argsCopy = [...argArray]
