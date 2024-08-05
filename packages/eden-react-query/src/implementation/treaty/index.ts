@@ -8,13 +8,13 @@ import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 import { useMemo } from 'react'
 
+import type { EdenQueryConfig } from '../../config'
 import type { EdenContextProps, EdenContextState, EdenProvider } from '../../context'
 import type { EdenUseInfiniteQuery } from '../../integration/hooks/use-infinite-query'
 import type { EdenUseMutation } from '../../integration/hooks/use-mutation'
 import type { EdenUseQuery } from '../../integration/hooks/use-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
 import type { EdenQueryKey } from '../../integration/internal/query-key'
-import type { EdenTreatyQueryConfig } from './config'
 import { createEdenTreatyQueryUtils, type EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
@@ -135,7 +135,7 @@ export type EdenTreatySubscriptionMapping<
 }
 
 export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = unknown>(
-  config?: EdenTreatyQueryConfig<TElysia>,
+  config?: EdenQueryConfig<TElysia>,
 ): EdenTreatyQuery<TElysia, TSSRContext> {
   const rootHooks = createEdenTreatyQueryRootHooks(config)
 

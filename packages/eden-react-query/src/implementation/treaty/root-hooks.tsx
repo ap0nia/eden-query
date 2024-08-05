@@ -22,6 +22,7 @@ import {
 import type { AnyElysia } from 'elysia'
 import * as React from 'react'
 
+import type { EdenQueryConfig } from '../../config'
 import type { EdenContextProps, EdenContextState, EdenProvider, SSRState } from '../../context'
 import { createUtilityFunctions, EdenQueryContext } from '../../context'
 import type {
@@ -51,7 +52,7 @@ import { getMutationKey, getQueryKey } from '../../integration/internal/query-ke
 import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
 import { isAsyncIterable } from '../../utils/is-async-iterable'
-import type { EdenTreatyQueryConfig } from './config'
+import { createEdenTreatyQueryUtils } from './query-utils'
 import type { EdenTreatyUseQueries } from './use-queries'
 import { createTreatyUseQueriesProxy } from './use-queries'
 import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
@@ -90,7 +91,7 @@ export function createEdenTreatyQueryRootHooks<
   TElysia extends AnyElysia,
   TSSRContext = unknown,
   TError = EdenClientError<TElysia>,
->(config?: EdenTreatyQueryConfig<TElysia>) {
+>(config?: EdenQueryConfig<TElysia>) {
   type ProviderContext = EdenContextState<TElysia, TSSRContext>
 
   const Context = (config?.context ?? EdenQueryContext) as React.Context<ProviderContext>
@@ -639,7 +640,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const ssrState = props.ssrState ?? false
 
-    const utilityFunctions = createUtilityFunctions({ client, queryClient })
+    const utilityFunctions = createUtilityFunctions({ client, queryClient }, config)
 
     const context = {
       abortOnUnmount,
@@ -650,7 +651,7 @@ export function createEdenTreatyQueryRootHooks<
       ...utilityFunctions,
     }
 
-    return createReactQueryUtils(context)
+    return createEdenTreatyQueryUtils(context)
   }
 
   const useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia> = (queriesCallback) => {

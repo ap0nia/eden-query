@@ -14,11 +14,11 @@ import type {
 } from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
+import type { EdenQueryConfig } from '../../config'
 import { parsePathsAndMethod } from '../../integration/internal/helpers'
 import type { EdenUseQueryBaseOptions } from '../../integration/internal/query-base-options'
 import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
 import type { UseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
-import type { EdenTreatyQueryConfig } from './config'
 
 /**
  * A function that accepts a callback that's called with a proxy object.
@@ -73,7 +73,7 @@ type UseQueriesProxyArgs = [InferRouteOptions, (Partial<QueryOptions> & EdenUseQ
 export function createTreatyUseQueriesProxy<T extends AnyElysia = AnyElysia>(
   client: EdenClient<T>,
   originalPaths: string[] = [],
-  config?: EdenTreatyQueryConfig<T>,
+  config?: EdenQueryConfig<T>,
 ): EdenTreatyUseQueriesProxy<T> {
   const useQueriesProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
