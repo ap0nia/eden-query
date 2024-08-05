@@ -100,6 +100,7 @@ const config = tsEslint.config(
     ignores: [
       '**/*.config.js',
       '**/.svelte-kit/**',
+      '**/.vitepress/**',
       '**/build/**',
       '**/cdk.out/**',
       '**/node_modules/**',
