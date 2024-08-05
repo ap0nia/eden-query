@@ -9,9 +9,9 @@ import type {
 import type { RouteSchema } from 'elysia'
 
 import type { DistributiveOmit } from '../../utils/types'
+import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
 import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
 import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
-import type { ExtractCursorType, ReservedInfiniteQueryKeys } from './infinite-query'
 
 export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<

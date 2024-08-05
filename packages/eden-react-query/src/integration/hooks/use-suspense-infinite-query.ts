@@ -1,0 +1,38 @@
+import type {
+  InfiniteData,
+  UseSuspenseInfiniteQueryOptions,
+  UseSuspenseInfiniteQueryResult,
+} from '@tanstack/react-query'
+
+import type { DistributiveOmit } from '../../utils/types'
+import type { ExtractCursorType } from '../internal/infinite-query'
+import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
+import type { EdenQueryHookExtension } from '../internal/query-hook-extension'
+
+export interface EdenUseSuspenseInfiniteQueryOptions<TInput, TOutput, TError>
+  extends DistributiveOmit<
+      UseSuspenseInfiniteQueryOptions<
+        TOutput,
+        TError,
+        TOutput,
+        TOutput,
+        any,
+        ExtractCursorType<TInput>
+      >,
+      'queryKey' | 'initialPageParam'
+    >,
+    EdenUseQueryBaseOptions {
+  initialCursor?: ExtractCursorType<TInput>
+}
+
+/**
+ * @internal
+ */
+export type EdenUseSuspenseInfiniteQueryResult<TData, TError, TInput> = [
+  InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+  UseSuspenseInfiniteQueryResult<
+    InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+    TError
+  > &
+    EdenQueryHookExtension,
+]
