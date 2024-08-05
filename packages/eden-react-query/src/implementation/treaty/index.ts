@@ -164,7 +164,7 @@ export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = u
 
 export function createEdenTreatyQueryProxy<T extends AnyElysia = AnyElysia>(
   rootHooks: EdenTreatyQueryRootHooks<T>,
-  config?: EdenTreatyQueryConfig<T>,
+  config?: EdenQueryConfig<T>,
   paths: string[] = [],
 ) {
   const edenTreatyQueryProxy = new Proxy(() => {}, {
@@ -192,7 +192,6 @@ export function createEdenTreatyQueryProxy<T extends AnyElysia = AnyElysia>(
   return edenTreatyQueryProxy
 }
 
-export * from './config'
 export * from './infer'
 export * from './root-hooks'
 export * from './use-queries'

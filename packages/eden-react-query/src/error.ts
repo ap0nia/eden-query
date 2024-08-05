@@ -1,4 +1,4 @@
-import { AnyElysia } from 'elysia'
+import type { AnyElysia } from 'elysia'
 
 /**
  * @todo

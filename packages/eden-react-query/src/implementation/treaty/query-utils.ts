@@ -38,13 +38,13 @@ import { parsePathsAndMethod } from '../../integration/internal/helpers'
 import type {
   ExtractCursorType,
   InfiniteCursorKey,
+  ReservedInfiniteQueryKeys,
 } from '../../integration/internal/infinite-query'
 import {
   type EdenQueryKey,
   getMutationKey,
   getQueryKey,
 } from '../../integration/internal/query-key'
-import type { ReservedInfiniteQueryKeys } from '../../use-infinite-query'
 import type { DeepPartial, Override, ProtectedIntersection } from '../../utils/types'
 
 export type EdenTreatyQueryUtils<TElysia extends AnyElysia, TSSRContext> = ProtectedIntersection<
