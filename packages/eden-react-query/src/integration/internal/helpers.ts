@@ -74,7 +74,7 @@ export function parsePathsAndMethod(
     paths.pop()
   }
 
-  const path = '/' + paths.join()
+  const path = '/' + paths.join('/')
 
   const result: ParsedPathAndMethod = { paths, path }
 
