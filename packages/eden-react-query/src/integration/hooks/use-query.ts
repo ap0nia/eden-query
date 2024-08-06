@@ -15,6 +15,7 @@ import {
   skipToken,
   type UndefinedInitialDataOptions,
   type UseBaseQueryOptions,
+  type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
@@ -151,13 +152,21 @@ export function isServerQuery(
   return true
 }
 
+export type EdenUseQueryInfo = {
+  paths: string[]
+  path: string
+  method?: string
+  queryOptions: UseQueryOptions
+  queryClient: QueryClient
+}
+
 export function getEdenUseQueryInfo(
   originalPaths: any = [],
   context: EdenContextState<any, any>,
   input?: any,
   options?: EdenUseQueryOptions<unknown, unknown, any>,
   config?: any,
-) {
+): EdenUseQueryInfo {
   const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
 
   const { paths, path, method } = parsePathsAndMethod(originalPaths)
