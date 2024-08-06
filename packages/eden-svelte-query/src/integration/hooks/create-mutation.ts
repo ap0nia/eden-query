@@ -19,14 +19,14 @@ import type { Override } from '../../utils/types'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
-export type EdenUseMutationOptions<
+export type EdenCreateMutationOptions<
   TInput,
   TError,
   TOutput,
   TContext = unknown,
 > = CreateMutationOptions<TOutput, TError, TInput, TContext> & EdenQueryBaseOptions
 
-export type EdenUseMutationResult<TData, TError, TVariables, TContext, TInput> =
+export type EdenCreateMutationResult<TData, TError, TVariables, TContext, TInput> =
   WithEdenQueryExtension<
     Override<
       CreateBaseMutationResult<TData, TError, TVariables, TContext>,
@@ -37,7 +37,7 @@ export type EdenUseMutationResult<TData, TError, TVariables, TContext, TInput> =
     >
   >
 
-export type EdenUseMutation<
+export type EdenCreateMutation<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
   TVariables = InferRouteBody<TRoute>,
@@ -45,8 +45,8 @@ export type EdenUseMutation<
   TData = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = <TContext = unknown>(
-  options?: EdenUseMutationOptions<TVariables, TData, TError, TContext>,
-) => EdenUseMutationResult<TData, TError, TVariables, TContext, TInput>
+  options?: EdenCreateMutationOptions<TVariables, TData, TError, TContext>,
+) => EdenCreateMutationResult<TData, TError, TVariables, TContext, TInput>
 
 export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
   variables: TVariables,
@@ -54,8 +54,9 @@ export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TCon
     ?
         | void
         | (TData &
-            MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>)
-    : TData & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
+            MutateOptions<TData, TError, EdenCreateMutationVariables<TVariables, TInput>, TContext>)
+    : TData &
+        MutateOptions<TData, TError, EdenCreateMutationVariables<TVariables, TInput>, TContext>,
 ) => Promise<TContext>
 
 export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
@@ -64,8 +65,9 @@ export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext 
     ?
         | void
         | (TData &
-            MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>)
-    : TData & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
+            MutateOptions<TData, TError, EdenCreateMutationVariables<TVariables, TInput>, TContext>)
+    : TData &
+        MutateOptions<TData, TError, EdenCreateMutationVariables<TVariables, TInput>, TContext>,
 ) => void
 
 /**
@@ -80,7 +82,7 @@ export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext 
  *
  * This "hack" is needed since the vanilla `useMutation` hook doesn't allow multiple args :(
  */
-export type EdenUseMutationVariables<TBody = any, TOptions = {}> = {
+export type EdenCreateMutationVariables<TBody = any, TOptions = {}> = {
   /**
    * The first argument provided to the `useMutation` hook, i.e. the request body.
    */
@@ -122,11 +124,11 @@ export function useEdenMutation<
   const edenMutation = {
     ...mutation,
     mutate: (body: any, options?: any) => {
-      const variables: EdenUseMutationVariables = { body, options }
+      const variables: EdenCreateMutationVariables = { body, options }
       return mutation.mutate(variables as TVariables, options)
     },
     mutateAsync: async (body: any, options?: any) => {
-      const variables: EdenUseMutationVariables = { body, options }
+      const variables: EdenCreateMutationVariables = { body, options }
       return await mutation.mutateAsync(variables as TVariables, options)
     },
   }

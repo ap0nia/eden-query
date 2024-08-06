@@ -13,7 +13,7 @@ import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/i
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
-export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
+export interface EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<
       CreateInfiniteQueryOptions<TOutput, TError, TOutput, TOutput, any, ExtractCursorType<TInput>>,
       'queryKey' | 'initialPageParam'
@@ -22,21 +22,21 @@ export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   initialCursor?: ExtractCursorType<TInput>
 }
 
-export type EdenUseInfiniteQueryResult<TData, TError, TInput> = WithEdenQueryExtension<
+export type EdenCreateInfiniteQueryResult<TData, TError, TInput> = WithEdenQueryExtension<
   CreateInfiniteQueryResult<
     InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
     TError
   >
 >
 
-export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = WithEdenQueryExtension<
+export type EdenCreateInfiniteQuerySuccessResult<TData, TError, TInput> = WithEdenQueryExtension<
   InfiniteQueryObserverSuccessResult<
     InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
     TError
   >
 >
 
-export type EdenUseInfiniteQuery<
+export type EdenCreateInfiniteQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
@@ -44,5 +44,5 @@ export type EdenUseInfiniteQuery<
   TError = InferRouteError<TRoute>,
 > = (
   input: TInput | SkipToken,
-  options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
-) => EdenUseInfiniteQueryResult<TOutput, TError, TInput>
+  options: EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>,
+) => EdenCreateInfiniteQueryResult<TOutput, TError, TInput>
