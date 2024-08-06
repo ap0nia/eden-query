@@ -6,7 +6,7 @@ import type {
 
 import type { DistributiveOmit } from '../../utils/types'
 import type { ExtractCursorType } from '../internal/infinite-query'
-import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
+import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
 export interface EdenUseSuspenseInfiniteQueryOptions<TInput, TOutput, TError>
@@ -21,7 +21,7 @@ export interface EdenUseSuspenseInfiniteQueryOptions<TInput, TOutput, TError>
       >,
       'queryKey' | 'initialPageParam'
     >,
-    EdenUseQueryBaseOptions {
+    EdenQueryBaseOptions {
   initialCursor?: ExtractCursorType<TInput>
 }
 

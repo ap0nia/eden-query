@@ -1,7 +1,7 @@
 import type { QueryKey, UseQueryOptions } from '@tanstack/react-query'
 
 import type { DistributiveOmit } from '../../utils/types'
-import type { EdenUseQueryBaseOptions } from './query-base-options'
+import type { EdenQueryBaseOptions } from './query-base-options'
 import type { EdenQueryKey } from './query-key'
 
 export type UseQueryOptionsForUseQueries<
@@ -17,6 +17,6 @@ export type EdenUseQueryOptionsForUseQueries<
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
 > = UseQueryOptionsForUseQueries<TQueryFnData, TError, TData, TQueryKey> &
-  EdenUseQueryBaseOptions & {
+  EdenQueryBaseOptions & {
     queryKey: EdenQueryKey
   }

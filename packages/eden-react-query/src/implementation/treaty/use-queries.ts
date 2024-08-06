@@ -16,7 +16,7 @@ import type { AnyElysia, RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../../config'
 import { parsePathsAndMethod } from '../../integration/internal/helpers'
-import type { EdenUseQueryBaseOptions } from '../../integration/internal/query-base-options'
+import type { EdenQueryBaseOptions } from '../../integration/internal/query-base-options'
 import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
 import type { UseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 
@@ -68,7 +68,7 @@ export type EdenTreatyUseQueriesHook<
   opts?: UseQueryOptionsForUseQueries<TOutput, TInput, TError>,
 ) => UseQueryOptions<TOutput, TError, TOutput, TKey>
 
-type UseQueriesProxyArgs = [InferRouteOptions, (Partial<QueryOptions> & EdenUseQueryBaseOptions)?]
+type UseQueriesProxyArgs = [InferRouteOptions, (Partial<QueryOptions> & EdenQueryBaseOptions)?]
 
 export function createTreatyUseQueriesProxy<T extends AnyElysia = AnyElysia>(
   client: EdenClient<T>,

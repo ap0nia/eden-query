@@ -3,7 +3,7 @@ import type { EdenQueryRequestOptions } from './query-request-options'
 /**
  * Additional options for queries.
  */
-export type EdenUseQueryBaseOptions = {
+export type EdenQueryBaseOptions = {
   /**
    * eden-related options
    */

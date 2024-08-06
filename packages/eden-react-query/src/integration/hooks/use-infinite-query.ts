@@ -10,7 +10,7 @@ import type { RouteSchema } from 'elysia'
 
 import type { DistributiveOmit } from '../../utils/types'
 import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
-import type { EdenUseQueryBaseOptions } from '../internal/query-base-options'
+import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 
 export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
@@ -18,7 +18,7 @@ export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
       UseInfiniteQueryOptions<TOutput, TError, TOutput, TOutput, any, ExtractCursorType<TInput>>,
       'queryKey' | 'initialPageParam'
     >,
-    EdenUseQueryBaseOptions {
+    EdenQueryBaseOptions {
   initialCursor?: ExtractCursorType<TInput>
 }
 
