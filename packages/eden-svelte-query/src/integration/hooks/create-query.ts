@@ -1,26 +1,28 @@
-import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@elysiajs/eden'
+import {
+  EdenClient,
+  type EdenRequestParams,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+} from '@elysiajs/eden'
 import type {
   CreateBaseQueryOptions,
   CreateQueryResult,
   DefinedCreateQueryResult,
   InitialDataFunction,
-  QueryOptions,
   SkipToken,
-  StoreOrVal,
+  UndefinedInitialDataOptions,
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 
-/**
- * Additional options for queries.
- */
-export type EdenCreateQueryBaseOptions = {
-  /**
-   * eden-related options
-   */
-  eden?: EdenQueryRequestOptions
-}
+import type { DistributiveOmit } from '../../utils/types'
+import { parsePathsAndMethod } from '../internal/parse-paths-and-method'
+import type { EdenQueryBaseOptions } from '../internal/query-base-options'
+import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
+import { getQueryKey } from '../internal/query-key'
+import type { EdenQueryRequestOptions } from '../internal/query-request-options'
 
-export type EdenCreateQueryOptions<
+export type EdenUseQueryOptions<
   TOutput,
   TData,
   TError,
@@ -29,9 +31,9 @@ export type EdenCreateQueryOptions<
   CreateBaseQueryOptions<TOutput, TError, TData, TQueryOptsData, any>,
   'queryKey'
 > &
-  EdenCreateQueryBaseOptions
+  EdenQueryBaseOptions
 
-export type EdenDefinedCreateQueryOptions<
+export type EdenDefinedUseQueryOptions<
   TOutput,
   TData,
   TError,
@@ -40,16 +42,19 @@ export type EdenDefinedCreateQueryOptions<
   CreateBaseQueryOptions<TOutput, TError, TData, TQueryOptsData, any>,
   'queryKey'
 > &
-  EdenCreateQueryBaseOptions & {
+  EdenQueryBaseOptions & {
     initialData: InitialDataFunction<TQueryOptsData> | TQueryOptsData
   }
 
-export type EdenCreateQueryResult<TData, TError> = CreateQueryResult<TData, TError> & EdenHookResult
+export type EdenUseQueryResult<TData, TError> = WithEdenQueryExtension<
+  CreateQueryResult<TData, TError>
+>
 
-export type EdenDefinedCreateQueryResult<TData, TError> = DefinedCreateQueryResult<TData, TError> &
-  EdenHookResult
+export type EdenDefinedUseQueryResult<TData, TError> = WithEdenQueryExtension<
+  DefinedCreateQueryResult<TData, TError>
+>
 
-export interface EdenCreateQuery<
+export interface EdenUseQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute>,
@@ -57,18 +62,62 @@ export interface EdenCreateQuery<
   TError = InferRouteError<TRoute>,
 > {
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<{} extends TInput ? void | TInput : TInput>,
-    options: StoreOrVal<EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
-  ): EdenDefinedCreateQueryResult<TData, TError>
+    input: {} extends TInput ? void | TInput : TInput,
+    options: EdenDefinedUseQueryOptions<TQueryFnData, TData, TError, TOutput>,
+  ): EdenDefinedUseQueryResult<TData, TError>
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<({} extends TInput ? void | TInput : TInput) | SkipToken>,
-    options?: StoreOrVal<EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>>,
-  ): EdenCreateQueryResult<TData, TError>
+    input: ({} extends TInput ? void | TInput : TInput) | SkipToken,
+    options?: EdenUseQueryOptions<TQueryFnData, TData, TError, TOutput>,
+  ): EdenUseQueryResult<TData, TError>
 }
 
-export interface EdenQueryOptions<TData, TError>
-  extends DistributiveOmit<QueryOptions<TData, TError, TData, any>, 'queryKey'>,
-    EdenCreateQueryBaseOptions {
-  queryKey: EdenQueryKey
+export function useEdenQueryOptions(
+  client: EdenClient,
+  config?: EdenQueryRequestOptions,
+  originalPaths: string[] = [],
+  args: any[] = [],
+): UndefinedInitialDataOptions {
+  const { paths, path, method } = parsePathsAndMethod(originalPaths)
+
+  const { eden, ...queryOptions } = (args[1] ?? {}) as EdenUseQueryOptions<any, any, any>
+
+  /**
+   * @todo rename this to "input"?
+   */
+  const options = args[0] as InferRouteOptions
+
+  /**
+   * Dynamically generate query options based on the information provided by eden-query.
+   */
+  const edenQueryOptions: UndefinedInitialDataOptions = {
+    queryKey: getQueryKey(paths, options, 'query'),
+    queryFn: async (context) => {
+      const params: EdenRequestParams = {
+        ...config,
+        ...eden,
+        path,
+        method,
+        options,
+        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      }
+
+      const shouldForwardSignal = config?.abortOnUnmount ?? eden?.abortOnUnmount
+
+      if (shouldForwardSignal) {
+        params.fetch = { ...params.fetch, signal: context.signal }
+      }
+
+      const result = await client.query(params)
+
+      if (result.error != null) {
+        throw result.error
+      }
+
+      return result.data
+    },
+    ...queryOptions,
+  }
+
+  return edenQueryOptions
 }
