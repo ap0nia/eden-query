@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 /**
  * Additional properties appended to react-query hooks by the library.
  *
@@ -36,18 +34,10 @@ export type EdenQueryExtensionInput = {
   path: readonly string[]
 }
 
-export function appendEdenQueryExtension<T extends WithEdenQueryExtension>(
-  originalHook: T,
-  input: EdenQueryExtensionInput,
-): T {
+export function getEdenQueryExtension(input: EdenQueryExtensionInput): EdenExtendedQueryHooks {
   const path = input.path.join('.')
 
-  const memoizedEden = useMemo(() => {
-    const eden: EdenExtendedQueryHooks = { path }
-    return eden
-  }, [path])
+  const eden: EdenExtendedQueryHooks = { path }
 
-  originalHook.eden = memoizedEden
-
-  return originalHook
+  return eden
 }

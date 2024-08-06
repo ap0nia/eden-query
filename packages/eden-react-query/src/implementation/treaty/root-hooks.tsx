@@ -41,7 +41,7 @@ import type {
   EdenUseSuspenseQueryOptions,
   EdenUseSuspenseQueryResult,
 } from '../../integration/hooks/use-suspense-query'
-import { appendEdenQueryExtension } from '../../integration/internal/query-hook-extension'
+import { getEdenQueryExtension } from '../../integration/internal/query-hook-extension'
 import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
 import { createEdenTreatyQueryUtils } from './query-utils'
@@ -134,7 +134,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useQuery(queryOptions, queryClient) as HookResult
 
-    appendEdenQueryExtension(hook, { path: paths })
+    hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
     return hook
   }
@@ -154,7 +154,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useSuspenseQuery(queryOptions, queryClient) as HookResult
 
-    appendEdenQueryExtension(hook, { path: paths })
+    hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
     return [hook.data, hook as any]
   }
@@ -174,7 +174,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useInfiniteQuery(queryOptions, queryClient) as HookResult
 
-    appendEdenQueryExtension(hook, { path: paths })
+    hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
     return hook
   }
@@ -194,7 +194,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = __useSuspenseInfiniteQuery(queryOptions, queryClient) as HookResult
 
-    appendEdenQueryExtension(hook, { path: paths })
+    hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
     return [hook.data, hook] as any
   }
@@ -252,7 +252,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const hook = useEdenMutation(mutationOptions, queryClient) as HookResult
 
-    appendEdenQueryExtension(hook, { path: paths })
+    hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
     return hook
   }

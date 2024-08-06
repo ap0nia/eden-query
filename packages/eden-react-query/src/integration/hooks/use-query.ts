@@ -21,7 +21,6 @@ import {
 import type { RouteSchema } from 'elysia'
 
 import { type EdenContextState, type SSRState, useSSRQueryOptionsIfNeeded } from '../../context'
-import { isAsyncIterable } from '../../utils/is-async-iterable'
 import type { DistributiveOmit } from '../../utils/types'
 import { parsePathsAndMethod } from '../internal/helpers'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
@@ -219,26 +218,6 @@ export function getEdenUseQueryInfo(
     }
 
     const result = await client.query(params)
-
-    // TODO: how to get async iterable here?
-
-    if (isAsyncIterable(result)) {
-      const queryCache = queryClient.getQueryCache()
-
-      const query = queryCache.build(queryFunctionContext.queryKey, { queryKey })
-
-      query.setState({ data: [], status: 'success' })
-
-      const aggregate: unknown[] = []
-
-      for await (const value of result) {
-        aggregate.push(value)
-
-        query.setState({ data: [...aggregate] })
-      }
-
-      return aggregate
-    }
 
     if (result.error != null) {
       throw result.error
