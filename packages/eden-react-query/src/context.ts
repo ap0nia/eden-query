@@ -28,18 +28,6 @@ import type { EdenFetchQueryOptions } from './integration/hooks/fetch-query'
 import { parsePathsAndMethod } from './integration/internal/helpers'
 import type { EdenMutationKey, EdenQueryKey, EdenQueryType } from './integration/internal/query-key'
 
-export type EdenQueryUtilsOptions<T extends AnyElysia, _TSSRContext = any> = {
-  /**
-   * The `TRPCClient`
-   */
-  client: EdenClient<T>
-
-  /**
-   * The `QueryClient` from `react-query`
-   */
-  queryClient: QueryClient
-}
-
 /**
  * @internal
  */
@@ -278,7 +266,7 @@ export function getQueryType(utilName: string): EdenQueryType {
  * @internal
  */
 export function createUtilityFunctions<T extends AnyElysia>(
-  options: EdenQueryUtilsOptions<T>,
+  options: EdenContextProps<T, any>,
   config?: EdenQueryConfig,
 ): EdenQueryUtils<T> {
   const { client, queryClient } = options

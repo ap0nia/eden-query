@@ -14,6 +14,7 @@ import {
   type QueryClient,
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
+import { derived, type Readable } from 'svelte/store'
 
 import type { Override } from '../../utils/types'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
@@ -28,12 +29,14 @@ export type EdenCreateMutationOptions<
 
 export type EdenCreateMutationResult<TData, TError, TVariables, TContext, TInput> =
   WithEdenQueryExtension<
-    Override<
-      CreateBaseMutationResult<TData, TError, TVariables, TContext>,
-      {
-        mutateAsync: EdenAsyncMutationFunction<TData, TError, TVariables, TInput>
-        mutate: EdenMutationFunction<TData, TError, TVariables, TInput>
-      }
+    Readable<
+      Override<
+        CreateBaseMutationResult<TData, TError, TVariables, TContext>,
+        {
+          mutateAsync: EdenAsyncMutationFunction<TData, TError, TVariables, TInput>
+          mutate: EdenMutationFunction<TData, TError, TVariables, TInput>
+        }
+      >
     >
   >
 
@@ -106,7 +109,7 @@ export type EdenCreateMutationVariables<TBody = any, TOptions = {}> = {
  * passed in and forwarded properly, create custom wrapper around {@link createMutation} that
  * can accept multiple arguments.
  */
-export function useEdenMutation<
+export function createEdenMutation<
   TData = unknown,
   TError = DefaultError,
   TVariables = void,
@@ -121,17 +124,19 @@ export function useEdenMutation<
    * Custom eden-query-useMutation coalesces multiple args into one object for the vanilla
    * `useMutation` hook.
    */
-  const edenMutation = {
-    ...mutation,
-    mutate: (body: any, options?: any) => {
-      const variables: EdenCreateMutationVariables = { body, options }
-      return mutation.mutate(variables as TVariables, options)
-    },
-    mutateAsync: async (body: any, options?: any) => {
-      const variables: EdenCreateMutationVariables = { body, options }
-      return await mutation.mutateAsync(variables as TVariables, options)
-    },
-  }
+  const edenMutation = derived(mutation, ($mutation) => {
+    return {
+      ...$mutation,
+      mutate: (body: any, options?: any) => {
+        const variables: EdenCreateMutationVariables = { body, options }
+        return $mutation.mutate(variables as TVariables, options)
+      },
+      mutateAsync: async (body: any, options?: any) => {
+        const variables: EdenCreateMutationVariables = { body, options }
+        return await $mutation.mutateAsync(variables as TVariables, options)
+      },
+    }
+  })
 
   return edenMutation
 }

@@ -22,7 +22,7 @@ import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 import { getQueryKey } from '../internal/query-key'
 import type { EdenQueryRequestOptions } from '../internal/query-request-options'
 
-export type EdenUseQueryOptions<
+export type EdenCreateQueryOptions<
   TOutput,
   TData,
   TError,
@@ -33,7 +33,7 @@ export type EdenUseQueryOptions<
 > &
   EdenQueryBaseOptions
 
-export type EdenDefinedUseQueryOptions<
+export type EdenDefinedCreateQueryOptions<
   TOutput,
   TData,
   TError,
@@ -46,15 +46,15 @@ export type EdenDefinedUseQueryOptions<
     initialData: InitialDataFunction<TQueryOptsData> | TQueryOptsData
   }
 
-export type EdenUseQueryResult<TData, TError> = WithEdenQueryExtension<
+export type EdenCreateQueryResult<TData, TError> = WithEdenQueryExtension<
   CreateQueryResult<TData, TError>
 >
 
-export type EdenDefinedUseQueryResult<TData, TError> = WithEdenQueryExtension<
+export type EdenDefinedCreateQueryResult<TData, TError> = WithEdenQueryExtension<
   DefinedCreateQueryResult<TData, TError>
 >
 
-export interface EdenUseQuery<
+export interface EdenCreateQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute>,
@@ -63,13 +63,13 @@ export interface EdenUseQuery<
 > {
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
     input: {} extends TInput ? void | TInput : TInput,
-    options: EdenDefinedUseQueryOptions<TQueryFnData, TData, TError, TOutput>,
-  ): EdenDefinedUseQueryResult<TData, TError>
+    options: EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
+  ): EdenDefinedCreateQueryResult<TData, TError>
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
     input: ({} extends TInput ? void | TInput : TInput) | SkipToken,
-    options?: EdenUseQueryOptions<TQueryFnData, TData, TError, TOutput>,
-  ): EdenUseQueryResult<TData, TError>
+    options?: EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
+  ): EdenCreateQueryResult<TData, TError>
 }
 
 export function useEdenQueryOptions(
@@ -80,7 +80,7 @@ export function useEdenQueryOptions(
 ): UndefinedInitialDataOptions {
   const { paths, path, method } = parsePathsAndMethod(originalPaths)
 
-  const { eden, ...queryOptions } = (args[1] ?? {}) as EdenUseQueryOptions<any, any, any>
+  const { eden, ...queryOptions } = (args[1] ?? {}) as EdenCreateQueryOptions<any, any, any>
 
   /**
    * @todo rename this to "input"?

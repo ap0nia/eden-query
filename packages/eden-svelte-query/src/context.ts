@@ -1,6 +1,7 @@
-import type { EdenClient, EdenClientError } from '@elysiajs/eden'
+import type { EdenClient, EdenClientError, EdenRequestParams } from '@elysiajs/eden'
 import type {
   CancelOptions,
+  FetchQueryOptions,
   InfiniteData,
   InvalidateOptions,
   InvalidateQueryFilters,
@@ -16,8 +17,10 @@ import type {
 } from '@tanstack/svelte-query'
 import type { AnyElysia } from 'elysia'
 
+import type { EdenQueryConfig } from './config'
 import type { EdenFetchInfiniteQueryOptions } from './integration/hooks/fetch-infinite'
 import type { EdenFetchQueryOptions } from './integration/hooks/fetch-query'
+import { parsePathsAndMethod } from './integration/internal/parse-paths-and-method'
 import type { EdenMutationKey, EdenQueryKey, EdenQueryType } from './integration/internal/query-key'
 
 export const EDEN_CONTEXT_KEY = Symbol('EDEN_CONTEXT')
@@ -41,7 +44,7 @@ export type EdenContextProps<TRouter extends AnyElysia, TSSRContext> = EdenConte
   TSSRContext
 > & {
   /**
-   * The react-query `QueryClient`
+   * The svelte-query `QueryClient`
    */
   queryClient: QueryClient
 }
@@ -212,4 +215,265 @@ export function getQueryType(utilName: string): EdenQueryType {
   }
 
   return 'any'
+}
+
+/**
+ * Creates a set of utility functions that can be used to interact with `react-query`
+ * @param options the `TRPCClient` and `QueryClient` to use
+ * @returns a set of utility functions that can be used to interact with `react-query`
+ * @internal
+ */
+export function createUtilityFunctions<T extends AnyElysia>(
+  options: EdenContextProps<T, any>,
+  config?: EdenQueryConfig,
+): EdenQueryUtils<T> {
+  const { client, queryClient } = options
+
+  return {
+    fetchQuery: async (queryKey, options = {}) => {
+      const { path, method } = parsePathsAndMethod(queryKey[0])
+
+      const { eden, ...queryOptions } = options
+
+      const edenQueryOptions: FetchQueryOptions<unknown, any, unknown, QueryKey, never> = {
+        ...queryOptions,
+        queryKey,
+        queryFn: async (queryFunctionContext) => {
+          let options: any = queryKey[1]?.input
+
+          const params = {
+            ...config,
+            ...eden,
+            options,
+            path,
+            method,
+            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+          } satisfies EdenRequestParams
+
+          const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount
+
+          if (shouldForwardSignal) {
+            params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
+          }
+
+          const result = await client.query(params)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+      }
+
+      return await queryClient.fetchQuery(edenQueryOptions)
+    },
+
+    fetchInfiniteQuery: async (queryKey, options = {}) => {
+      const { path, method } = parsePathsAndMethod(queryKey[0])
+
+      const { eden, ...queryOptions } = options
+
+      return await queryClient.fetchInfiniteQuery({
+        ...queryOptions,
+        queryKey,
+        queryFn: async (context) => {
+          const options: any = { ...(queryKey[1]?.input ?? {}) }
+
+          const params = {
+            ...config,
+            ...eden,
+            options,
+            path,
+            method,
+            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+          } satisfies EdenRequestParams
+
+          if (context.pageParam != null) {
+            if (params.options.query != null) {
+              ;(params.options.query as any)['cursor'] = context.pageParam
+              ;(params.options.query as any)['direction'] = context.direction
+            }
+
+            if (params.options.params != null) {
+              ;(params.options.params as any)['cursor'] = context.pageParam
+              ;(params.options.params as any)['direction'] = context.direction
+            }
+          }
+
+          const result = await client.query(params)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+        initialPageParam: options?.initialCursor ?? null,
+      })
+    },
+
+    prefetchQuery: async (queryKey, options = {}) => {
+      const { path, method } = parsePathsAndMethod(queryKey[0])
+
+      const { eden, ...queryOptions } = options
+
+      return await queryClient.prefetchQuery({
+        ...queryOptions,
+        queryKey,
+        queryFn: async () => {
+          const options: any = { ...(queryKey[1]?.input ?? {}) }
+
+          const params = {
+            ...config,
+            ...eden,
+            options,
+            path,
+            method,
+            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+          } satisfies EdenRequestParams
+
+          const result = await client.query(params)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+      })
+    },
+
+    prefetchInfiniteQuery: async (queryKey, options = {}) => {
+      const { path, method } = parsePathsAndMethod(queryKey[0])
+
+      const { eden, ...queryOptions } = options
+
+      return await queryClient.prefetchInfiniteQuery({
+        ...queryOptions,
+        queryKey,
+        queryFn: async (queryFunctionContext) => {
+          const options: any = { ...(queryKey[1]?.input ?? {}) }
+
+          const params = {
+            ...config,
+            ...eden,
+            options,
+            path,
+            method,
+            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+          } satisfies EdenRequestParams
+
+          if (queryFunctionContext.pageParam != null) {
+            if (params.options.query != null) {
+              ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
+              ;(params.options.query as any)['direction'] = queryFunctionContext.direction
+            }
+
+            if (params.options.params != null) {
+              ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
+              ;(params.options.params as any)['direction'] = queryFunctionContext.direction
+            }
+          }
+
+          const result = await client.query(params)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+        initialPageParam: options?.initialCursor ?? null,
+      })
+    },
+
+    ensureQueryData: async (queryKey, options = {}) => {
+      const { path, method } = parsePathsAndMethod(queryKey[0])
+
+      const { eden, ...queryOptions } = options
+
+      return await queryClient.ensureQueryData({
+        ...queryOptions,
+        queryKey,
+        queryFn: async () => {
+          let options: any = queryKey[1]?.input
+
+          const params = {
+            ...config,
+            ...eden,
+            options,
+            path,
+            method,
+            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+          } satisfies EdenRequestParams
+
+          const result = await client.query(params)
+
+          if (result.error != null) {
+            throw result.error
+          }
+
+          return result.data
+        },
+      })
+    },
+
+    invalidateQueries: async (queryKey, filters, options) => {
+      return await queryClient.invalidateQueries({ ...filters, queryKey }, options)
+    },
+
+    resetQueries: async (queryKey, filters, options) => {
+      return await queryClient.resetQueries({ ...filters, queryKey }, options)
+    },
+
+    refetchQueries: async (queryKey, filters, options) => {
+      return await queryClient.refetchQueries({ ...filters, queryKey }, options)
+    },
+
+    cancelQuery: async (queryKey, options) => {
+      return await queryClient.cancelQueries({ queryKey }, options)
+    },
+
+    setQueryData: (queryKey, updater, options) => {
+      return queryClient.setQueryData(queryKey, updater as any, options)
+    },
+
+    setQueriesData: (queryKey, filters, updater, options) => {
+      return queryClient.setQueriesData({ ...filters, queryKey }, updater, options)
+    },
+
+    getQueryData: (queryKey) => {
+      return queryClient.getQueryData(queryKey)
+    },
+
+    setInfiniteQueryData: (queryKey, updater, options) => {
+      return queryClient.setQueryData(queryKey, updater as any, options)
+    },
+
+    getInfiniteQueryData: (queryKey) => {
+      return queryClient.getQueryData(queryKey)
+    },
+
+    setMutationDefaults: (mutationKey, options) => {
+      const path = '/' + mutationKey[0].join('/')
+
+      const canonicalMutationFn = async (input: unknown) => {
+        return await client.mutation({ path, body: input })
+      }
+
+      const mutationOptions =
+        typeof options === 'function' ? options({ canonicalMutationFn }) : options
+
+      return queryClient.setMutationDefaults(mutationKey, mutationOptions)
+    },
+
+    getMutationDefaults: (mutationKey) => {
+      return queryClient.getMutationDefaults(mutationKey)
+    },
+
+    isMutating: (filters) => {
+      return queryClient.isMutating({ ...filters, exact: true })
+    },
+  }
 }
