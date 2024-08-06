@@ -58,7 +58,7 @@ export const universalRequester: Requester = (options) => {
     resolveEdenRequest(resolvedParams)
       .then((response) => {
         done = true
-        resolve(response)
+        resolve(response as EdenResponse)
       })
       .catch((err) => {
         done = true
