@@ -177,15 +177,7 @@ export function createEdenTreatyQueryProxy<T extends AnyElysia = AnyElysia>(
 
       const hook = pathsCopy.pop() ?? ''
 
-      if (hook === 'useMutation') {
-        return rootHooks.useMutation(pathsCopy, ...args)
-      }
-
-      const [input, ...rest] = args
-
-      const options = rest[0] || {}
-
-      return (rootHooks as any)[hook](pathsCopy, input, options)
+      return (rootHooks as any)[hook](pathsCopy, ...args)
     },
   })
 

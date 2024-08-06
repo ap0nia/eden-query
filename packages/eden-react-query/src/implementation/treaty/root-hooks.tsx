@@ -162,7 +162,7 @@ export function createEdenTreatyQueryRootHooks<
   const useInfiniteQuery = (
     originalPaths: readonly string[],
     input: any,
-    options: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
+    options?: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
@@ -182,7 +182,7 @@ export function createEdenTreatyQueryRootHooks<
   const useSuspenseInfiniteQuery = (
     originalPaths: readonly string[],
     input: any,
-    options: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
+    options?: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 

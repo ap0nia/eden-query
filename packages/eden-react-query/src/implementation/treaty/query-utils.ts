@@ -255,17 +255,42 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
     apply: (_target, _thisArg, argArray) => {
       const argsCopy = [...argArray]
 
-      const { paths } = parsePathsAndMethod(originalPaths)
+      /**
+       * @example ['api', 'hello', 'get', 'invalidate']
+       */
+      const pathsCopy = [...originalPaths]
 
-      const lastArg = paths.pop() ?? ''
+      /**
+       * @example
+       *
+       * Original array: ['api', 'hello', 'get', 'invalidate']
+       *
+       * Hook: 'invalidate'
+       *
+       * Resulting array: ['api', 'hello', 'get']
+       */
+      const hook = pathsCopy.pop() ?? ''
 
-      const queryType = getQueryType(lastArg)
+      /**
+       * This will trim the method from the {@link pathsCopy} if it still exists.
+       *
+       * @example
+       *
+       * Previous array: ['api', 'hello', 'get']
+       *
+       * Method: 'get'
+       *
+       * Resulting array: ['api', 'hello']
+       */
+      const { paths } = parsePathsAndMethod(pathsCopy)
+
+      const queryType = getQueryType(hook)
 
       const input = argsCopy.shift() // args can now be spread when input removed
 
       const queryKey = getQueryKey(paths, input, queryType)
 
-      switch (lastArg) {
+      switch (hook) {
         case 'fetch': {
           return context.fetchQuery(queryKey, ...argsCopy)
         }
