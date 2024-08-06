@@ -1,17 +1,9 @@
-import type { EdenClientError, EdenCreateClient, EdenRequestParams } from '@elysiajs/eden'
+import type { EdenClientError, EdenCreateClient } from '@elysiajs/eden'
 import { EdenClient } from '@elysiajs/eden'
-import type {
-  UndefinedInitialDataInfiniteOptions,
-  UseMutationOptions,
-  UseSuspenseInfiniteQueryOptions,
-} from '@tanstack/react-query'
 import {
-  hashKey,
-  skipToken,
   useInfiniteQuery as __useInfiniteQuery,
   useQueries as __useQueries,
   useQuery as __useQuery,
-  useQueryClient,
   useSuspenseInfiniteQuery as __useSuspenseInfiniteQuery,
   useSuspenseQueries as __useSuspenseQueries,
   useSuspenseQuery as __useSuspenseQuery,
@@ -22,23 +14,25 @@ import * as React from 'react'
 import type { EdenQueryConfig } from '../../config'
 import type { EdenContextProps, EdenContextState, EdenProvider, SSRState } from '../../context'
 import { createUtilityFunctions, EdenQueryContext } from '../../context'
-import type {
-  EdenUseInfiniteQueryOptions,
-  EdenUseInfiniteQueryResult,
+import {
+  type EdenUseInfiniteQueryOptions,
+  type EdenUseInfiniteQueryResult,
+  getEdenUseInfiniteQueryInfo,
 } from '../../integration/hooks/use-infinite-query'
 import type {
   EdenUseMutationOptions,
   EdenUseMutationResult,
-  EdenUseMutationVariables,
 } from '../../integration/hooks/use-mutation'
-import { useEdenMutation } from '../../integration/hooks/use-mutation'
+import { getEdenUseMutationInfo, useEdenMutation } from '../../integration/hooks/use-mutation'
 import {
   type EdenUseQueryOptions,
   type EdenUseQueryResult,
   getEdenUseQueryInfo,
-  isServerQuery,
 } from '../../integration/hooks/use-query'
-import type { EdenUseSubscriptionOptions } from '../../integration/hooks/use-subscription'
+import {
+  edenUseSubscription,
+  type EdenUseSubscriptionOptions,
+} from '../../integration/hooks/use-subscription'
 import type {
   EdenUseSuspenseInfiniteQueryOptions,
   EdenUseSuspenseInfiniteQueryResult,
@@ -47,10 +41,7 @@ import type {
   EdenUseSuspenseQueryOptions,
   EdenUseSuspenseQueryResult,
 } from '../../integration/hooks/use-suspense-query'
-import { parsePathsAndMethod } from '../../integration/internal/helpers'
 import { appendEdenQueryExtension } from '../../integration/internal/query-hook-extension'
-import type { EdenQueryKey } from '../../integration/internal/query-key'
-import { getMutationKey, getQueryKey } from '../../integration/internal/query-key'
 import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
 import { createEdenTreatyQueryUtils } from './query-utils'
@@ -93,6 +84,11 @@ export function createEdenTreatyQueryRootHooks<
     }
   }
 
+  const createUtils = (props: EdenContextProps<TElysia, TSSRContext>) => {
+    const context = createContext(props)
+    return createEdenTreatyQueryUtils(context)
+  }
+
   const EdenProvider: EdenProvider<TElysia, TSSRContext> = (props) => {
     const { abortOnUnmount = false, client, queryClient, ssrContext, children } = props
 
@@ -123,33 +119,6 @@ export function createEdenTreatyQueryRootHooks<
     return context
   }
 
-  /**
-   * Hack to make sure errors return `status`='error` when doing SSR
-   * @link https://github.com/trpc/trpc/pull/1645
-   */
-  const useSSRQueryOptionsIfNeeded = <TOptions extends { retryOnMount?: boolean } | undefined>(
-    queryKey: EdenQueryKey,
-    options: TOptions,
-  ): TOptions => {
-    const { queryClient, ssrState } = useContext()
-
-    const resolvedOptions = { ...options } as NonNullable<TOptions>
-
-    if (!ssrState || ssrState === 'mounted') {
-      return resolvedOptions
-    }
-
-    const queryCache = queryClient.getQueryCache()
-
-    const query = queryCache.find({ queryKey })
-
-    if (query?.state.status === 'error') {
-      resolvedOptions.retryOnMount = false
-    }
-
-    return resolvedOptions
-  }
-
   const useQuery = (
     originalPaths: readonly string[],
     input: any,
@@ -177,179 +146,17 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseSuspenseQueryResult<unknown, TError> => {
     const context = useContext()
 
-    const { queryClient, abortOnUnmount } = context
+    const info = getEdenUseQueryInfo(originalPaths, context, input, options, config)
 
-    const { paths, path, method } = parsePathsAndMethod(originalPaths)
-
-    const queryKey = getQueryKey(paths, input, 'query')
-
-    const defaultOptions = queryClient.getQueryDefaults(queryKey)
-
-    const isInputSkipToken = input === skipToken
-
-    const { eden, ...queryOptions } = options ?? {}
-
-    const shouldAbortOnUnmount = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
-    const resolvedQueryOptions = { ...defaultOptions, ...queryOptions, queryKey }
-
-    if (isInputSkipToken) {
-      resolvedQueryOptions.queryFn = input
-    } else {
-      const options = input
-
-      resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
-        const params: EdenRequestParams = {
-          ...config,
-          ...eden,
-          options,
-          path,
-          method,
-          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-        }
-
-        if (shouldAbortOnUnmount) {
-          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
-        }
-
-        const result = await context.client.query(params)
-
-        if (result.error != null) {
-          throw result.error
-        }
-
-        return result.data
-      }
-    }
+    const { queryOptions, queryClient, paths } = info
 
     type HookResult = EdenUseQueryResult<any, TError>
 
-    const hook = __useSuspenseQuery(resolvedQueryOptions, queryClient) as HookResult
+    const hook = __useSuspenseQuery(queryOptions, queryClient) as HookResult
 
     appendEdenQueryExtension(hook, { path: paths })
 
     return [hook.data, hook as any]
-  }
-
-  const useMutation = (
-    originalPaths: readonly string[],
-    options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
-  ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
-    const context = useContext()
-
-    const { client } = context
-
-    const queryClient = useQueryClient()
-
-    const { paths, path, method } = parsePathsAndMethod(originalPaths)
-
-    const mutationKey = getMutationKey(paths)
-
-    const mutationDefaults = queryClient.getMutationDefaults(mutationKey)
-
-    const defaultOptions = queryClient.defaultMutationOptions(mutationDefaults)
-
-    const mutationOptions: UseMutationOptions<unknown, TError, unknown, unknown> = {
-      ...options,
-      mutationKey: mutationKey,
-      mutationFn: async (variables: any = {}) => {
-        const { body, options } = variables as EdenUseMutationVariables
-
-        const params: EdenRequestParams = {
-          ...config,
-          options,
-          body,
-          path,
-          method,
-        }
-
-        const result = await client.query(params)
-
-        if (!('data' in result)) {
-          return result
-        }
-
-        if (result.error != null) {
-          throw result.error
-        }
-
-        return result.data
-      },
-      onSuccess: (data, variables, context) => {
-        const onSuccess = options?.onSuccess ?? defaultOptions.onSuccess
-
-        if (config?.overrides?.useMutation?.onSuccess == null) {
-          return onSuccess?.(data, variables, context)
-        }
-
-        const meta: any = options?.meta ?? defaultOptions.meta
-
-        const originalFn = () => onSuccess?.(data, variables, context)
-
-        return config.overrides.useMutation.onSuccess({ meta, originalFn, queryClient })
-      },
-    }
-
-    type HookResult = EdenUseMutationResult<any, any, any, any, any>
-
-    const hook = useEdenMutation(mutationOptions, queryClient) as HookResult
-
-    appendEdenQueryExtension(hook, { path: paths })
-
-    return hook
-  }
-
-  /* istanbul ignore next -- @preserve */
-  const useSubscription = (
-    path: readonly string[],
-    input: unknown,
-    opts: EdenUseSubscriptionOptions<unknown, TError>,
-  ) => {
-    const enabled = opts?.enabled ?? input !== skipToken
-
-    const queryKey = hashKey(getQueryKey(path, input as any, 'any'))
-
-    const { client } = useContext()
-
-    const optsRef = React.useRef<typeof opts>(opts)
-
-    optsRef.current = opts
-
-    React.useEffect(() => {
-      if (!enabled) {
-        return
-      }
-
-      let isStopped = false
-
-      const params: EdenRequestParams<TElysia> = {
-        path: path.join('.'),
-        ...(input ?? {}),
-      }
-
-      const subscription = client.subscription(params, {
-        onStarted: () => {
-          if (!isStopped) {
-            optsRef.current.onStarted?.()
-          }
-        },
-        onData: (data) => {
-          if (!isStopped) {
-            optsRef.current.onData(data)
-          }
-        },
-        onError: (err) => {
-          if (!isStopped) {
-            optsRef.current.onError?.(err)
-          }
-        },
-      })
-
-      return () => {
-        isStopped = true
-        subscription.unsubscribe()
-      }
-    }, [queryKey, enabled])
   }
 
   const useInfiniteQuery = (
@@ -359,80 +166,9 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
-    const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = context
+    const info = getEdenUseInfiniteQueryInfo(originalPaths, context, input, options, config)
 
-    const { paths, path, method } = parsePathsAndMethod(originalPaths)
-
-    const queryKey = getQueryKey(path, input, 'infinite')
-
-    const defaultOptions = queryClient.getQueryDefaults(queryKey)
-
-    const initialQueryOptions = { ...defaultOptions, ...options }
-
-    const isInputSkipToken = input === skipToken
-
-    if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
-      void prefetchInfiniteQuery(queryKey, initialQueryOptions as any)
-    }
-
-    const { eden, ...ssrQueryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
-
-    type InfiniteQueryOptions = UndefinedInitialDataInfiniteOptions<
-      unknown,
-      TError,
-      unknown,
-      any,
-      unknown
-    >
-
-    const queryOptions = {
-      ...ssrQueryOptions,
-      initialPageParam: ssrQueryOptions.initialCursor ?? null,
-      queryKey,
-    } as InfiniteQueryOptions
-
-    if (isInputSkipToken) {
-      queryOptions.queryFn = input
-    } else {
-      queryOptions.queryFn = async (queryFunctionContext) => {
-        const options = { ...input }
-
-        const params = {
-          ...config,
-          ...eden,
-          options,
-          path,
-          method,
-          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-        }
-
-        const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
-        if (shouldForwardSignal) {
-          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
-        }
-
-        // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
-        // in the route params or query.
-        // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
-
-        if (queryFunctionContext.pageParam != null) {
-          if (params.options.query) {
-            ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
-          } else if (params.options.params) {
-            ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
-          }
-        }
-
-        const result = await client.query(params)
-
-        if (result.error != null) {
-          throw result.error
-        }
-
-        return result.data
-      }
-    }
+    const { queryOptions, queryClient, paths } = info
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
@@ -450,65 +186,13 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
-    const { queryClient, abortOnUnmount } = context
+    const info = getEdenUseInfiniteQueryInfo(originalPaths, context, input, options, config)
 
-    const { paths, path, method } = parsePathsAndMethod(originalPaths)
-
-    const queryKey = getQueryKey(path, input, 'infinite')
-
-    const defaultOptions = queryClient.getQueryDefaults(queryKey)
-
-    const initialQueryOptions = { ...defaultOptions, ...options }
-
-    const { eden, ...ssrQueryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
-
-    const queryOptions = {
-      ...ssrQueryOptions,
-      initialPageParam: options.initialCursor ?? null,
-      queryKey,
-      queryFn: async (queryFunctionContext) => {
-        const options = { ...input }
-
-        const params = {
-          ...config,
-          ...eden,
-          options,
-          path,
-          method,
-          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-        }
-
-        const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
-        if (shouldForwardSignal) {
-          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
-        }
-
-        // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
-        // in the route params or query.
-        // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
-
-        if (queryFunctionContext.pageParam != null) {
-          if (params.options.query) {
-            ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
-          } else if (params.options.params) {
-            ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
-          }
-        }
-
-        const result = await context.client.query(params)
-
-        if (result.error != null) {
-          throw result.error
-        }
-
-        return result.data
-      },
-    } as UseSuspenseInfiniteQueryOptions
+    const { queryOptions, queryClient, paths } = info
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
-    const hook = __useSuspenseInfiniteQuery(queryOptions, context.queryClient) as HookResult
+    const hook = __useSuspenseInfiniteQuery(queryOptions, queryClient) as HookResult
 
     appendEdenQueryExtension(hook, { path: paths })
 
@@ -540,25 +224,6 @@ export function createEdenTreatyQueryRootHooks<
     return __useQueries({ queries }, queryClient)
   }
 
-  const createUtils = (props: EdenContextProps<TElysia, TSSRContext>) => {
-    const { abortOnUnmount = false, client, queryClient, ssrContext } = props
-
-    const ssrState = props.ssrState ?? false
-
-    const utilityFunctions = createUtilityFunctions({ client, queryClient }, config)
-
-    const context = {
-      abortOnUnmount,
-      queryClient,
-      client,
-      ssrContext: ssrContext ?? null,
-      ssrState,
-      ...utilityFunctions,
-    }
-
-    return createEdenTreatyQueryUtils(context)
-  }
-
   const useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia> = (queriesCallback) => {
     const context = useContext()
 
@@ -566,29 +231,57 @@ export function createEdenTreatyQueryRootHooks<
 
     const proxy = createTreatyUseSuspenseQueriesProxy(client)
 
-    const queries: readonly EdenUseQueryOptionsForUseSuspenseQueries<any, any>[] =
-      queriesCallback(proxy)
+    const queries: readonly EdenUseQueryOptionsForUseSuspenseQueries[] = queriesCallback(proxy)
 
     const hook = __useSuspenseQueries({ queries }, queryClient)
 
     return [hook.map((h) => h.data), hook] as any
   }
 
+  const useMutation = (
+    originalPaths: readonly string[],
+    options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
+  ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
+    const context = useContext()
+
+    const info = getEdenUseMutationInfo(originalPaths, context, options, config)
+
+    const { mutationOptions, queryClient, paths } = info
+
+    type HookResult = EdenUseMutationResult<any, any, any, any, any>
+
+    const hook = useEdenMutation(mutationOptions, queryClient) as HookResult
+
+    appendEdenQueryExtension(hook, { path: paths })
+
+    return hook
+  }
+
+  /* istanbul ignore next -- @preserve */
+  const useSubscription = (
+    path: readonly string[],
+    input: unknown,
+    opts: EdenUseSubscriptionOptions<unknown, TError>,
+  ) => {
+    const context = useContext()
+    return edenUseSubscription(path, input, opts, context)
+  }
+
   return {
     Provider: EdenProvider,
     createClient,
+    createContext,
+    createUtils,
     useContext,
     useUtils: useContext,
-    createUtils,
-    createContext,
     useQuery,
     useSuspenseQuery,
+    useInfiniteQuery,
+    useSuspenseInfiniteQuery,
     useQueries,
     useSuspenseQueries,
     useMutation,
     useSubscription,
-    useInfiniteQuery,
-    useSuspenseInfiniteQuery,
   }
 }
 

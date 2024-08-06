@@ -189,62 +189,63 @@ export function getEdenUseQueryInfo(
 
   const resolvedQueryOptions = { ...queryOptions, queryKey }
 
-  if (isInputSkipToken) {
-    resolvedQueryOptions.queryFn = input
-  } else {
-    const options = input
-
-    resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
-      const params: EdenRequestParams = {
-        ...config,
-        ...eden,
-        options,
-        path,
-        method,
-        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-      }
-
-      const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
-      if (shouldForwardSignal) {
-        params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
-      }
-
-      const result = await client.query(params)
-
-      // TODO: how to get async iterable here?
-
-      if (isAsyncIterable(result)) {
-        const queryCache = queryClient.getQueryCache()
-
-        const query = queryCache.build(queryFunctionContext.queryKey, { queryKey })
-
-        query.setState({ data: [], status: 'success' })
-
-        const aggregate: unknown[] = []
-
-        for await (const value of result) {
-          aggregate.push(value)
-
-          query.setState({ data: [...aggregate] })
-        }
-
-        return aggregate
-      }
-
-      if (result.error != null) {
-        throw result.error
-      }
-
-      return result.data
-    }
-  }
-
-  return {
+  const info: EdenUseQueryInfo = {
     paths,
     path,
     method,
     queryOptions: resolvedQueryOptions,
     queryClient,
   }
+
+  if (isInputSkipToken) {
+    resolvedQueryOptions.queryFn = input
+    return info
+  }
+
+  resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
+    const params: EdenRequestParams = {
+      ...config,
+      ...eden,
+      options: input,
+      path,
+      method,
+      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+    }
+
+    const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+
+    if (shouldForwardSignal) {
+      params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
+    }
+
+    const result = await client.query(params)
+
+    // TODO: how to get async iterable here?
+
+    if (isAsyncIterable(result)) {
+      const queryCache = queryClient.getQueryCache()
+
+      const query = queryCache.build(queryFunctionContext.queryKey, { queryKey })
+
+      query.setState({ data: [], status: 'success' })
+
+      const aggregate: unknown[] = []
+
+      for await (const value of result) {
+        aggregate.push(value)
+
+        query.setState({ data: [...aggregate] })
+      }
+
+      return aggregate
+    }
+
+    if (result.error != null) {
+      throw result.error
+    }
+
+    return result.data
+  }
+
+  return info
 }

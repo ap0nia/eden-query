@@ -527,7 +527,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
 export function useSSRQueryOptionsIfNeeded<TOptions extends { retryOnMount?: boolean } | undefined>(
   queryKey: EdenQueryKey,
   options: TOptions,
-  context: EdenContextState<any>,
+  context: EdenContextState<any, any>,
 ): TOptions {
   const { queryClient, ssrState } = context
 

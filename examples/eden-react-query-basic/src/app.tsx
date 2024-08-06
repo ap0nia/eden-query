@@ -31,15 +31,10 @@ export function App() {
 
   const [utils] = useState(() => {
     /**
-     * Raw context that's __not__ connected to React's context system.
-     */
-    const context = eden.createContext({ queryClient, client })
-
-    /**
      * Use the context object to create utilities that act on the same queryClient and edenClient.
      * This can be provided to load functions that run before context is rendered by React.
      */
-    return eden.createUtils(context)
+    return eden.createUtils({ queryClient, client })
   })
 
   const [router] = useState(() => {

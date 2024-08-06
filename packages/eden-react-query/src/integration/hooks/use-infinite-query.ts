@@ -1,17 +1,24 @@
 import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@elysiajs/eden'
-import type {
-  InfiniteData,
-  InfiniteQueryObserverSuccessResult,
-  SkipToken,
-  UseInfiniteQueryOptions,
-  UseInfiniteQueryResult,
+import {
+  type InfiniteData,
+  type InfiniteQueryObserverSuccessResult,
+  type QueryClient,
+  type SkipToken,
+  skipToken,
+  type UndefinedInitialDataInfiniteOptions,
+  type UseInfiniteQueryOptions,
+  type UseInfiniteQueryResult,
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
+import { type EdenContextState, useSSRQueryOptionsIfNeeded } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
+import { parsePathsAndMethod } from '../internal/helpers'
 import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
+import { getQueryKey } from '../internal/query-key'
+import { isServerQuery } from './use-query'
 
 export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<
@@ -43,3 +50,99 @@ export type EdenUseInfiniteQuery<
   input: TInput | SkipToken,
   options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
 ) => EdenUseInfiniteQueryResult<TOutput, TError, TInput>
+
+export type EdenUseInfiniteQueryInfo = {
+  paths: string[]
+  path: string
+  method?: string
+  queryOptions: UseInfiniteQueryOptions
+  queryClient: QueryClient
+}
+
+export function getEdenUseInfiniteQueryInfo(
+  originalPaths: any = [],
+  context: EdenContextState<any, any>,
+  input?: any,
+  options?: EdenUseInfiniteQueryOptions<unknown, unknown, any>,
+  config?: any,
+): EdenUseInfiniteQueryInfo {
+  const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = context
+
+  const { paths, path, method } = parsePathsAndMethod(originalPaths)
+
+  const queryKey = getQueryKey(path, input, 'infinite')
+
+  const defaultOptions = queryClient.getQueryDefaults(queryKey)
+
+  const initialQueryOptions = { ...defaultOptions, ...options }
+
+  const isInputSkipToken = input === skipToken
+
+  if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
+    void prefetchInfiniteQuery(queryKey, initialQueryOptions as any)
+  }
+
+  const ssrQueryOptions = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions, context)
+
+  const { eden, ...queryOptions } = ssrQueryOptions
+
+  const resolvedQueryOptions = {
+    ...queryOptions,
+    initialPageParam: queryOptions.initialCursor ?? null,
+    queryKey,
+  } as UndefinedInitialDataInfiniteOptions<any>
+
+  const info: EdenUseInfiniteQueryInfo = {
+    paths,
+    path,
+    method,
+    queryOptions: resolvedQueryOptions,
+    queryClient,
+  }
+
+  if (isInputSkipToken) {
+    resolvedQueryOptions.queryFn = input
+    return info
+  }
+
+  resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
+    const options = { ...input }
+
+    const params = {
+      ...config,
+      ...eden,
+      options,
+      path,
+      method,
+      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+    }
+
+    const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+
+    if (shouldForwardSignal) {
+      params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
+    }
+
+    // FIXME: scuffed way to set cursor. Not sure how to tell if the cursor will be
+    // in the route params or query.
+    // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
+
+    if (queryFunctionContext.pageParam != null) {
+      if (params.options.query) {
+        ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
+      } else if (params.options.params) {
+        ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
+      }
+    }
+
+    const result = await client.query(params)
+
+    if (result.error != null) {
+      throw result.error
+    }
+
+    return result.data
+  }
+
+  return info
+}

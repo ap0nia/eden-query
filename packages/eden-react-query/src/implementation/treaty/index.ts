@@ -46,7 +46,7 @@ export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
   ): EdenContextState<TElysia, TSSRContext>
 
   createUtils(
-    context: EdenContextState<TElysia, TSSRContext>,
+    context: EdenContextProps<TElysia, TSSRContext>,
   ): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
   Provider: EdenProvider<TElysia, TSSRContext>
