@@ -4,6 +4,7 @@ import {
   useInfiniteQuery as __useInfiniteQuery,
   useQueries as __useQueries,
   useQuery as __useQuery,
+  useQueryClient,
   useSuspenseInfiniteQuery as __useSuspenseInfiniteQuery,
   useSuspenseQueries as __useSuspenseQueries,
   useSuspenseQuery as __useSuspenseQuery,
@@ -16,18 +17,18 @@ import type { EdenContextProps, EdenContextState, EdenProvider, SSRState } from 
 import { createUtilityFunctions, EdenQueryContext } from '../../context'
 import {
   type EdenUseInfiniteQueryOptions,
+  edenUseInfiniteQueryOptions,
   type EdenUseInfiniteQueryResult,
-  getEdenUseInfiniteQueryInfo,
 } from '../../integration/hooks/use-infinite-query'
 import type {
   EdenUseMutationOptions,
   EdenUseMutationResult,
 } from '../../integration/hooks/use-mutation'
-import { getEdenUseMutationInfo, useEdenMutation } from '../../integration/hooks/use-mutation'
+import { getEdenUseMutationOptions, useEdenMutation } from '../../integration/hooks/use-mutation'
 import {
   type EdenUseQueryOptions,
+  edenUseQueryOptions,
   type EdenUseQueryResult,
-  getEdenUseQueryInfo,
 } from '../../integration/hooks/use-query'
 import {
   edenUseSubscription,
@@ -41,6 +42,7 @@ import type {
   EdenUseSuspenseQueryOptions,
   EdenUseSuspenseQueryResult,
 } from '../../integration/hooks/use-suspense-query'
+import { parsePathsAndMethod } from '../../integration/internal/helpers'
 import { getEdenQueryExtension } from '../../integration/internal/query-hook-extension'
 import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
@@ -126,13 +128,17 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseQueryResult<unknown, TError> => {
     const context = useContext()
 
-    const info = getEdenUseQueryInfo(originalPaths, context, input, options, config)
+    const parsed = parsePathsAndMethod(originalPaths)
 
-    const { queryOptions, queryClient, paths } = info
+    const queryOptions = edenUseQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseQueryResult<any, TError>
 
+    const queryClient = context.queryClient ?? useQueryClient()
+
     const hook = __useQuery(queryOptions, queryClient) as HookResult
+
+    const { paths } = parsed
 
     hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
@@ -146,13 +152,17 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseSuspenseQueryResult<unknown, TError> => {
     const context = useContext()
 
-    const info = getEdenUseQueryInfo(originalPaths, context, input, options, config)
+    const parsed = parsePathsAndMethod(originalPaths)
 
-    const { queryOptions, queryClient, paths } = info
+    const queryOptions = edenUseQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseQueryResult<any, TError>
 
+    const queryClient = context.queryClient ?? useQueryClient()
+
     const hook = __useSuspenseQuery(queryOptions, queryClient) as HookResult
+
+    const { paths } = parsed
 
     hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
@@ -166,13 +176,17 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
-    const info = getEdenUseInfiniteQueryInfo(originalPaths, context, input, options, config)
+    const parsed = parsePathsAndMethod(originalPaths)
 
-    const { queryOptions, queryClient, paths } = info
+    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
+    const queryClient = context.queryClient ?? useQueryClient()
+
     const hook = __useInfiniteQuery(queryOptions, queryClient) as HookResult
+
+    const { paths } = parsed
 
     hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
@@ -186,13 +200,17 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useContext()
 
-    const info = getEdenUseInfiniteQueryInfo(originalPaths, context, input, options, config)
+    const parsed = parsePathsAndMethod(originalPaths)
 
-    const { queryOptions, queryClient, paths } = info
+    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
+    const queryClient = context.queryClient ?? useQueryClient()
+
     const hook = __useSuspenseInfiniteQuery(queryOptions, queryClient) as HookResult
+
+    const { paths } = parsed
 
     hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 
@@ -244,13 +262,17 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
     const context = useContext()
 
-    const info = getEdenUseMutationInfo(originalPaths, context, options, config)
+    const parsed = parsePathsAndMethod(originalPaths)
 
-    const { mutationOptions, queryClient, paths } = info
+    const mutationOptions = getEdenUseMutationOptions(parsed, context, options, config)
 
     type HookResult = EdenUseMutationResult<any, any, any, any, any>
 
+    const queryClient = context.queryClient ?? useQueryClient()
+
     const hook = useEdenMutation(mutationOptions, queryClient) as HookResult
+
+    const { paths } = parsed
 
     hook.eden = React.useMemo(() => getEdenQueryExtension({ path: paths }), [paths])
 

@@ -19,7 +19,7 @@ import type { RouteSchema } from 'elysia'
 
 import type { EdenContextState } from '../../context'
 import type { Override } from '../../utils/types'
-import { parsePathsAndMethod } from '../internal/helpers'
+import type { ParsedPathAndMethod } from '../internal/helpers'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 import { getMutationKey } from '../internal/query-key'
@@ -139,23 +139,15 @@ export function useEdenMutation<
   return edenMutation
 }
 
-export type EdenUseMutationInfo = {
-  paths: string[]
-  path: string
-  method?: string
-  mutationOptions: UseMutationOptions
-  queryClient: QueryClient
-}
-
-export function getEdenUseMutationInfo(
-  originalPaths: any = [],
+export function getEdenUseMutationOptions(
+  parsedPathsAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
   options?: EdenUseMutationOptions<any, any, any>,
   config?: any,
-): EdenUseMutationInfo {
+): UseMutationOptions {
   const { client, queryClient = useQueryClient() } = context
 
-  const { paths, path, method } = parsePathsAndMethod(originalPaths)
+  const { paths, path, method } = parsedPathsAndMethod
 
   const mutationKey = getMutationKey(paths)
 
@@ -204,13 +196,5 @@ export function getEdenUseMutationInfo(
     },
   }
 
-  const info: EdenUseMutationInfo = {
-    paths,
-    path,
-    method,
-    mutationOptions,
-    queryClient,
-  }
-
-  return info
+  return mutationOptions
 }

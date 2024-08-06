@@ -2,7 +2,6 @@ import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@elys
 import {
   type InfiniteData,
   type InfiniteQueryObserverSuccessResult,
-  type QueryClient,
   type SkipToken,
   skipToken,
   type UndefinedInitialDataInfiniteOptions,
@@ -13,7 +12,7 @@ import type { RouteSchema } from 'elysia'
 
 import { type EdenContextState, useSSRQueryOptionsIfNeeded } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
-import { parsePathsAndMethod } from '../internal/helpers'
+import type { ParsedPathAndMethod } from '../internal/helpers'
 import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
@@ -51,26 +50,18 @@ export type EdenUseInfiniteQuery<
   options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
 ) => EdenUseInfiniteQueryResult<TOutput, TError, TInput>
 
-export type EdenUseInfiniteQueryInfo = {
-  paths: string[]
-  path: string
-  method?: string
-  queryOptions: UseInfiniteQueryOptions
-  queryClient: QueryClient
-}
-
-export function getEdenUseInfiniteQueryInfo(
-  originalPaths: any = [],
+export function edenUseInfiniteQueryOptions(
+  parsedPathAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
   input?: any,
   options?: EdenUseInfiniteQueryOptions<unknown, unknown, any>,
   config?: any,
-): EdenUseInfiniteQueryInfo {
+): UseInfiniteQueryOptions {
   const { client, ssrState, prefetchInfiniteQuery, queryClient, abortOnUnmount } = context
 
-  const { paths, path, method } = parsePathsAndMethod(originalPaths)
+  const { paths, path, method } = parsedPathAndMethod
 
-  const queryKey = getQueryKey(path, input, 'infinite')
+  const queryKey = getQueryKey(paths, input, 'infinite')
 
   const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
@@ -92,17 +83,9 @@ export function getEdenUseInfiniteQueryInfo(
     queryKey,
   } as UndefinedInitialDataInfiniteOptions<any>
 
-  const info: EdenUseInfiniteQueryInfo = {
-    paths,
-    path,
-    method,
-    queryOptions: resolvedQueryOptions,
-    queryClient,
-  }
-
   if (isInputSkipToken) {
     resolvedQueryOptions.queryFn = input
-    return info
+    return resolvedQueryOptions
   }
 
   resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
@@ -144,5 +127,5 @@ export function getEdenUseInfiniteQueryInfo(
     return result.data
   }
 
-  return info
+  return resolvedQueryOptions
 }

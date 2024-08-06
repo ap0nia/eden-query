@@ -1,5 +1,4 @@
 import {
-  EdenClient,
   type EdenRequestParams,
   type InferRouteError,
   type InferRouteOptions,
@@ -13,20 +12,19 @@ import {
   type QueryObserverOptions,
   type SkipToken,
   skipToken,
-  type UndefinedInitialDataOptions,
   type UseBaseQueryOptions,
   type UseQueryOptions,
   type UseQueryResult,
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
+import type { EdenQueryConfig } from '../../config'
 import { type EdenContextState, type SSRState, useSSRQueryOptionsIfNeeded } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
-import { parsePathsAndMethod } from '../internal/helpers'
+import type { ParsedPathAndMethod } from '../internal/helpers'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 import { getQueryKey } from '../internal/query-key'
-import type { EdenQueryRequestOptions } from '../internal/query-request-options'
 
 export type EdenUseQueryOptions<
   TOutput,
@@ -72,56 +70,6 @@ export interface EdenUseQuery<
   ): EdenUseQueryResult<TData, TError>
 }
 
-export function edenUseQueryOptions(
-  client: EdenClient,
-  config?: EdenQueryRequestOptions,
-  originalPaths: string[] = [],
-  args: any[] = [],
-): UndefinedInitialDataOptions {
-  const { paths, path, method } = parsePathsAndMethod(originalPaths)
-
-  const { eden, ...queryOptions } = (args[1] ?? {}) as EdenUseQueryOptions<any, any, any>
-
-  /**
-   * @todo rename this to "input"?
-   */
-  const options = args[0] as InferRouteOptions
-
-  /**
-   * Dynamically generate query options based on the information provided by eden-query.
-   */
-  const edenQueryOptions: UndefinedInitialDataOptions = {
-    queryKey: getQueryKey(paths, options, 'query'),
-    queryFn: async (context) => {
-      const params: EdenRequestParams = {
-        ...config,
-        ...eden,
-        path,
-        method,
-        options,
-        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-      }
-
-      const shouldForwardSignal = config?.abortOnUnmount ?? eden?.abortOnUnmount
-
-      if (shouldForwardSignal) {
-        params.fetch = { ...params.fetch, signal: context.signal }
-      }
-
-      const result = await client.query(params)
-
-      if (result.error != null) {
-        throw result.error
-      }
-
-      return result.data
-    },
-    ...queryOptions,
-  }
-
-  return edenQueryOptions
-}
-
 export function isServerQuery(
   ssrState: SSRState,
   options: EdenUseQueryOptions<any, any, any> = {},
@@ -151,24 +99,16 @@ export function isServerQuery(
   return true
 }
 
-export type EdenUseQueryInfo = {
-  paths: string[]
-  path: string
-  method?: string
-  queryOptions: UseQueryOptions
-  queryClient: QueryClient
-}
-
-export function getEdenUseQueryInfo(
-  originalPaths: any = [],
+export function edenUseQueryOptions(
+  parsedPathAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
   input?: any,
   options?: EdenUseQueryOptions<unknown, unknown, any>,
-  config?: any,
-): EdenUseQueryInfo {
+  config?: EdenQueryConfig,
+): UseQueryOptions {
   const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
 
-  const { paths, path, method } = parsePathsAndMethod(originalPaths)
+  const { paths, path, method } = parsedPathAndMethod
 
   const queryKey = getQueryKey(paths, input, 'query')
 
@@ -188,17 +128,9 @@ export function getEdenUseQueryInfo(
 
   const resolvedQueryOptions = { ...queryOptions, queryKey }
 
-  const info: EdenUseQueryInfo = {
-    paths,
-    path,
-    method,
-    queryOptions: resolvedQueryOptions,
-    queryClient,
-  }
-
   if (isInputSkipToken) {
     resolvedQueryOptions.queryFn = input
-    return info
+    return resolvedQueryOptions
   }
 
   resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
@@ -226,5 +158,5 @@ export function getEdenUseQueryInfo(
     return result.data
   }
 
-  return info
+  return resolvedQueryOptions
 }
