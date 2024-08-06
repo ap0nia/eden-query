@@ -1,9 +1,6 @@
 import type { EdenClientError, EdenCreateClient, EdenRequestParams } from '@elysiajs/eden'
 import { EdenClient } from '@elysiajs/eden'
 import type {
-  QueryClient,
-  QueryKey,
-  QueryObserverOptions,
   UndefinedInitialDataInfiniteOptions,
   UseMutationOptions,
   UseSuspenseInfiniteQueryOptions,
@@ -35,7 +32,12 @@ import type {
   EdenUseMutationVariables,
 } from '../../integration/hooks/use-mutation'
 import { useEdenMutation } from '../../integration/hooks/use-mutation'
-import type { EdenUseQueryOptions, EdenUseQueryResult } from '../../integration/hooks/use-query'
+import {
+  type EdenUseQueryOptions,
+  type EdenUseQueryResult,
+  getEdenUseQueryInfo,
+  isServerQuery,
+} from '../../integration/hooks/use-query'
 import type { EdenUseSubscriptionOptions } from '../../integration/hooks/use-subscription'
 import type {
   EdenUseSuspenseInfiniteQueryOptions,
@@ -51,41 +53,11 @@ import type { EdenQueryKey } from '../../integration/internal/query-key'
 import { getMutationKey, getQueryKey } from '../../integration/internal/query-key'
 import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
-import { isAsyncIterable } from '../../utils/is-async-iterable'
 import { createEdenTreatyQueryUtils } from './query-utils'
 import type { EdenTreatyUseQueries } from './use-queries'
 import { createTreatyUseQueriesProxy } from './use-queries'
 import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
 import { createTreatyUseSuspenseQueriesProxy } from './use-suspense-queries'
-
-function isServerQuery(
-  ssrState: SSRState,
-  options: EdenUseQueryOptions<any, any, any> = {},
-  defaultOpts: Partial<QueryObserverOptions>,
-  isInputSkipToken: boolean,
-  queryClient: QueryClient,
-  queryKey: QueryKey,
-): boolean {
-  // Not server.
-  if (typeof window !== 'undefined') return false
-
-  // Invalid SSR state for server.
-  if (ssrState !== 'prepass') return false
-
-  // Did not enable SSR.
-  if (options?.eden?.ssr === false) return false
-
-  // Query is not enabled.
-  if (options?.enabled || defaultOpts?.enabled) return false
-
-  // Skip this query.
-  if (isInputSkipToken) return false
-
-  // Query has already been cached.
-  if (queryClient.getQueryCache().find({ queryKey })) return false
-
-  return true
-}
 
 export function createEdenTreatyQueryRootHooks<
   TElysia extends AnyElysia,
@@ -185,80 +157,13 @@ export function createEdenTreatyQueryRootHooks<
   ): EdenUseQueryResult<unknown, TError> => {
     const context = useContext()
 
-    const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
+    const info = getEdenUseQueryInfo(originalPaths, context, input, options, config)
 
-    const { paths, path, method } = parsePathsAndMethod(originalPaths)
-
-    const queryKey = getQueryKey(paths, input, 'query')
-
-    const defaultOptions = queryClient.getQueryDefaults(queryKey)
-
-    const isInputSkipToken = input === skipToken
-
-    if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
-      void prefetchQuery(queryKey, options)
-    }
-
-    const initialQueryOptions = { ...defaultOptions, ...options }
-
-    const { eden, ...queryOptions } = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions)
-
-    const resolvedQueryOptions = { ...queryOptions, queryKey }
-
-    if (isInputSkipToken) {
-      resolvedQueryOptions.queryFn = input
-    } else {
-      const options = input
-
-      resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
-        const params: EdenRequestParams = {
-          ...config,
-          ...eden,
-          options,
-          path,
-          method,
-          fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
-        }
-
-        const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
-
-        if (shouldForwardSignal) {
-          params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
-        }
-
-        const result = await client.query(params)
-
-        // TODO: how to get async iterable here?
-
-        if (isAsyncIterable(result)) {
-          const queryCache = queryClient.getQueryCache()
-
-          const query = queryCache.build(queryFunctionContext.queryKey, { queryKey })
-
-          query.setState({ data: [], status: 'success' })
-
-          const aggregate: unknown[] = []
-
-          for await (const value of result) {
-            aggregate.push(value)
-
-            query.setState({ data: [...aggregate] })
-          }
-
-          return aggregate
-        }
-
-        if (result.error != null) {
-          throw result.error
-        }
-
-        return result.data
-      }
-    }
+    const { queryOptions, queryClient, paths } = info
 
     type HookResult = EdenUseQueryResult<any, TError>
 
-    const hook = __useQuery(resolvedQueryOptions, queryClient) as HookResult
+    const hook = __useQuery(queryOptions, queryClient) as HookResult
 
     appendEdenQueryExtension(hook, { path: paths })
 

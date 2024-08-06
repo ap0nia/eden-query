@@ -519,3 +519,31 @@ export function createUtilityFunctions<T extends AnyElysia>(
     },
   }
 }
+
+/**
+ * Hack to make sure errors return `status`='error` when doing SSR
+ * @link https://github.com/trpc/trpc/pull/1645
+ */
+export function useSSRQueryOptionsIfNeeded<TOptions extends { retryOnMount?: boolean } | undefined>(
+  queryKey: EdenQueryKey,
+  options: TOptions,
+  context: EdenContextState<any>,
+): TOptions {
+  const { queryClient, ssrState } = context
+
+  const resolvedOptions = { ...options } as NonNullable<TOptions>
+
+  if (!ssrState || ssrState === 'mounted') {
+    return resolvedOptions
+  }
+
+  const queryCache = queryClient.getQueryCache()
+
+  const query = queryCache.find({ queryKey })
+
+  if (query?.state.status === 'error') {
+    resolvedOptions.retryOnMount = false
+  }
+
+  return resolvedOptions
+}

@@ -5,16 +5,22 @@ import {
   type InferRouteOptions,
   type InferRouteOutput,
 } from '@elysiajs/eden'
-import type {
-  DefinedUseQueryResult,
-  InitialDataFunction,
-  SkipToken,
-  UndefinedInitialDataOptions,
-  UseBaseQueryOptions,
-  UseQueryResult,
+import {
+  type DefinedUseQueryResult,
+  type InitialDataFunction,
+  QueryClient,
+  type QueryKey,
+  type QueryObserverOptions,
+  type SkipToken,
+  skipToken,
+  type UndefinedInitialDataOptions,
+  type UseBaseQueryOptions,
+  type UseQueryResult,
 } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
+import { type EdenContextState, type SSRState, useSSRQueryOptionsIfNeeded } from '../../context'
+import { isAsyncIterable } from '../../utils/is-async-iterable'
 import type { DistributiveOmit } from '../../utils/types'
 import { parsePathsAndMethod } from '../internal/helpers'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
@@ -66,7 +72,7 @@ export interface EdenUseQuery<
   ): EdenUseQueryResult<TData, TError>
 }
 
-export function useEdenQueryOptions(
+export function edenUseQueryOptions(
   client: EdenClient,
   config?: EdenQueryRequestOptions,
   originalPaths: string[] = [],
@@ -114,4 +120,122 @@ export function useEdenQueryOptions(
   }
 
   return edenQueryOptions
+}
+
+export function isServerQuery(
+  ssrState: SSRState,
+  options: EdenUseQueryOptions<any, any, any> = {},
+  defaultOpts: Partial<QueryObserverOptions>,
+  isInputSkipToken: boolean,
+  queryClient: QueryClient,
+  queryKey: QueryKey,
+): boolean {
+  // Not server.
+  if (typeof window !== 'undefined') return false
+
+  // Invalid SSR state for server.
+  if (ssrState !== 'prepass') return false
+
+  // Did not enable SSR.
+  if (options?.eden?.ssr === false) return false
+
+  // Query is not enabled.
+  if (options?.enabled || defaultOpts?.enabled) return false
+
+  // Skip this query.
+  if (isInputSkipToken) return false
+
+  // Query has already been cached.
+  if (queryClient.getQueryCache().find({ queryKey })) return false
+
+  return true
+}
+
+export function getEdenUseQueryInfo(
+  originalPaths: any = [],
+  context: EdenContextState<any, any>,
+  input?: any,
+  options?: EdenUseQueryOptions<unknown, unknown, any>,
+  config?: any,
+) {
+  const { abortOnUnmount, client, ssrState, queryClient, prefetchQuery } = context
+
+  const { paths, path, method } = parsePathsAndMethod(originalPaths)
+
+  const queryKey = getQueryKey(paths, input, 'query')
+
+  const defaultOptions = queryClient.getQueryDefaults(queryKey)
+
+  const isInputSkipToken = input === skipToken
+
+  if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
+    void prefetchQuery(queryKey, options)
+  }
+
+  const initialQueryOptions = { ...defaultOptions, ...options }
+
+  const ssrQueryOptions = useSSRQueryOptionsIfNeeded(queryKey, initialQueryOptions, context)
+
+  const { eden, ...queryOptions } = ssrQueryOptions
+
+  const resolvedQueryOptions = { ...queryOptions, queryKey }
+
+  if (isInputSkipToken) {
+    resolvedQueryOptions.queryFn = input
+  } else {
+    const options = input
+
+    resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
+      const params: EdenRequestParams = {
+        ...config,
+        ...eden,
+        options,
+        path,
+        method,
+        fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      }
+
+      const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
+
+      if (shouldForwardSignal) {
+        params.fetch = { ...params.fetch, signal: queryFunctionContext.signal }
+      }
+
+      const result = await client.query(params)
+
+      // TODO: how to get async iterable here?
+
+      if (isAsyncIterable(result)) {
+        const queryCache = queryClient.getQueryCache()
+
+        const query = queryCache.build(queryFunctionContext.queryKey, { queryKey })
+
+        query.setState({ data: [], status: 'success' })
+
+        const aggregate: unknown[] = []
+
+        for await (const value of result) {
+          aggregate.push(value)
+
+          query.setState({ data: [...aggregate] })
+        }
+
+        return aggregate
+      }
+
+      if (result.error != null) {
+        throw result.error
+      }
+
+      return result.data
+    }
+  }
+
+  return {
+    paths,
+    path,
+    method,
+    queryOptions: resolvedQueryOptions,
+    queryClient,
+  }
 }
