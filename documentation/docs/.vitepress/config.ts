@@ -181,7 +181,7 @@ const config = defineConfig({
       },
       {
         text: 'Eden-Query',
-        collapsed: true,
+        collapsed: false,
         items: [
           {
             text: 'Overview',
