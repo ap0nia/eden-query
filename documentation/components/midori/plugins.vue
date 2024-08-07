@@ -57,7 +57,8 @@ const isDark = useDark()
             <div class="mt-8">
                 <a
                     href="/plugins/overview"
-                    class="text-xl font-medium bg-blue-200/25 dark:bg-blue-500/25 text-blue-500 px-6 py-3 rounded-xl"
+                    class="text-xl font-medium bg-blue-200/25 dark:bg-blue-500/25 text-blue-500 px-6 py-3 rounded-xl opacity-50 pointer-events-none"
+                    disabled
                 >
                     Explore plugins
                 </a>

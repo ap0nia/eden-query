@@ -1,17 +1,17 @@
 ---
-title: Table of Content - ElysiaJS
+title: Table of Contents - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
-      content: Table of Content - ElysiaJS
+      content: Table of Contents - ElysiaJS
 
   - - meta
     - name: 'description'
-      content: There's no correct or organized way to learn Elysia, however, we recommended completing the essential chapter first as the chapter briefly covers most of Elysia's features and foundation before jumping to other topics that interest you. Once you've completed the essential chapter, you may jump to any topic that interests you. However, we recommended following the order of the chapter as it may reference to previous chapter.
+      content: Table of contents for teaching developers how to use the eden + tanstack/query integration.
 
   - - meta
     - property: 'og:description'
-      content: There's no correct or organized way to learn Elysia, however, we recommended completing the essential chapter first as the chapter briefly covers most of Elysia's features and foundation before jumping to other topics that interest you. Once you've completed the essential chapter, you may jump to any topic that interests you. However, we recommended following the order of the chapter as it may reference to previous chapter.
+      content: Table of contents for teaching developers how to use the eden + tanstack/query integration.
 ---
 
 <script setup>
@@ -19,35 +19,22 @@ head:
     import Deck from '../components/nearl/card-deck.vue'
 </script>
 
-# Table of Content
-There's no correct way to learn Elysia, but we recommended **completing the essential chapter first** as the chapter briefly covers most of Elysia's features and foundation before jumping to other topics that interest you.
+# Table of Contents
+
+Please read the [official Elysia.js documentation](https://elysiajs.com/) to learn more about the project as a whole.
+This documentation will be focused on showcasing eden and tanstack/query integrations.
 
 <Deck>
-    <Card title="Essential" href="/essential/route">
-        Important concept and foundation of Elysia
-    </Card>
-    <Card title="Validation" href="/validation/overview">
-        Enforce data type and create a unified type
-    </Card>
-    <Card title="Life Cycle" href="/life-cycle/overview">
-        Intercept events and customize behaviors
-    </Card>
-    <Card title="Patterns" href="/patterns/group">
-        Common patterns and best practices
-    </Card>
     <Card title="Eden" href="/eden/overview">
-        End-to-end type safety client for Elysia
+        Official Eden documentation
     </Card>
-    <Card title="Cheat sheet" href="/integrations/cheat-sheet">
-        A quick overview of Elysia
+    <Card title="Overview" href="/eden-query/overview">
+        Overview of eden + tanstack/query integrations
+    </Card>
+    <Card title="React-Query" href="/eden-query/react/overview">
+        eden + @tanstack/react-query
+    </Card>
+    <Card title="Svelte-Query" href="/eden-query/svelte/overview">
+        eden + @tanstack/svelte-query
     </Card>
 </Deck>
-
----
-
-Once you've completed the essential chapter, you may jump to any topic that interests you. We have organized a recommended chapter in order as it may reference to previous chapter.
-
-### Prerequisite Knowledge
-Although Elysia's documentation is designed to be beginner-friendly, we need to establish a baseline so that the docs can stay focused on Elysia's functionality. We will provide links to relevant documentation whenever we introduce a new concept.
-
-To get the most out of our documentation, it's recommended that you have a basic understanding of Node.js and basic HTTP.
