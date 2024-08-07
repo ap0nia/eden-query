@@ -188,11 +188,15 @@ const config = defineConfig({
             link: '/eden-query/overview.md',
           },
           {
+            text: 'Batching',
+            link: '/eden-query/batching.md',
+          },
+          {
             text: 'Eden-React-Query',
             collapsed: false,
             items: [
               {
-                text: 'Overview',
+                text: 'React-Query Overview',
                 link: '/eden-query/react/overview',
               },
             ],
@@ -202,7 +206,7 @@ const config = defineConfig({
             collapsed: false,
             items: [
               {
-                text: 'Overview',
+                text: 'Svelte-Query Overview',
                 link: '/eden-query/svelte/overview',
               },
             ],
