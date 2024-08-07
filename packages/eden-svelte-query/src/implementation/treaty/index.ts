@@ -1,4 +1,11 @@
-import type { EdenCreateClient, EdenRequestOptions, InferRouteOptions } from '@elysiajs/eden'
+import type {
+  EdenClient,
+  EdenCreateClient,
+  EdenRequestOptions,
+  HttpBatchLinkOptions,
+  HTTPLinkOptions,
+  InferRouteOptions,
+} from '@elysiajs/eden'
 import type {
   HttpMutationMethod,
   HttpQueryMethod,
@@ -15,10 +22,8 @@ import type { EdenCreateQuery } from '../../integration/hooks/create-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
 import type { EdenQueryKey } from '../../integration/internal/query-key'
 import type { EdenTreatyCreateQueries } from './create-queries'
-import { createEdenTreatyQueryUtils, type EdenTreatyQueryUtils } from './query-utils'
+import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
-
-const getContextAliases = ['getContext', 'getUtils']
 
 export type EdenTreatyQuery<TElysia extends AnyElysia, TSSRContext> = EdenTreatyQueryBase<
   TElysia,
@@ -47,6 +52,16 @@ export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
   ): EdenContextState<TElysia, TSSRContext>
 
   createClient: EdenCreateClient<TElysia>
+
+  /**
+   * Convenience method for creating and configuring a client with a single HTTPLink.
+   */
+  createHttpClient: (options?: HTTPLinkOptions) => EdenClient<TElysia>
+
+  /**
+   * Convenience method for creating and configuring a client with a single HttpBatchLink.
+   */
+  createHttpBatchClient: (options?: HttpBatchLinkOptions) => EdenClient<TElysia>
 
   createQueries: EdenTreatyCreateQueries<TElysia>
 }
@@ -136,17 +151,9 @@ export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = u
 
   const edenTreatyQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
-      if (getContextAliases.includes(path)) {
-        const customGetContext = (context = rootHooks.getUtils(), configOverride = config) => {
-          return createEdenTreatyQueryUtils(context, configOverride)
-        }
-        return customGetContext
-      }
-
       if (Object.prototype.hasOwnProperty.call(rootHooks, path)) {
         return rootHooks[path as never]
       }
-
       return edenTreatyReactQueryProxy[path as never]
     },
   })

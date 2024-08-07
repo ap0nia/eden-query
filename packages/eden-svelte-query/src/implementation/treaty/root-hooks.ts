@@ -1,5 +1,10 @@
-import type { EdenClientError, EdenCreateClient } from '@elysiajs/eden'
-import { EdenClient } from '@elysiajs/eden'
+import type {
+  EdenClientError,
+  EdenCreateClient,
+  HttpBatchLinkOptions,
+  HTTPLinkOptions,
+} from '@elysiajs/eden'
+import { EdenClient, httpBatchLink, httpLink } from '@elysiajs/eden'
 import {
   createInfiniteQuery as __createInfiniteQuery,
   createQueries as __createQueries,
@@ -52,6 +57,18 @@ export function createEdenTreatyQueryRootHooks<
     return new EdenClient(options)
   }
 
+  const createHttpClient = (options?: HTTPLinkOptions) => {
+    return new EdenClient({
+      links: [httpLink(options)],
+    })
+  }
+
+  const createHttpBatchLink = (options?: HttpBatchLinkOptions) => {
+    return new EdenClient({
+      links: [httpBatchLink(options)],
+    })
+  }
+
   const createContext = (
     props: EdenContextProps<TElysia, TSSRContext>,
     configOverride = config,
@@ -87,8 +104,12 @@ export function createEdenTreatyQueryRootHooks<
     return __setContext(EDEN_CONTEXT_KEY, context)
   }
 
-  const getContext = (): ProviderContext => {
+  const getRawContext = (): ProviderContext => {
     return __getContext(EDEN_CONTEXT_KEY)
+  }
+
+  const getContext = (context = getRawContext(), configOverride = config) => {
+    return createEdenTreatyQueryUtils(context, configOverride)
   }
 
   const createQuery = (
@@ -96,7 +117,7 @@ export function createEdenTreatyQueryRootHooks<
     input: StoreOrVal<any>,
     options?: StoreOrVal<EdenCreateQueryOptions<unknown, unknown, TError>>,
   ): EdenCreateQueryResult<unknown, TError> => {
-    const context = getContext()
+    const context = getRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -133,7 +154,7 @@ export function createEdenTreatyQueryRootHooks<
   }
 
   const createQueries: EdenTreatyCreateQueries<TElysia> = (queriesCallback) => {
-    const context = getContext()
+    const context = getRawContext()
 
     const { queryClient, client } = context
 
@@ -150,7 +171,7 @@ export function createEdenTreatyQueryRootHooks<
     input: StoreOrVal<any>,
     options: StoreOrVal<EdenCreateInfiniteQueryOptions<unknown, unknown, TError>>,
   ): EdenCreateInfiniteQueryResult<unknown, TError, unknown> => {
-    const context = getContext()
+    const context = getRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -190,7 +211,7 @@ export function createEdenTreatyQueryRootHooks<
     originalPaths: readonly string[],
     options?: StoreOrVal<EdenCreateMutationOptions<unknown, TError, unknown, unknown>>,
   ): EdenCreateMutationResult<unknown, TError, unknown, unknown, unknown> => {
-    const context = getContext()
+    const context = getRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -226,6 +247,8 @@ export function createEdenTreatyQueryRootHooks<
 
   return {
     createClient,
+    createHttpClient,
+    createHttpBatchLink,
     createContext,
     createUtils,
     setContext,
