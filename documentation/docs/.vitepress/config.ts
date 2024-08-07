@@ -101,10 +101,6 @@ const config = defineConfig({
     logo: '/assets/elysia.svg',
     nav: [
       {
-        text: 'Cheat Sheet',
-        link: '/integrations/cheat-sheet',
-      },
-      {
         text: 'Plugins',
         link: '/plugins/overview',
       },
@@ -410,36 +406,6 @@ const config = defineConfig({
           {
             text: 'trpc',
             link: '/plugins/trpc',
-          },
-        ],
-      },
-      {
-        text: 'Integration',
-        collapsed: true,
-        items: [
-          {
-            text: 'Docker',
-            link: '/integrations/docker',
-          },
-          {
-            text: 'Nextjs',
-            link: '/integrations/nextjs',
-          },
-          {
-            text: 'Expo',
-            link: '/integrations/expo',
-          },
-          {
-            text: 'Astro',
-            link: '/integrations/astro',
-          },
-          {
-            text: 'SvelteKit',
-            link: '/integrations/sveltekit',
-          },
-          {
-            text: 'Drizzle',
-            link: '/integrations/drizzle',
           },
         ],
       },
