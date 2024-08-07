@@ -4,7 +4,6 @@ import {
   type InfiniteQueryObserverSuccessResult,
   type SkipToken,
   skipToken,
-  type UndefinedInitialDataInfiniteOptions,
   type UseInfiniteQueryOptions,
   type UseInfiniteQueryResult,
 } from '@tanstack/react-query'
@@ -81,7 +80,7 @@ export function edenUseInfiniteQueryOptions(
     ...queryOptions,
     initialPageParam: queryOptions.initialCursor ?? null,
     queryKey,
-  } as UndefinedInitialDataInfiniteOptions<any>
+  } as UseInfiniteQueryOptions
 
   if (isInputSkipToken) {
     resolvedQueryOptions.queryFn = input
@@ -93,11 +92,10 @@ export function edenUseInfiniteQueryOptions(
 
     const params = {
       ...config,
-      ...eden,
       options,
       path,
       method,
-      fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+      ...eden,
     }
 
     const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount ?? abortOnUnmount
