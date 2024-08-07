@@ -14,139 +14,199 @@ head:
       content: Integration between Eden and React-Query.
 ---
 
-# End-to-End Type Safety
-Imagine you have a toy train set.
+# Introduction
 
-Each piece of the train track has to fit perfectly with the next one, like puzzle pieces.
+The goal of eden + react-query is to provide a similar interface to
+[tRPC's react-query integration](https://trpc.io/docs/client/react),
+while supporting all the functionality provided by the
+[official Eden implementation](https://elysiajs.com/eden/overview.html).
 
-End-to-end type safety is like making sure all the pieces of the track match up correctly so the train doesn't fall off or get stuck.
+## React Example
 
-For a framework to have end-to-end type safety means you can connect client and server in a type-safe manner.
+> View a full example [here](https://github.com/ap0nia/eden-query/tree/main/examples/eden-react-query-basic)
 
-Elysia provide end-to-end type safety **without code generation** out of the box with RPC-like connector, **Eden**
+2. Create the elysia application.
 
-<video mute controls>
-  <source src="/eden/eden-treaty.mp4" type="video/mp4" />
-  Something went wrong trying to load video
-</video>
-
-Others framework that support e2e type safety:
-- tRPC
-- Remix
-- SvelteKit
-- Nuxt
-- TS-Rest
-
-<!-- <iframe
-    id="embedded-editor"
-    src="https://codesandbox.io/p/sandbox/bun-elysia-rdxljp?embed=1&codemirror=1&hidenavigation=1&hidedevtools=1&file=eden.ts"
-    allow="accelerometer"
-    sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
-    loading="lazy"
-/>
-
-::: tip
-Hover over variable and function to see type definition.
-::: -->
-
-Elysia allows you to change the type on the server and it will be instantly reflected on the client, helping with auto-completion and type-enforcement.
-
-## Eden
-Eden is a RPC-like client to connect Elysia  **end-to-end type safety** using only TypeScript's type inference instead of code generation.
-
-Allowing you to sync client and server types effortlessly, weighing less than 2KB.
-
-Eden is consists of 2 modules:
-1. Eden Treaty **(recommended)**: an improved version RFC version of Eden Treaty
-2. Eden Fetch: Fetch-like client with type safety.
-
-Below is an overview, use-case and comparison for each module.
-
-## Eden Treaty (Recommended)
-Eden Treaty is an object-like representation of an Elysia server providing end-to-end type safety and a significantly improved developer experience.
-
-With Eden Treaty we can connect interact Elysia server with full-type support and auto-completion, error handling with type narrowing, and creating type safe unit test.
-
-Example usage of Eden Treaty:
 ```typescript twoslash
-// @filename: server.ts
 import { Elysia, t } from 'elysia'
 
-const app = new Elysia()
-    .get('/', 'hi')
-    .get('/users', () => 'Skadi')
-    .put('/nendoroid/:id', ({ body }) => body, {
-        body: t.Object({
-            name: t.String(),
-            from: t.String()
-        })
-    })
-    .get('/nendoroid/:id/name', () => 'Skadi')
-    .listen(3000)
-
-export type App = typeof app
-
-// @filename: index.ts
-// ---cut---
-import { treaty } from '@elysiajs/eden'
-import type { App } from './server'
-
-const app = treaty<App>('localhost:3000')
-
-// @noErrors
-app.
-//  ^|
-
-
-
-
-// Call [GET] at '/'
-const { data } = await app.index.get()
-
-// Call [POST] at '/nendoroid/:id'
-const { data: nendoroid, error } = await app.nendoroid({ id: 1895 }).post({
-    name: 'Skadi',
-    from: 'Arknights'
-})
-```
-
-## Eden Fetch
-A fetch-like alternative to Eden Treaty for developers that prefers fetch syntax.
-```typescript twoslash
-// @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-const app = new Elysia()
-    .get('/', 'hi')
-    .post('/name/:name', ({ body }) => body, {
-        body: t.Object({
-            branch: t.String(),
-            type: t.String()
-        })
-    })
-    .listen(3000)
-
-export type App = typeof app
-
-// @filename: index.ts
-// ---cut---
-import { edenFetch } from '@elysiajs/eden'
-import type { App } from './server'
-
-const fetch = edenFetch<App>('http://localhost:3000')
-
-const { data } = await fetch('/name/:name', {
-    method: 'POST',
-    params: {
-        name: 'Saori'
+new Elysia()
+  .post(
+    '/profile',
+    // ↓ hover me ↓
+    ({ body }) => body,
+    {
+      body: t.Object({
+        username: t.String(),
+      }),
     },
-    body: {
-        branch: 'Arius',
-        type: 'Striker'
-    }
-})
+  )
+  .listen(3000)
 ```
 
-::: tip NOTE
-Unlike Eden Treaty, Eden Fetch doesn't provide Web Socket implementation for Elysia server
-:::
+3. Initialize the eden-treaty-query client.
+
+```typescript twoslash
+// @filename: server.ts
+import { Elysia, t } from 'elysia'
+
+export const app = new Elysia().get('/', () => 'Hello, World!')
+
+export type App = typeof app
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import {
+  createEdenTreatyQuery,
+  type InferTreatyQueryInput,
+  type InferTreatyQueryOutput,
+} from '@elysiajs/eden-react-query'
+
+import type { App } from '../../server'
+
+export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+
+export type InferInput = InferTreatyQueryInput<App>
+
+export type InferOutput = InferTreatyQueryOutput<App>
+```
+
+4. Setup the providers
+
+```typescript twoslash
+// @filename: server.ts
+import { Elysia, t } from 'elysia'
+
+export const app = new Elysia().get('/', () => 'Hello, World!')
+
+export type App = typeof app
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import {
+  createEdenTreatyQuery,
+  type InferTreatyQueryInput,
+  type InferTreatyQueryOutput,
+} from '@elysiajs/eden-react-query'
+
+import type { App } from '../../server'
+
+export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+
+export type InferInput = InferTreatyQueryInput<App>
+
+export type InferOutput = InferTreatyQueryOutput<App>
+
+// @filename: src/App.tsx
+// ---cut---
+import React from 'react'
+import { useState } from 'react'
+import { httpBatchLink } from '@elysiajs/eden-react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { eden } from './lib/eden'
+
+function getAuthCookie() {
+  // do something...
+  return undefined
+}
+
+export function App() {
+  const [queryClient] = useState(() => new QueryClient())
+
+  const [trpcClient] = useState(() =>
+    eden.createClient({
+      links: [
+        httpBatchLink({
+          domain: 'http://localhost:3000/trpc',
+
+          // You can pass any HTTP headers you wish here
+          async headers() {
+            return {
+              authorization: getAuthCookie(),
+            }
+          },
+        }),
+      ],
+    }),
+  )
+
+  return (
+    <eden.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>{/* Your app here */}</QueryClientProvider>
+    </eden.Provider>
+  )
+}
+```
+
+5. Fetch data
+
+```typescript twoslash
+// @filename: server.ts
+import { Elysia, t } from 'elysia'
+
+const users: string[] = []
+
+export const app = new Elysia()
+  .get(
+    '/getUser',
+    (context) => {
+      return {
+        name: `User is ${context.query.id}`
+      }
+    },
+    {
+      query: t.Object({
+        id: t.String()
+      })
+    })
+  .post(
+    '/createUser',
+    (context) => {
+      users.push(context.body.name)
+      return users
+    },
+    {
+      body: t.Object({
+        name: t.String()
+      })
+    })
+
+export type App = typeof app
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import {
+  createEdenTreatyQuery,
+  type InferTreatyQueryInput,
+  type InferTreatyQueryOutput,
+} from '@elysiajs/eden-react-query'
+
+import type { App } from '../../server'
+
+export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+
+export type InferInput = InferTreatyQueryInput<App>
+
+export type InferOutput = InferTreatyQueryOutput<App>
+
+// @filename: src/pages/index.tsx
+// ---cut---
+import React from 'react'
+import { eden } from '../lib/eden'
+
+export default function Page() {
+  const userQuery = eden.getUser.get.useQuery({ query: { id: 'Elysia' }})
+
+  const userCreator = eden.createUser.post.useMutation()
+
+  return (
+    <div>
+      <p>{userQuery.data?.name}</p>
+
+      <button onClick={() => userCreator.mutate({ name: 'Frodo' })}>
+        Create Frodo
+      </button>
+    </div>
+  )
+}
+```

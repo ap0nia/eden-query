@@ -16,195 +16,61 @@ head:
 
 # Introduction
 
-The goal of eden + tanstack-query is to provide a similar interface to [tRPC](https://trpc.io/docs/),
-while supporting all the functionality provided by the [official Eden implementation](https://elysiajs.com/eden/overview.html).
+The goal of eden + tanstack-query is to provide a similar interface to
+[tRPC's react-query integration](https://trpc.io/docs/client/react),
+while supporting all the functionality provided by the
+[official Eden implementation](https://elysiajs.com/eden/overview.html).
 
-## React Example
+## Implementations
 
-> View a full example [here](https://github.com/ap0nia/eden-query/tree/main/examples/eden-react-query-basic)
+eden + tanstack-query aims to offer two implementations/APIs, **treaty** and **fetch**,
+just like the official eden library.
 
-2. Create the elysia application.
+### Fetch (WIP)
 
-```typescript twoslash
-import { Elysia, t } from 'elysia'
+None of the integrations have implemented this yet...
 
-new Elysia()
-  .post(
-    '/profile',
-    // ↓ hover me ↓
-    ({ body }) => body,
-    {
-      body: t.Object({
-        username: t.String(),
-      }),
-    },
-  )
-  .listen(3000)
-```
+### Treaty
 
-3. Initialize the eden-treaty-query client.
+Based on the [official example of eden treaty](/eden/treaty/overview),
+this is how the react-query hooks have been integrated with eden.
 
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
 
-export const app = new Elysia().get('/', () => 'Hello, World!')
-
-export type App = typeof app
-
-// @filename: src/lib/eden.ts
-// ---cut---
-import {
-  createEdenTreatyQuery,
-  type InferTreatyQueryInput,
-  type InferTreatyQueryOutput,
-} from '@elysiajs/eden-react-query'
-
-import type { App } from '../../server'
-
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
-
-export type InferInput = InferTreatyQueryInput<App>
-
-export type InferOutput = InferTreatyQueryOutput<App>
-```
-
-4. Setup the providers
-
-```typescript twoslash
-// @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-export const app = new Elysia().get('/', () => 'Hello, World!')
-
-export type App = typeof app
-
-// @filename: src/lib/eden.ts
-// ---cut---
-import {
-  createEdenTreatyQuery,
-  type InferTreatyQueryInput,
-  type InferTreatyQueryOutput,
-} from '@elysiajs/eden-react-query'
-
-import type { App } from '../../server'
-
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
-
-export type InferInput = InferTreatyQueryInput<App>
-
-export type InferOutput = InferTreatyQueryOutput<App>
-
-// @filename: src/App.tsx
-// ---cut---
-import React from 'react'
-import { useState } from 'react'
-import { httpBatchLink } from '@elysiajs/eden-react-query'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { eden } from './lib/eden'
-
-function getAuthCookie() {
-  // do something...
-  return undefined
-}
-
-export function App() {
-  const [queryClient] = useState(() => new QueryClient())
-
-  const [trpcClient] = useState(() =>
-    eden.createClient({
-      links: [
-        httpBatchLink({
-          domain: 'http://localhost:3000/trpc',
-
-          // You can pass any HTTP headers you wish here
-          async headers() {
-            return {
-              authorization: getAuthCookie(),
-            }
-          },
-        }),
-      ],
+const app = new Elysia()
+  .get('/', 'hi')
+  .get('/users', () => 'Skadi')
+  .put('/nendoroid/:id', ({ body }) => body, {
+    body: t.Object({
+      name: t.String(),
+      from: t.String(),
     }),
-  )
-
-  return (
-    <eden.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{/* Your app here */}</QueryClientProvider>
-    </eden.Provider>
-  )
-}
-```
-
-5. Fetch data
-
-```typescript twoslash
-// @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-const users: string[] = []
-
-export const app = new Elysia()
-  .get(
-    '/getUser',
-    (context) => {
-      return {
-        name: `User is ${context.query.id}`
-      }
-    },
-    {
-      query: t.Object({
-        id: t.String()
-      })
-    })
-  .post(
-    '/createUser',
-    (context) => {
-      users.push(context.body.name)
-      return users
-    },
-    {
-      body: t.Object({
-        name: t.String()
-      })
-    })
+  })
+  .get('/nendoroid/:id/name', () => 'Skadi')
+  .listen(3000)
 
 export type App = typeof app
 
-// @filename: src/lib/eden.ts
+// @filename: index.ts
 // ---cut---
-import {
-  createEdenTreatyQuery,
-  type InferTreatyQueryInput,
-  type InferTreatyQueryOutput,
-} from '@elysiajs/eden-react-query'
+import { treaty } from '@elysiajs/eden'
+import { createEdenTreatyQuery } from '@elysiajs/eden-react-query'
+import type { App } from './server'
 
-import type { App } from '../../server'
+export const app = createEdenTreatyQuery<App>({ domain: 'localhost:3000' })
 
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+// useQuery + [GET] at '/'
+const { data } = await app.index.get.useQuery()
 
-export type InferInput = InferTreatyQueryInput<App>
+// useMutation + [PUT] at '/nendoroid/:id'
+const { data: nendoroid, error, mutate } = await app.nendoroid[':id'].put.useMutation()
 
-export type InferOutput = InferTreatyQueryOutput<App>
-
-// @filename: src/pages/index.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
-
-export default function Page() {
-  const userQuery = eden.getUser.get.useQuery({ query: { id: 'Elysia' }})
-
-  const userCreator = eden.createUser.post.useMutation()
-
-  return (
-    <div>
-      <p>{userQuery.data?.name}</p>
-
-      <button onClick={() => userCreator.mutate({ name: 'Frodo' })}>
-        Create Frodo
-      </button>
-    </div>
-  )
-}
+// Peform the mutation...
+mutate({ name: 'Skadi', from: 'Arknights' }, { params: { id: '1895' } })
 ```
+
+## Comparison with Eden-Treaty
+
+## Comparison with tRPC

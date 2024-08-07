@@ -58,9 +58,9 @@ export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TCon
   options: {} extends TInput
     ?
         | void
-        | (TData &
+        | (TInput &
             MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>)
-    : TData & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
+    : TInput & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
 ) => Promise<TContext>
 
 export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
@@ -68,9 +68,9 @@ export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext 
   options: {} extends TInput
     ?
         | void
-        | (TData &
+        | (TInput &
             MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>)
-    : TData & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
+    : TInput & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
 ) => void
 
 /**
