@@ -6,7 +6,6 @@ import type {
 } from '@elysiajs/eden/http.ts'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
-import { useMemo } from 'react'
 
 import type { EdenQueryConfig } from '../../config'
 import type { EdenContextProps, EdenContextState, EdenProvider } from '../../context'
@@ -15,12 +14,10 @@ import type { EdenUseMutation } from '../../integration/hooks/use-mutation'
 import type { EdenUseQuery } from '../../integration/hooks/use-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
 import type { EdenQueryKey } from '../../integration/internal/query-key'
-import { createEdenTreatyQueryUtils, type EdenTreatyQueryUtils } from './query-utils'
+import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
 import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
-
-const useContextAliases = ['useContext', 'useUtils']
 
 export type EdenTreatyQuery<TElysia extends AnyElysia, TSSRContext> = EdenTreatyQueryBase<
   TElysia,
@@ -143,18 +140,9 @@ export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = u
 
   const edenTreatyQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
-      if (useContextAliases.includes(path)) {
-        const customUseContext = (context = rootHooks.useUtils()) => {
-          // Create and return a stable reference of the utils context.
-          return useMemo(() => createEdenTreatyQueryUtils(context), [context])
-        }
-        return customUseContext
-      }
-
       if (Object.prototype.hasOwnProperty.call(rootHooks, path)) {
         return rootHooks[path as never]
       }
-
       return edenTreatyReactQueryProxy[path as never]
     },
   })

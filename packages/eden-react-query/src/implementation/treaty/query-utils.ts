@@ -24,6 +24,7 @@ import type {
 } from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
+import type { EdenQueryConfig } from '../../config'
 import {
   contextProps,
   type EdenContextPropsBase,
@@ -219,10 +220,11 @@ export type EdenTreatyQueryUtilsUniversalUtils = {
 
 export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
+  config?: EdenQueryConfig<TRouter>,
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   // const clientProxy = createTRPCClientProxy(context.client)
 
-  const proxy = createEdenTreatyQueryUtilsProxy(context)
+  const proxy = createEdenTreatyQueryUtilsProxy(context, config)
 
   const utils = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
@@ -243,14 +245,18 @@ export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContex
   return utils as any
 }
 
+/**
+ * @todo use config for something...
+ */
 export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
+  config?: EdenQueryConfig<TRouter>,
   originalPaths: string[] = [],
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
-      return createEdenTreatyQueryUtilsProxy(context, nextPaths)
+      return createEdenTreatyQueryUtilsProxy(context, config, nextPaths)
     },
     apply: (_target, _thisArg, argArray) => {
       const argsCopy = [...argArray]

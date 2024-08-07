@@ -109,7 +109,7 @@ export function createEdenTreatyQueryRootHooks<
     return <Context.Provider value={contextValue}>{children}</Context.Provider>
   }
 
-  const useContext = () => {
+  const useRawContext = () => {
     const context = React.useContext(Context)
 
     if (!context) {
@@ -121,12 +121,17 @@ export function createEdenTreatyQueryRootHooks<
     return context
   }
 
+  const useContext = (context = useRawContext()) => {
+    // Create and return a stable reference of the utils context.
+    return React.useMemo(() => createEdenTreatyQueryUtils(context), [context])
+  }
+
   const useQuery = (
     originalPaths: readonly string[],
     input: any,
     options?: EdenUseQueryOptions<unknown, unknown, TError>,
   ): EdenUseQueryResult<unknown, TError> => {
-    const context = useContext()
+    const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -150,7 +155,7 @@ export function createEdenTreatyQueryRootHooks<
     input: any,
     options?: EdenUseSuspenseQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseQueryResult<unknown, TError> => {
-    const context = useContext()
+    const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -174,7 +179,7 @@ export function createEdenTreatyQueryRootHooks<
     input: any,
     options?: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
-    const context = useContext()
+    const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -198,7 +203,7 @@ export function createEdenTreatyQueryRootHooks<
     input: any,
     options?: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
-    const context = useContext()
+    const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -218,7 +223,7 @@ export function createEdenTreatyQueryRootHooks<
   }
 
   const useQueries: EdenTreatyUseQueries<TElysia> = (queriesCallback) => {
-    const context = useContext()
+    const context = useRawContext()
 
     const { ssrState, queryClient, prefetchQuery, client } = context
 
@@ -243,7 +248,7 @@ export function createEdenTreatyQueryRootHooks<
   }
 
   const useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia> = (queriesCallback) => {
-    const context = useContext()
+    const context = useRawContext()
 
     const { queryClient, client } = context
 
@@ -260,7 +265,7 @@ export function createEdenTreatyQueryRootHooks<
     originalPaths: readonly string[],
     options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
   ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
-    const context = useContext()
+    const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
@@ -285,7 +290,7 @@ export function createEdenTreatyQueryRootHooks<
     input: unknown,
     opts: EdenUseSubscriptionOptions<unknown, TError>,
   ) => {
-    const context = useContext()
+    const context = useRawContext()
     return edenUseSubscription(path, input, opts, context)
   }
 

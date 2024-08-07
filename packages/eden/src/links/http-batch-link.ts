@@ -17,7 +17,7 @@ import {
   universalRequester,
 } from './internal/universal-requester'
 
-export type HTTPBatchRequesterOptions = Omit<EdenRequestOptions, 'domain' | 'headers'> & {
+export type HttpBatchLinkOptions = Omit<EdenRequestOptions, 'domain' | 'headers'> & {
   /**
    * Path for the batch endpoint.
    *
@@ -96,10 +96,7 @@ export function getUrl(params: GetInputParams) {
  *   '1.query.name': 'elysia'
  * }
  */
-export function generatePostBatchParams(
-  operations: Operation[],
-  options?: HTTPBatchRequesterOptions,
-) {
+export function generatePostBatchParams(operations: Operation[], options?: HttpBatchLinkOptions) {
   const body = new FormData()
 
   const headers = new Headers()
@@ -210,7 +207,7 @@ const generateBatchParams = {
   POST: generatePostBatchParams,
 }
 
-function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
+function createBatchRequester(options?: HttpBatchLinkOptions): Requester {
   const resolvedFactoryOptions = { maxURLLength: Infinity, ...options }
 
   const { endpoint, maxURLLength, headers, transformer, method, domain, ...requestOptions } =
@@ -416,7 +413,7 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
 /**
  * @link https://trpc.io/docs/v11/client/links/httpLink
  */
-export const httpBatchLink = (options?: HTTPBatchRequesterOptions) => {
+export const httpBatchLink = (options?: HttpBatchLinkOptions) => {
   const batchRequester = createBatchRequester(options)
   return httpLinkFactory({ requester: batchRequester })()
 }
