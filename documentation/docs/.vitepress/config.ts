@@ -1,14 +1,17 @@
-import { defineConfig } from 'vitepress'
-
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
+import ci from 'ci-info'
+import { defineConfig } from 'vitepress'
+import { repository } from '../../../package.json'
+
+const repositoryName = repository.url.split('/').pop() ?? ''
 
 const description =
   'Ergonomic Framework for Humans. TypeScript framework supercharged by Bun with End - to - End Type Safety, unified type system and outstanding developer experience'
 
-export default defineConfig({
+const config = defineConfig({
   lang: 'en-US',
   title: 'ElysiaJS',
-  // description,
+  base: ci.GITHUB_ACTIONS ? `/${repositoryName.replace('.git', '')}/` : '',
   ignoreDeadLinks: true,
   lastUpdated: true,
   markdown: {
@@ -438,10 +441,6 @@ export default defineConfig({
             text: 'Drizzle',
             link: '/integrations/drizzle',
           },
-          // {
-          //     text: 'Cheat Sheet',
-          //     link: '/integrations/cheat-sheet'
-          // }
         ],
       },
     ],
@@ -456,3 +455,5 @@ export default defineConfig({
     },
   },
 })
+
+export default config
