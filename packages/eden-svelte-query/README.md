@@ -541,6 +541,12 @@ eden.a.b.c.post.createMutation
 > That's why there's a helper method called `InferRouteInput<T extends RouteSchema>` which recognizes
 > the different sources of inputs and omits any unneeded inputs. It's been simplified in this demonstration.
 
+## Notes
+
+SvelteKit does not support resolving promises in components rendered on the server: https://github.com/sveltejs/svelte/issues/958
+eden-react-query has a Next.js SSR integration that works by using [`react-ssr-prepass`](https://github.com/FormidableLabs/react-ssr-prepass)
+to load the component on the server and catch all resolving promises.
+
 ## Remarks
 
 Ideas for batching:
