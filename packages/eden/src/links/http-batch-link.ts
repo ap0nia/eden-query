@@ -2,7 +2,7 @@ import type { AnyElysia, MaybeArray } from 'elysia'
 
 import { BATCH_ENDPOINT } from '../constants'
 import type { HTTPHeaders } from '../http'
-import { type EdenResponse } from '../request'
+import { type EdenRequestOptions, type EdenResponse } from '../request'
 import { type EdenRequestParams, resolveEdenRequest } from '../resolve'
 import { arrayToDict } from '../utils/array-to-dict'
 import { notNull } from '../utils/null'
@@ -17,7 +17,12 @@ import {
   universalRequester,
 } from './internal/universal-requester'
 
-export type HTTPBatchRequesterOptions = {
+export type HTTPBatchRequesterOptions = Omit<EdenRequestOptions, 'domain' | 'headers'> & {
+  /**
+   * Path for the batch endpoint.
+   *
+   * @example /batch
+   */
   endpoint?: string
   maxURLLength?: number
   headers?:
@@ -208,22 +213,21 @@ const generateBatchParams = {
 function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
   const resolvedFactoryOptions = { maxURLLength: Infinity, ...options }
 
-  const domain = resolvedFactoryOptions.domain
-
-  const transformer = resolvedFactoryOptions.transformer
+  const { endpoint, maxURLLength, headers, transformer, method, domain, ...requestOptions } =
+    resolvedFactoryOptions
 
   const createBatchLoader = (type: OperationType): BatchLoader<Operation> => {
     return {
       validate: (batchOps) => {
         // Escape hatch for quick calculations.
-        if (resolvedFactoryOptions.maxURLLength === Infinity) return true
+        if (maxURLLength === Infinity) return true
 
         const path = batchOps.map((operation) => operation.params.path).join(',')
         const input = batchOps.map((operation) => operation.params.options?.query)
 
         const url = getUrl({ ...resolvedFactoryOptions, type, path, input })
 
-        return url.length <= resolvedFactoryOptions.maxURLLength
+        return url.length <= maxURLLength
       },
       fetch: (batchOps) => {
         if (batchOps.length === 1) {
@@ -232,6 +236,7 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
           if (firstOperation != null) {
             const requesterOptions: RequesterOptions = {
               transformer,
+              ...requestOptions,
               ...firstOperation,
             }
 
@@ -261,41 +266,42 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
           abortController?.abort()
         }
 
-        const path = resolvedFactoryOptions?.endpoint ?? BATCH_ENDPOINT
+        const path = endpoint ?? BATCH_ENDPOINT
 
-        const defaultBatchMethod: BatchMethod = resolvedFactoryOptions.method ?? 'POST'
+        const defaultBatchMethod: BatchMethod = method ?? 'POST'
 
         /**
          * If any operations are a POST requests, can't batch with GET request...
          */
-        const method: BatchMethod =
+        const resolvedMethod: BatchMethod =
           defaultBatchMethod === 'GET'
             ? batchOps.find((op) => op.params.method === 'POST')
               ? 'POST'
               : 'GET'
             : 'POST'
 
-        const batchParams = generateBatchParams[method](batchOps, resolvedFactoryOptions)
+        const batchParams = generateBatchParams[resolvedMethod](batchOps, resolvedFactoryOptions)
 
         const defaultHeaders =
-          resolvedFactoryOptions.headers == null
+          headers == null
             ? undefined
-            : typeof resolvedFactoryOptions.headers === 'function'
-              ? resolvedFactoryOptions.headers(batchOps as NonEmptyArray<Operation>)
-              : resolvedFactoryOptions.headers
+            : typeof headers === 'function'
+              ? headers(batchOps as NonEmptyArray<Operation>)
+              : headers
 
         const { body, query } = batchParams
 
-        const headers = { ...defaultHeaders, ...batchParams.headers }
+        const resolvedHeaders = { ...defaultHeaders, ...batchParams.headers }
 
         const resolvedParams: EdenRequestParams<any, true> = {
           domain,
           transformer,
           path,
-          method,
+          method: resolvedMethod,
           options: { query },
           body,
-          headers,
+          headers: resolvedHeaders,
+          ...requestOptions,
           raw: true,
         }
 
@@ -314,7 +320,7 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
 
           const batchedData: EdenResponse<true>[] = result.data
 
-          const transformer = getDataTransformer(options?.transformer)
+          const resolvedTransformer = getDataTransformer(transformer)
 
           /**
            * The batch plugin also encodes its data into a JSON.
@@ -331,8 +337,8 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
           const transformedResponses = batchedData.map((batchedResult, index) => {
             // The raw data from each request has not be de-serialized yet.
             // De-serialize it so every entry is the finalized result.
-            if (transformer != null && batchedResult.data != null) {
-              batchedResult.data = transformer.output.deserialize(batchedResult.data)
+            if (resolvedTransformer != null && batchedResult.data != null) {
+              batchedResult.data = resolvedTransformer.output.deserialize(batchedResult.data)
             }
 
             const operation = batchOps[index]
@@ -366,8 +372,8 @@ function createBatchRequester(options?: HTTPBatchRequesterOptions): Requester {
                * TODO: how to guarantee that this value is the correct body?
                */
               const body =
-                transformer != null
-                  ? transformer.output.serialize(batchedResult.data)
+                resolvedTransformer != null
+                  ? resolvedTransformer.output.serialize(batchedResult.data)
                   : JSON.stringify(batchedResult.data)
 
               /**

@@ -236,18 +236,16 @@ export function createUtilityFunctions<T extends AnyElysia>(
       const { eden, ...queryOptions } = options
 
       const edenQueryOptions: FetchQueryOptions<unknown, any, unknown, QueryKey, never> = {
-        ...queryOptions,
         queryKey,
         queryFn: async (queryFunctionContext) => {
           let options: any = queryKey[1]?.input
 
           const params = {
             ...config,
-            ...eden,
             options,
             path,
             method,
-            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+            ...eden,
           } satisfies EdenRequestParams
 
           const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount
@@ -264,6 +262,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
 
           return result.data
         },
+        ...queryOptions,
       }
 
       return await queryClient.fetchQuery(edenQueryOptions)
@@ -275,18 +274,16 @@ export function createUtilityFunctions<T extends AnyElysia>(
       const { eden, ...queryOptions } = options
 
       return await queryClient.fetchInfiniteQuery({
-        ...queryOptions,
         queryKey,
         queryFn: async (context) => {
           const options: any = { ...(queryKey[1]?.input ?? {}) }
 
           const params = {
             ...config,
-            ...eden,
             options,
             path,
             method,
-            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+            ...eden,
           } satisfies EdenRequestParams
 
           if (context.pageParam != null) {
@@ -310,6 +307,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
           return result.data
         },
         initialPageParam: options?.initialCursor ?? null,
+        ...queryOptions,
       })
     },
 
@@ -319,18 +317,16 @@ export function createUtilityFunctions<T extends AnyElysia>(
       const { eden, ...queryOptions } = options
 
       return await queryClient.prefetchQuery({
-        ...queryOptions,
         queryKey,
         queryFn: async () => {
           const options: any = { ...(queryKey[1]?.input ?? {}) }
 
           const params = {
             ...config,
-            ...eden,
             options,
             path,
             method,
-            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+            ...eden,
           } satisfies EdenRequestParams
 
           const result = await client.query(params)
@@ -341,6 +337,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
 
           return result.data
         },
+        ...queryOptions,
       })
     },
 
@@ -350,18 +347,16 @@ export function createUtilityFunctions<T extends AnyElysia>(
       const { eden, ...queryOptions } = options
 
       return await queryClient.prefetchInfiniteQuery({
-        ...queryOptions,
         queryKey,
         queryFn: async (queryFunctionContext) => {
           const options: any = { ...(queryKey[1]?.input ?? {}) }
 
           const params = {
             ...config,
-            ...eden,
             options,
             path,
             method,
-            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+            ...eden,
           } satisfies EdenRequestParams
 
           if (queryFunctionContext.pageParam != null) {
@@ -385,6 +380,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
           return result.data
         },
         initialPageParam: options?.initialCursor ?? null,
+        ...queryOptions,
       })
     },
 
@@ -394,18 +390,16 @@ export function createUtilityFunctions<T extends AnyElysia>(
       const { eden, ...queryOptions } = options
 
       return await queryClient.ensureQueryData({
-        ...queryOptions,
         queryKey,
         queryFn: async () => {
           let options: any = queryKey[1]?.input
 
           const params = {
             ...config,
-            ...eden,
             options,
             path,
             method,
-            fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+            ...eden,
           } satisfies EdenRequestParams
 
           const result = await client.query(params)
@@ -416,6 +410,7 @@ export function createUtilityFunctions<T extends AnyElysia>(
 
           return result.data
         },
+        ...queryOptions,
       })
     },
 

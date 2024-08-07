@@ -46,8 +46,7 @@ export const universalRequester: Requester = (options) => {
 
   if (options.params.fetch?.signal) {
     options.params.fetch.signal.addEventListener('abort', cancel)
-    resolvedParams.fetch ??= {}
-    resolvedParams.fetch.signal = abortController?.signal
+    resolvedParams.fetch = { ...resolvedParams.fetch, signal: abortController?.signal }
   }
 
   if (methodOverride != null) {

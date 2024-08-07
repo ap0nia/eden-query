@@ -6,24 +6,28 @@ import type {
   InferRouteOutput,
 } from '@elysiajs/eden'
 import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.ts'
-import type {
-  CancelOptions,
-  CreateInfiniteQueryOptions,
-  CreateQueryOptions,
-  InfiniteData,
-  InvalidateOptions,
-  InvalidateQueryFilters,
-  Query,
-  QueryFilters,
-  QueryKey,
-  RefetchOptions,
-  RefetchQueryFilters,
-  ResetOptions,
-  SetDataOptions,
-  Updater,
+import {
+  type CancelOptions,
+  type CreateInfiniteQueryOptions,
+  type CreateQueryOptions,
+  dehydrate,
+  type DehydratedState,
+  type InfiniteData,
+  type InvalidateOptions,
+  type InvalidateQueryFilters,
+  type Query,
+  QueryClient,
+  type QueryFilters,
+  type QueryKey,
+  type RefetchOptions,
+  type RefetchQueryFilters,
+  type ResetOptions,
+  type SetDataOptions,
+  type Updater,
 } from '@tanstack/svelte-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
+import type { EdenQueryConfig } from '../../config'
 import {
   contextProps,
   type EdenContextPropsBase,
@@ -219,14 +223,28 @@ export type EdenTreatyQueryUtilsUniversalUtils = {
 
 export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
+  config?: EdenQueryConfig<TRouter>,
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   // const clientProxy = createTRPCClientProxy(context.client)
 
-  const proxy = createEdenTreatyQueryUtilsProxy(context)
+  const queryClient = context.queryClient ?? new QueryClient()
+
+  const dehydrated = config?.dehydrated === true ? dehydrate(queryClient) : config?.dehydrated
+
+  const topLevelProperties = {
+    queryClient,
+    dehydrated,
+  }
+
+  const proxy = createEdenTreatyQueryUtilsProxy(context, config)
 
   const utils = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       const contextName = path as (typeof contextProps)[number]
+
+      if (Object.prototype.hasOwnProperty.call(topLevelProperties, path)) {
+        return topLevelProperties[path as never]
+      }
 
       // if (contextName === 'client') {
       //   return clientProxy
@@ -243,21 +261,50 @@ export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContex
   return utils as any
 }
 
+export function mergeDehydrated(
+  source: DehydratedState | QueryClient,
+  destination: DehydratedState,
+): DehydratedState {
+  const dehydratedSource = 'mount' in source ? dehydrate(source) : source
+
+  destination.queries.push(...dehydratedSource.queries)
+  destination.mutations.push(...dehydratedSource.mutations)
+
+  return destination
+}
+
 export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
+  config?: EdenQueryConfig<TRouter>,
   originalPaths: string[] = [],
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
+  const queryClient = context.queryClient ?? new QueryClient()
+
+  const dehydrated =
+    config?.dehydrated != null && typeof config.dehydrated !== 'boolean'
+      ? config.dehydrated
+      : undefined
+
+  const mergeSSRCache = <T>(result: T) => {
+    if (dehydrated != null) {
+      mergeDehydrated(queryClient, dehydrated)
+    }
+    return result
+  }
+
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
-      return createEdenTreatyQueryUtilsProxy(context, nextPaths)
+      return createEdenTreatyQueryUtilsProxy(context, config, nextPaths)
     },
     apply: (_target, _thisArg, argArray) => {
       const argsCopy = [...argArray]
 
-      const { paths } = parsePathsAndMethod(originalPaths)
+      const pathsCopy = [...originalPaths]
 
-      const lastArg = paths.pop() ?? ''
+      const lastArg = pathsCopy.pop() ?? ''
+
+      const { paths } = parsePathsAndMethod(pathsCopy)
 
       const queryType = getQueryType(lastArg)
 
@@ -267,23 +314,23 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
 
       switch (lastArg) {
         case 'fetch': {
-          return context.fetchQuery(queryKey, ...argsCopy)
+          return context.fetchQuery(queryKey, ...argsCopy).then(mergeSSRCache)
         }
 
         case 'fetchInfinite': {
-          return context.fetchInfiniteQuery(queryKey, argsCopy[0])
+          return context.fetchInfiniteQuery(queryKey, argsCopy[0]).then(mergeSSRCache)
         }
 
         case 'prefetch': {
-          return context.prefetchQuery(queryKey, ...argsCopy)
+          return context.prefetchQuery(queryKey, ...argsCopy).then(mergeSSRCache)
         }
 
         case 'prefetchInfinite': {
-          return context.prefetchInfiniteQuery(queryKey, argsCopy[0])
+          return context.prefetchInfiniteQuery(queryKey, argsCopy[0]).then(mergeSSRCache)
         }
 
         case 'ensureData': {
-          return context.ensureQueryData(queryKey, ...argsCopy)
+          return context.ensureQueryData(queryKey, ...argsCopy).then(mergeSSRCache)
         }
 
         case 'invalidate': {

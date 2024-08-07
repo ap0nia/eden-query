@@ -15,7 +15,16 @@ import ReactiveInputPage from './routes/reactive-input/+page'
 import UseQueriesPage from './routes/use-queries/+page'
 
 export function App() {
-  const [queryClient] = useState(() => new QueryClient())
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnMount: false,
+          },
+        },
+      }),
+  )
 
   const [client] = useState(() => {
     return eden.createClient({

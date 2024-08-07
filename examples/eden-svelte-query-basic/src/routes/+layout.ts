@@ -1,4 +1,6 @@
+import { httpBatchLink } from '@elysiajs/eden-svelte-query'
 import { QueryClient } from '@tanstack/svelte-query'
+import SuperJSON from 'superjson'
 
 import { browser } from '$app/environment'
 import { eden } from '$lib/eden'
@@ -21,12 +23,17 @@ export const load: LayoutLoad = async (event) => {
     },
   })
 
-  const edenUtils = eden.createContext(queryClient, {
-    /**
-     * The SvelteKit specific `fetch` implementation must be used for pre-fetching in load functions.
-     */
-    fetcher: event.fetch,
+  const client = eden.createClient({
+    links: [
+      httpBatchLink({
+        endpoint: '/api/batch',
+        transformer: SuperJSON,
+        fetcher: event.fetch,
+      }),
+    ],
   })
 
-  return { queryClient, eden: edenUtils, dehydrated: event.data.dehydrated }
+  const edenUtils = eden.createUtils({ client, queryClient })
+
+  return { client, queryClient, eden: edenUtils, dehydrated: event.data.dehydrated }
 }

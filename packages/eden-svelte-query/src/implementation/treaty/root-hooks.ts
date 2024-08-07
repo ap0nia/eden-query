@@ -39,6 +39,7 @@ import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-
 import { getEdenQueryHookExtension } from '../../integration/internal/query-hook-extension'
 import { isStore } from '../../utils/is-store'
 import { createTreatyCreateQueriesProxy, type EdenTreatyCreateQueries } from './create-queries'
+import { createEdenTreatyQueryUtils, type EdenTreatyQueryUtils } from './query-utils'
 
 export function createEdenTreatyQueryRootHooks<
   TElysia extends AnyElysia,
@@ -53,10 +54,13 @@ export function createEdenTreatyQueryRootHooks<
 
   const createContext = (
     props: EdenContextProps<TElysia, TSSRContext>,
+    configOverride = config,
   ): EdenContextState<TElysia, TSSRContext> => {
     const { abortOnUnmount = false, client, queryClient } = props
 
-    const utilityFunctions = createUtilityFunctions({ client, queryClient, abortOnUnmount })
+    const options = { client, queryClient, abortOnUnmount }
+
+    const utilityFunctions = createUtilityFunctions(options, configOverride)
 
     return {
       abortOnUnmount,
@@ -66,10 +70,20 @@ export function createEdenTreatyQueryRootHooks<
     }
   }
 
+  const createUtils = (
+    props: EdenContextProps<TElysia, TSSRContext>,
+    configOverride = config,
+  ): EdenTreatyQueryUtils<TElysia, TSSRContext> => {
+    const context = createContext(props, configOverride)
+    const utils = createEdenTreatyQueryUtils(context, configOverride)
+    return utils
+  }
+
   const setContext = (
     props: EdenContextProps<TElysia, TSSRContext>,
+    configOverride = config,
   ): EdenContextState<TElysia, TSSRContext> => {
-    const context = createContext(props)
+    const context = createContext(props, configOverride)
     return __setContext(EDEN_CONTEXT_KEY, context)
   }
 
@@ -213,6 +227,7 @@ export function createEdenTreatyQueryRootHooks<
   return {
     createClient,
     createContext,
+    createUtils,
     setContext,
     getContext,
     getUtils: getContext,

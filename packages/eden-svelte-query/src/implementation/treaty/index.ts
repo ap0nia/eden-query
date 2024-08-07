@@ -33,13 +33,18 @@ export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
 
   createContext(
     props: EdenContextProps<TElysia, TSSRContext>,
+    config?: EdenQueryConfig<TElysia>,
   ): EdenContextState<TElysia, TSSRContext>
 
   createUtils(
     props: EdenContextProps<TElysia, TSSRContext>,
+    config?: EdenQueryConfig<TElysia>,
   ): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
-  setContext(props: EdenContextProps<TElysia, TSSRContext>): EdenContextState<TElysia, TSSRContext>
+  setContext(
+    props: EdenContextProps<TElysia, TSSRContext>,
+    config?: EdenQueryConfig<TElysia>,
+  ): EdenContextState<TElysia, TSSRContext>
 
   createClient: EdenCreateClient<TElysia>
 
@@ -91,7 +96,7 @@ export type EdenTreatyQueryMapping<
   TPath extends any[] = [],
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
 > = {
-  useQuery: EdenCreateQuery<TRoute, TPath>
+  createQuery: EdenCreateQuery<TRoute, TPath>
 } & (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
   ? EdenTreatyInfiniteQueryMapping<TRoute, TPath>
   : {})
@@ -100,14 +105,14 @@ export type EdenTreatyQueryMapping<
  * Available hooks assuming that the route supports createInfiniteQuery.
  */
 export type EdenTreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  useInfiniteQuery: EdenCreateInfiniteQuery<TRoute, TPath>
+  createInfiniteQuery: EdenCreateInfiniteQuery<TRoute, TPath>
 }
 
 /**
  * Available hooks assuming that the route supports createMutation.
  */
 export type EdenTreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
-  useMutation: EdenCreateMutation<TRoute, TPath>
+  createMutation: EdenCreateMutation<TRoute, TPath>
 }
 
 /**
@@ -132,8 +137,8 @@ export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = u
   const edenTreatyQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       if (getContextAliases.includes(path)) {
-        const customGetContext = (context = rootHooks.getUtils()) => {
-          return createEdenTreatyQueryUtils(context)
+        const customGetContext = (context = rootHooks.getUtils(), configOverride = config) => {
+          return createEdenTreatyQueryUtils(context, configOverride)
         }
         return customGetContext
       }

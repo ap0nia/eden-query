@@ -7,7 +7,8 @@
 
   export let data: LayoutData
 
-  $: eden.setContext(data.queryClient)
+  $: eden.setContext(data)
+
   $: hydrate(data.queryClient, data.dehydrated)
 </script>
 
