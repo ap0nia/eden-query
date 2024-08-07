@@ -215,6 +215,7 @@ export function createEdenTreatyQueryRootHooks<
     createContext,
     setContext,
     getContext,
+    getUtils: getContext,
     createQuery,
     createQueries,
     createMutation,

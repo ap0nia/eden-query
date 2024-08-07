@@ -34,12 +34,12 @@ import type { EdenFetchInfiniteQueryOptions } from '../../integration/hooks/fetc
 import type { EdenFetchQueryOptions } from '../../integration/hooks/fetch-query'
 import type { EdenUseInfiniteQueryOptions } from '../../integration/hooks/use-infinite-query'
 import type { EdenUseMutationOptions } from '../../integration/hooks/use-mutation'
-import { parsePathsAndMethod } from '../../integration/internal/helpers'
 import type {
   ExtractCursorType,
   InfiniteCursorKey,
   ReservedInfiniteQueryKeys,
 } from '../../integration/internal/infinite-query'
+import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
 import {
   type EdenQueryKey,
   getMutationKey,
