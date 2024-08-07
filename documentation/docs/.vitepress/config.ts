@@ -188,6 +188,33 @@ const config = defineConfig({
             link: '/eden-query/overview.md',
           },
           {
+            text: 'Links',
+            link: '/eden-query/links/index.md',
+            collapsed: false,
+            items: [
+              {
+                text: 'HTTP Link',
+                link: '/eden-query/links/http-link.md',
+              },
+              {
+                text: 'HTTP Batch Link',
+                link: '/eden-query/links/http-batch-link.md',
+              },
+              {
+                text: 'Split Link',
+                link: '/eden-query/links/split-link.md',
+              },
+              {
+                text: 'Logger Link',
+                link: '/eden-query/links/logger-link.md',
+              },
+            ],
+          },
+          {
+            text: 'Transformers',
+            link: '/eden-query/transformers.md',
+          },
+          {
             text: 'Batching',
             link: '/eden-query/batching.md',
           },

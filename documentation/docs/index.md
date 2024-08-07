@@ -22,7 +22,7 @@ head:
 
 <Landing>
   <template v-slot:justreturn>
-  
+
 ```typescript twoslash
 import { Elysia } from 'elysia'
 
@@ -97,7 +97,7 @@ const app = new Elysia()
     .patch(
         '/user/profile',
         ({ body, error }) => {
-            if(body.age < 18) 
+            if(body.age < 18)
                 return error(400, "Oh no")
 
             if(body.name === 'Nagisa')
@@ -113,7 +113,7 @@ const app = new Elysia()
         }
     )
     .listen(80)
-    
+
 export type App = typeof app
 ```
   </template>
@@ -129,7 +129,7 @@ const app = new Elysia()
     .patch(
         '/user/profile',
         ({ body, error }) => {
-            if(body.age < 18) 
+            if(body.age < 18)
                 return error(400, "Oh no")
 
             if(body.name === 'Nagisa')

@@ -14,12 +14,33 @@ head:
       content: Integration between Eden and tanstack-query.
 ---
 
+<script setup>
+    import Card from '../../components/nearl/card.vue'
+    import Deck from '../../components/nearl/card-deck.vue'
+</script>
+
 # Introduction
 
 The goal of eden + tanstack-query is to provide a similar interface to
 [tRPC's react-query integration](https://trpc.io/docs/client/react),
 while supporting all the functionality provided by the
 [official Eden implementation](https://elysiajs.com/eden/overview.html).
+
+## Features
+
+> Interesting, universal features this library supports!
+
+<Deck>
+    <Card title="Batching" href="/eden-query/batching">
+        Batching
+    </Card>
+    <Card title="Links" href="/eden-query/links">
+        Links
+    </Card>
+    <Card title="Transformers" href="/eden-query/transformers">
+        Transformers
+    </Card>
+</Deck>
 
 ## Implementations
 

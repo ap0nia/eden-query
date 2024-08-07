@@ -1,5 +1,5 @@
 ---
-title: tanstack-query batching - ElysiaJS
+title: eden-query batching - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
@@ -20,6 +20,7 @@ A custom plugin allows requests from the client to be batched into one single re
 This is enabled on the server, and the client can opt into batch requests.
 
 ```typescript twoslash
+// @filename: server.ts
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@elysiajs/eden-react-query'
 
@@ -29,6 +30,15 @@ const app = new Elysia()
   .get('/b', () => 'B')
 
 export type App = typeof app
+
+// @filename: index.ts
+// ---cut---
+import { createEdenTreatyQuery } from '@elysiajs/eden-react-query'
+import type { App } from './server'
+
+const eden = createEdenTreatyQuery<App>()
+
+const client = eden.createHttpBatchClient()
 ```
 
 ## How it Works

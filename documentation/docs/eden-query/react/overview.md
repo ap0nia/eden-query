@@ -113,7 +113,7 @@ function getAuthCookie() {
 export function App() {
   const [queryClient] = useState(() => new QueryClient())
 
-  const [trpcClient] = useState(() =>
+  const [edenClient] = useState(() =>
     eden.createClient({
       links: [
         httpBatchLink({
@@ -131,7 +131,7 @@ export function App() {
   )
 
   return (
-    <eden.Provider client={trpcClient} queryClient={queryClient}>
+    <eden.Provider client={edenClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>{/* Your app here */}</QueryClientProvider>
     </eden.Provider>
   )
