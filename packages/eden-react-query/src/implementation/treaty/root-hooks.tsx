@@ -1,5 +1,10 @@
-import type { EdenClientError, EdenCreateClient } from '@elysiajs/eden'
-import { EdenClient } from '@elysiajs/eden'
+import type {
+  EdenClientError,
+  EdenCreateClient,
+  HttpBatchLinkOptions,
+  HTTPLinkOptions,
+} from '@elysiajs/eden'
+import { EdenClient, httpBatchLink, httpLink } from '@elysiajs/eden'
 import {
   useInfiniteQuery as __useInfiniteQuery,
   useQueries as __useQueries,
@@ -63,6 +68,18 @@ export function createEdenTreatyQueryRootHooks<
 
   const createClient: EdenCreateClient<TElysia> = (options) => {
     return new EdenClient(options)
+  }
+
+  const createHttpClient = (options?: HTTPLinkOptions) => {
+    return new EdenClient({
+      links: [httpLink(options)],
+    })
+  }
+
+  const createHttpBatchClient = (options?: HttpBatchLinkOptions) => {
+    return new EdenClient({
+      links: [httpBatchLink(options)],
+    })
   }
 
   const createContext = (props: EdenContextProps<TElysia, TSSRContext>) => {
@@ -297,6 +314,8 @@ export function createEdenTreatyQueryRootHooks<
   return {
     Provider: EdenProvider,
     createClient,
+    createHttpClient,
+    createHttpBatchClient,
     createContext,
     createUtils,
     useContext,

@@ -1,4 +1,11 @@
-import type { EdenCreateClient, EdenRequestOptions, InferRouteOptions } from '@elysiajs/eden'
+import type {
+  EdenClient,
+  EdenCreateClient,
+  EdenRequestOptions,
+  HttpBatchLinkOptions,
+  HTTPLinkOptions,
+  InferRouteOptions,
+} from '@elysiajs/eden'
 import type {
   HttpMutationMethod,
   HttpQueryMethod,
@@ -26,6 +33,14 @@ export type EdenTreatyQuery<TElysia extends AnyElysia, TSSRContext> = EdenTreaty
   EdenTreatyQueryHooks<TElysia>
 
 export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
+  createContext(
+    props: EdenContextProps<TElysia, TSSRContext>,
+  ): EdenContextState<TElysia, TSSRContext>
+
+  createUtils(
+    props: EdenContextProps<TElysia, TSSRContext>,
+  ): EdenTreatyQueryUtils<TElysia, TSSRContext>
+
   /**
    * @deprecated renamed to `useUtils` and will be removed in a future tRPC version
    *
@@ -38,21 +53,26 @@ export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
    */
   useUtils(): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
-  createContext(
-    props: EdenContextProps<TElysia, TSSRContext>,
-  ): EdenContextState<TElysia, TSSRContext>
-
-  createUtils(
-    props: EdenContextProps<TElysia, TSSRContext>,
-  ): EdenTreatyQueryUtils<TElysia, TSSRContext>
-
   Provider: EdenProvider<TElysia, TSSRContext>
-
-  createClient: EdenCreateClient<TElysia>
 
   useQueries: EdenTreatyUseQueries<TElysia>
 
   useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia>
+
+  /**
+   * Need to provide `links` in order for this client to work.
+   */
+  createClient: EdenCreateClient<TElysia>
+
+  /**
+   * Convenience method for creating and configuring a client with a single HTTPLink.
+   */
+  createHttpClient: (options?: HTTPLinkOptions) => EdenClient<TElysia>
+
+  /**
+   * Convenience method for creating and configuring a client with a single HttpBatchLink.
+   */
+  createHttpBatchClient: (options?: HttpBatchLinkOptions) => EdenClient<TElysia>
 }
 
 export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {

@@ -63,7 +63,7 @@ export function createEdenTreatyQueryRootHooks<
     })
   }
 
-  const createHttpBatchLink = (options?: HttpBatchLinkOptions) => {
+  const createHttpBatchClient = (options?: HttpBatchLinkOptions) => {
     return new EdenClient({
       links: [httpBatchLink(options)],
     })
@@ -248,7 +248,7 @@ export function createEdenTreatyQueryRootHooks<
   return {
     createClient,
     createHttpClient,
-    createHttpBatchLink,
+    createHttpBatchClient,
     createContext,
     createUtils,
     setContext,
