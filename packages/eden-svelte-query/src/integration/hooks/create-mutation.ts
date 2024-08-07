@@ -1,4 +1,5 @@
 import type {
+  EdenRequestParams,
   InferRouteBody,
   InferRouteError,
   InferRouteOptions,
@@ -12,13 +13,18 @@ import {
   type DefaultError,
   type MutateOptions,
   type QueryClient,
+  type StoreOrVal,
+  useQueryClient,
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 import { derived, type Readable } from 'svelte/store'
 
+import type { EdenContextState } from '../../context'
 import type { Override } from '../../utils/types'
+import type { ParsedPathAndMethod } from '../internal/parse-paths-and-method'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
+import { getMutationKey } from '../internal/query-key'
 
 export type EdenCreateMutationOptions<
   TInput,
@@ -115,7 +121,7 @@ export function createEdenMutation<
   TVariables = void,
   TContext = unknown,
 >(
-  options: CreateMutationOptions<TData, TError, TVariables, TContext>,
+  options: StoreOrVal<CreateMutationOptions<TData, TError, TVariables, TContext>>,
   queryClient?: QueryClient,
 ): CreateMutationResult<TData, TError, TVariables, TContext> {
   const mutation = createMutation(options, queryClient)
@@ -139,4 +145,67 @@ export function createEdenMutation<
   })
 
   return edenMutation
+}
+
+export function edenCreateMutationOptions(
+  parsedPathsAndMethod: ParsedPathAndMethod,
+  context: EdenContextState<any, any>,
+  options: EdenCreateMutationOptions<any, any, any> = {},
+  config?: any,
+): CreateMutationOptions {
+  const { client, queryClient = useQueryClient() } = context
+
+  const { paths, path, method } = parsedPathsAndMethod
+
+  const mutationKey = getMutationKey(paths)
+
+  const mutationDefaults = queryClient.getMutationDefaults(mutationKey)
+
+  const defaultOptions = queryClient.defaultMutationOptions(mutationDefaults)
+
+  const { eden, ...mutationOptions } = options
+
+  const resolvedMutationOptions: CreateMutationOptions = {
+    mutationKey,
+    mutationFn: async (variables: any = {}) => {
+      const { body, options } = variables as EdenCreateMutationVariables
+
+      const params = {
+        ...config,
+        options,
+        body,
+        path,
+        method,
+        ...eden,
+      } satisfies EdenRequestParams
+
+      const result = await client.query(params)
+
+      if (!('data' in result)) {
+        return result
+      }
+
+      if (result.error != null) {
+        throw result.error
+      }
+
+      return result.data
+    },
+    onSuccess: (data, variables, context) => {
+      const onSuccess = options?.onSuccess ?? defaultOptions.onSuccess
+
+      if (config?.overrides?.useMutation?.onSuccess == null) {
+        return onSuccess?.(data, variables, context)
+      }
+
+      const meta: any = options?.meta ?? defaultOptions.meta
+
+      const originalFn = () => onSuccess?.(data, variables, context)
+
+      return config.overrides.useMutation.onSuccess({ meta, originalFn, queryClient })
+    },
+    ...mutationOptions,
+  }
+
+  return resolvedMutationOptions
 }
