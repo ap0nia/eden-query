@@ -122,8 +122,8 @@ const config = defineConfig({
             link: '/quick-start',
           },
           {
-            text: 'Table of Content',
-            link: '/table-of-content',
+            text: 'Table of Contents',
+            link: '/table-of-contents',
           },
         ],
       },
@@ -134,6 +134,7 @@ const config = defineConfig({
           {
             text: 'Overview',
             link: '/eden/overview.md',
+            docFooterText: 'Eden Overview',
           },
           {
             text: 'Installation',
@@ -146,6 +147,7 @@ const config = defineConfig({
               {
                 text: 'Overview',
                 link: '/eden/treaty/overview',
+                docFooterText: 'Eden Treaty Overview',
               },
               {
                 text: 'Parameters',
@@ -176,6 +178,7 @@ const config = defineConfig({
           {
             text: 'Eden Fetch',
             link: '/eden/fetch.md',
+            docFooterText: 'Eden Fetch Overview',
           },
         ],
       },
@@ -186,6 +189,7 @@ const config = defineConfig({
           {
             text: 'Overview',
             link: '/eden-query/overview.md',
+            docFooterText: 'Eden Query Overview',
           },
           {
             text: 'Links',
@@ -223,8 +227,9 @@ const config = defineConfig({
             collapsed: false,
             items: [
               {
-                text: 'React-Query Overview',
+                text: 'Overview',
                 link: '/eden-query/react/overview',
+                docFooterText: 'Eden React-Query Overview',
               },
             ],
           },
@@ -233,8 +238,9 @@ const config = defineConfig({
             collapsed: false,
             items: [
               {
-                text: 'Svelte-Query Overview',
+                text: 'Overview',
                 link: '/eden-query/svelte/overview',
+                docFooterText: 'Eden Svelte-Query Overview',
               },
             ],
           },
@@ -248,7 +254,7 @@ const config = defineConfig({
     ],
     editLink: {
       text: 'Edit this page on GitHub',
-      pattern: 'https://github.com/elysiajs/documentation/edit/main/docs/:path',
+      pattern: 'https://github.com/ap0nia/eden-query/edit/main/documentation/docs/:path',
     },
   },
 })
