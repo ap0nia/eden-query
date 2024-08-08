@@ -24,13 +24,13 @@ import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from '.
 import type { EdenTreatyUseQueries } from './use-queries'
 import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
 
-export type EdenTreatyQuery<TElysia extends AnyElysia, TSSRContext> = EdenTreatyQueryBase<
+export type EdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContext> = EdenTreatyReactQueryBase<
   TElysia,
   TSSRContext
 > &
-  EdenTreatyQueryHooks<TElysia>
+  EdenTreatyReactQueryHooks<TElysia>
 
-export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
+export type EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext> = {
   createContext(
     props: EdenContextProps<TElysia, TSSRContext>,
   ): EdenContextState<TElysia, TSSRContext>
@@ -65,30 +65,30 @@ export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
   /**
    * Convenience method for creating and configuring a client with a single HTTPLink.
    */
-  createHttpClient: (options?: HTTPLinkOptions) => EdenClient<TElysia>
+  createHttpClient: (options?: HTTPLinkOptions<TElysia>) => EdenClient<TElysia>
 
   /**
    * Convenience method for creating and configuring a client with a single HttpBatchLink.
    */
-  createHttpBatchClient: (options?: HttpBatchLinkOptions) => EdenClient<TElysia>
+  createHttpBatchClient: (options?: HttpBatchLinkOptions<TElysia>) => EdenClient<TElysia>
 }
 
-export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {
+export type EdenTreatyReactQueryHooks<T extends AnyElysia> = T extends {
   _routes: infer TSchema extends Record<string, any>
 }
-  ? EdenTreatyQueryHooksImplementation<TSchema>
+  ? EdenTreatyReactQueryHooksImplementation<TSchema>
   : 'Please install Elysia before using Eden'
 
 /**
  * Implementation.
  */
-export type EdenTreatyQueryHooksImplementation<
+export type EdenTreatyReactQueryHooksImplementation<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
 > = {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? EdenTreatyQueryRouteHooks<TSchema[K], K, TPath>
-    : EdenTreatyQueryHooksImplementation<TSchema[K], [...TPath, K]>
+    ? EdenTreatyReactQueryRouteHooks<TSchema[K], K, TPath>
+    : EdenTreatyReactQueryHooksImplementation<TSchema[K], [...TPath, K]>
 }
 
 /**
@@ -96,9 +96,9 @@ export type EdenTreatyQueryHooksImplementation<
  *
  * Defines available hooks for a specific route.
  *
- * @example { createQuery: ..., createInfiniteQuery: ... }
+ * @example { useQuery: ..., useInfiniteQuery: ... }
  */
-export type EdenTreatyQueryRouteHooks<
+export type EdenTreatyReactQueryRouteHooks<
   TRoute extends RouteSchema,
   TMethod,
   TPath extends any[] = [],
@@ -111,7 +111,7 @@ export type EdenTreatyQueryRouteHooks<
       : never
 
 /**
- * Available hooks gassumingthat the route supports createQuery.
+ * Available hooks assuming that the route supports useQuery.
  */
 export type EdenTreatyQueryMapping<
   TRoute extends RouteSchema,
@@ -124,21 +124,21 @@ export type EdenTreatyQueryMapping<
   : {})
 
 /**
- * Available hooks assuming that the route supports createInfiniteQuery.
+ * Available hooks assuming that the route supports useInfiniteQuery.
  */
 export type EdenTreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
   useInfiniteQuery: EdenUseInfiniteQuery<TRoute, TPath>
 }
 
 /**
- * Available hooks assuming that the route supports createMutation.
+ * Available hooks assuming that the route supports useMutation.
  */
 export type EdenTreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
   useMutation: EdenUseMutation<TRoute, TPath>
 }
 
 /**
- * @TODO: Available hooks assuming that the route supports createSubscription.
+ * @TODO: Available hooks assuming that the route supports useMutation.
  */
 export type EdenTreatySubscriptionMapping<
   TRoute extends RouteSchema,
@@ -149,12 +149,12 @@ export type EdenTreatySubscriptionMapping<
   queryKey: EdenQueryKey<TPath>
 }
 
-export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = unknown>(
+export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContext = unknown>(
   config?: EdenQueryConfig<TElysia>,
-): EdenTreatyQuery<TElysia, TSSRContext> {
+): EdenTreatyReactQuery<TElysia, TSSRContext> {
   const rootHooks = createEdenTreatyQueryRootHooks(config)
 
-  const edenTreatyReactQueryProxy = createEdenTreatyQueryProxy(rootHooks, config)
+  const edenTreatyReactQueryProxy = createEdenTreatyReactQueryProxy(rootHooks, config)
 
   const edenTreatyQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
@@ -168,7 +168,7 @@ export function createEdenTreatyQuery<TElysia extends AnyElysia, TSSRContext = u
   return edenTreatyQuery as any
 }
 
-export function createEdenTreatyQueryProxy<T extends AnyElysia = AnyElysia>(
+export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>(
   rootHooks: EdenTreatyQueryRootHooks<T>,
   config?: EdenQueryConfig<T>,
   paths: string[] = [],
@@ -176,7 +176,7 @@ export function createEdenTreatyQueryProxy<T extends AnyElysia = AnyElysia>(
   const edenTreatyQueryProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createEdenTreatyQueryProxy(rootHooks, config, nextPaths)
+      return createEdenTreatyReactQueryProxy(rootHooks, config, nextPaths)
     },
     apply: (_target, _thisArg, args) => {
       const pathsCopy = [...paths]

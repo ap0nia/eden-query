@@ -1,12 +1,12 @@
 import {
-  createEdenTreatyQuery,
+  createEdenTreatyReactQuery,
   type InferTreatyQueryInput,
   type InferTreatyQueryOutput,
 } from '@ap0nia/eden-react-query'
 
 import type { App } from '../../server'
 
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+export const eden = createEdenTreatyReactQuery<App>({ abortOnUnmount: true })
 
 export type InferInput = InferTreatyQueryInput<App>
 
