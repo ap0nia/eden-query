@@ -1,7 +1,7 @@
 import { eden } from '../lib/eden'
 
 export default function Page() {
-  const hello = eden.api.index.get.useQuery({})
+  const hello = eden.api.index.get.useQuery()
 
   return (
     <main>

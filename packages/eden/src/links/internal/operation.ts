@@ -5,13 +5,13 @@ import type { Observable, Observer } from './observable'
 
 export type OperationType = 'query' | 'mutation' | 'subscription'
 
-export type OperationContext = {}
+export interface OperationContext extends Record<string, unknown> {}
 
 export type Operation<T extends AnyElysia = any> = {
   id: number
   type: OperationType
   params: EdenRequestParams<T>
-  context?: OperationContext
+  context: OperationContext
 }
 
 export type OperationLink<

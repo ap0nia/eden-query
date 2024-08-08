@@ -2,6 +2,7 @@ import type { AnyElysia, MaybeArray, MaybePromise } from 'elysia'
 
 import type { EdenFetchError } from './errors'
 import type { HTTPHeaders } from './http'
+import type { OperationContext } from './links/internal/operation'
 import type { DataTransformerOptions } from './links/internal/transformer'
 import type { Nullish } from './utils/null'
 
@@ -98,4 +99,9 @@ export type EdenRequestOptions<T extends AnyElysia = AnyElysia, TRaw extends boo
   /**
    */
   raw?: TRaw
+
+  /**
+   * Context to pass to the operation links.
+   */
+  context?: OperationContext
 }

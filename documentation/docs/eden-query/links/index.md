@@ -116,8 +116,9 @@ export const customLink: EdenLink<App> = () => {
 
 ### References
 
-If you need a more real reference for creating your custom link, you can check out some of the built-in links tRPC provides on
-[GitHub](https://github.com/trpc/trpc/tree/next/packages/client/src/links).
+If you need a more real reference for creating your custom link,
+you can check out some of the built-in links this Eden implementation provides at
+[GitHub](https://github.com/ap0nia/eden-query/tree/main/packages/eden/src/links).
 
 ## The terminating link
 
@@ -128,9 +129,9 @@ sending your composed tRPC operation to the tRPC server and resolving the respon
 The `links` array that you add to the eden `createClient` call should have at least one ***terminating*** link.
 If `links` don't have a terminating link at the end of them, the eden client will not be able to resolve requests.
 
-[`httpBatchLink`](./links/http-batch-link.md) is the recommended terminating link by tRPC.
+[`httpBatchLink`](./http-batch-link.md) is the recommended terminating link by tRPC.
 
-[`httpLink`](./links/http-link.md) is another other examples of terminating links.
+[`httpLink`](./http-link.md) is another other examples of terminating links.
 
 ## TODO
 
@@ -150,4 +151,5 @@ Obtain the current context object and modify it by accessing `operation.context`
 You can set the context object's initial value for a particular operation by providing the
 context parameter to the `query` or `useQuery` hook (or `mutation`, `subscription`, etc.).
 
-For an example use case, see [Disable batching for certain requests](/eden-query/links/splitLink#disable-batching-for-certain-requests).
+For an example use case, see
+[Disable batching for certain requests](./split-link#disable-batching-for-certain-requests).

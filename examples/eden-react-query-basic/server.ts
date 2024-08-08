@@ -1,5 +1,5 @@
 import { cors } from '@elysiajs/cors'
-import { batchPlugin } from '@elysiajs/eden-react-query'
+import { batchPlugin, createEdenTreatyQuery } from '@elysiajs/eden-react-query'
 import { Elysia, t } from 'elysia'
 import SuperJSON from 'superjson'
 
@@ -112,6 +112,7 @@ const rootController = new Elysia()
       }),
     },
   )
+  .get('/posts', () => [])
 
 export const app = new Elysia({ prefix: '/api' })
   /**
@@ -150,3 +151,6 @@ export const app = new Elysia({ prefix: '/api' })
   .use(rootController)
 
 export type App = typeof app
+
+const a = createEdenTreatyQuery<App>()
+a.api.posts.get

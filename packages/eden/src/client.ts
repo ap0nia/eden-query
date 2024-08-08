@@ -76,6 +76,7 @@ export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
       operation: {
         id: ++this.requestId,
         ...options,
+        context: options.context ?? {},
       },
     })
     return chain$.pipe(share())
