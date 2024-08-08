@@ -1,6 +1,8 @@
 import type { AnyElysia, MaybeArray } from 'elysia'
 
 import { BATCH_ENDPOINT } from '../constants'
+import type { EdenQueryStoreKey } from '../constraints'
+import type { TypeError } from '../errors'
 import type { HTTPHeaders } from '../http'
 import { type EdenRequestOptions, type EdenResponse } from '../request'
 import { type EdenRequestParams, resolveEdenRequest } from '../resolve'
@@ -9,7 +11,7 @@ import { notNull } from '../utils/null'
 import type { NonEmptyArray } from '../utils/types'
 import { httpLinkFactory } from './http-link'
 import { batchedDataLoader, type BatchLoader } from './internal/batched-data-loader'
-import type { Operation, OperationType } from './internal/operation'
+import type { EdenLink, Operation, OperationType } from './internal/operation'
 import { type DataTransformerOptions, getDataTransformer } from './internal/transformer'
 import {
   type Requester,
@@ -17,21 +19,41 @@ import {
   universalRequester,
 } from './internal/universal-requester'
 
-export type HttpBatchLinkOptions = Omit<EdenRequestOptions, 'domain' | 'headers'> & {
+/**
+ * @remarks Do not derive this from HTTPLinkOptions, because it breaks the types for some reason...
+ */
+export type HttpBatchLinkOptions<
+  T extends AnyElysia = AnyElysia,
+  /**
+   * @todo Maybe check if T['store'][EdenQueryStoreKey] matches a certain interface?
+   */
+  TTransformer = T['store'][typeof EdenQueryStoreKey]['transformer'],
+> = Omit<EdenRequestOptions, 'headers' | 'method' | 'transformer'> & {
   /**
    * Path for the batch endpoint.
    *
    * @example /batch
    */
   endpoint?: string
+
+  /**
+   * Configure the maximum URL length if making batch requests with GET.
+   */
   maxURLLength?: number
+
+  /**
+   * @todo: Merge this headers type into {@link EdenRequestOptions}
+   */
   headers?:
     | HTTPHeaders
     | ((operations: NonEmptyArray<Operation>) => HTTPHeaders | Promise<HTTPHeaders>)
-  transformer?: DataTransformerOptions
+
   method?: BatchMethod
-  domain?: AnyElysia | string
-}
+} & (TTransformer extends DataTransformerOptions
+    ? { transformer: TTransformer }
+    : {
+        transformer?: DataTransformerOptions
+      })
 
 export type GetInputParams = {
   url?: string
@@ -207,7 +229,7 @@ const generateBatchParams = {
   POST: generatePostBatchParams,
 }
 
-function createBatchRequester(options?: HttpBatchLinkOptions): Requester {
+function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
   const resolvedFactoryOptions = { maxURLLength: Infinity, ...options }
 
   const { endpoint, maxURLLength, headers, transformer, method, domain, ...requestOptions } =
@@ -413,7 +435,11 @@ function createBatchRequester(options?: HttpBatchLinkOptions): Requester {
 /**
  * @link https://trpc.io/docs/v11/client/links/httpLink
  */
-export const httpBatchLink = (options?: HttpBatchLinkOptions) => {
+export const httpBatchLink = <T extends AnyElysia>(
+  options?: HttpBatchLinkOptions<T>,
+): T['store'][typeof EdenQueryStoreKey]['batch'] extends true
+  ? EdenLink<T>
+  : TypeError<'Batch plugin not detected on Elysia.js app instance'> => {
   const batchRequester = createBatchRequester(options)
-  return httpLinkFactory({ requester: batchRequester })()
+  return httpLinkFactory({ requester: batchRequester })() as any
 }
