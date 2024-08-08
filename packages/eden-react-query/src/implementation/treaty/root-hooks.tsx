@@ -76,9 +76,14 @@ export function createEdenTreatyQueryRootHooks<
     })
   }
 
+  /**
+   * @warning
+   * Ensure that the Elysia.js server uses the batch plugin;
+   * the types will not verify whether or not this is detected.
+   */
   const createHttpBatchClient = (options?: HttpBatchLinkOptions) => {
     return new EdenClient({
-      links: [httpBatchLink(options)],
+      links: [httpBatchLink(options) as any],
     })
   }
 
