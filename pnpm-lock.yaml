@@ -155,6 +155,9 @@ importers:
         specifier: ^3.5.6
         version: 3.5.6
     devDependencies:
+      '@ap0nia/eden':
+        specifier: workspace:^
+        version: link:../packages/eden
       '@ap0nia/eden-react-query':
         specifier: workspace:^
         version: link:../packages/eden-react-query
