@@ -10,6 +10,8 @@ import {
 import { BATCH_ENDPOINT } from '../constants'
 import type { EdenQueryStoreKey } from '../constraints'
 import { parseResponse } from '../resolve'
+import { createUrl } from '../utils/create-url'
+import { set } from '../utils/set'
 
 export type BatchedRequestData = {
   path: string
@@ -192,48 +194,6 @@ function unBatchQueries(request: Request): URLSearchParams[] {
   return result
 }
 
-function createUrl(path: string, query?: URLSearchParams): string {
-  return path + (query?.size ? `?${query.toString()}` : '')
-}
-
-/**
- * Given a dot-concatenated string path, deeply set a property, filling in any missing objects along the way.
- */
-function set<T>(obj: unknown, key: PropertyKey, value: unknown): T {
-  if (obj == null) {
-    return value as any
-  }
-
-  if (typeof key === 'number' || typeof key === 'symbol') {
-    obj[key as keyof typeof obj] = value as never
-    return obj[key as keyof typeof obj] as T
-  }
-
-  const keyArray = key
-    .replace(/["|']|\]/g, '')
-    .split(/\.|\[/)
-    .filter(Boolean)
-
-  const lastIndex = keyArray.length - 1
-
-  const lastKey = keyArray[lastIndex]
-
-  const result = keyArray.reduce((currentResult, currentKey, index) => {
-    if (index === lastIndex) {
-      currentResult[currentKey as keyof typeof currentResult] = value as never
-      return currentResult
-    }
-
-    currentResult[currentKey as keyof typeof currentResult] ??= (
-      isNaN(keyArray[index + 1] as any) ? {} : []
-    ) as never
-
-    return currentResult[currentKey as keyof typeof currentResult]
-  }, obj)
-
-  return result[lastKey as keyof typeof result] as T
-}
-
 /**
  * @fixme:
  *
@@ -376,7 +336,6 @@ export function batchPlugin(options?: BatchPluginOptions) {
         return parsedResponses
       })
 
-    // Assert that the return type is the same as the input type so this route is hidden.
     return elysia.use(instance) as any
   }
 
