@@ -1,4 +1,5 @@
 import type { DataTransformerOptions } from './links/internal/transformer'
+import type { BatchPluginOptions } from './plugins'
 
 /**
  * Custom key for storing metadata for this library in an Elysia.js store.
@@ -20,6 +21,10 @@ export type EdenQueryConstraints = {
 
   /**
    * Whether the application has applied the batch plugin.
+   *
+   * @fixme
+   * constraints is a general file, but it's importing {@link BatchPluginOptions}
+   * from a specific implementation file...
    */
-  batch?: boolean
+  batch?: boolean | BatchPluginOptions
 }

@@ -4,6 +4,7 @@ import { BATCH_ENDPOINT } from '../constants'
 import type { EdenQueryStoreKey } from '../constraints'
 import type { TypeError } from '../errors'
 import type { HTTPHeaders } from '../http'
+import type { BatchPluginOptions } from '../plugins'
 import { type EdenRequestOptions, type EdenResponse } from '../request'
 import { type EdenRequestParams, resolveEdenRequest } from '../resolve'
 import { arrayToDict } from '../utils/array-to-dict'
@@ -437,7 +438,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
  */
 export const httpBatchLink = <T extends AnyElysia>(
   options?: HttpBatchLinkOptions<T>,
-): T['store'][typeof EdenQueryStoreKey]['batch'] extends true
+): T['store'][typeof EdenQueryStoreKey]['batch'] extends true | BatchPluginOptions
   ? EdenLink<T>
   : TypeError<'Batch plugin not detected on Elysia.js app instance'> => {
   const batchRequester = createBatchRequester(options)

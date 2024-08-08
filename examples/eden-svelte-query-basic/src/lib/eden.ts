@@ -2,7 +2,7 @@ import {
   createEdenTreatyQuery,
   type InferTreatyQueryInput,
   type InferTreatyQueryOutput,
-} from '@elysiajs/eden-svelte-query'
+} from '@ap0nia/eden-svelte-query'
 
 import type { App } from '../server'
 

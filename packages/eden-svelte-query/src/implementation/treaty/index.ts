@@ -54,12 +54,12 @@ export type EdenTreatyQueryBase<TElysia extends AnyElysia, TSSRContext> = {
   /**
    * Convenience method for creating and configuring a client with a single HTTPLink.
    */
-  createHttpClient: (options?: HTTPLinkOptions) => EdenClient<TElysia>
+  createHttpClient: (options?: HTTPLinkOptions<TElysia>) => EdenClient<TElysia>
 
   /**
    * Convenience method for creating and configuring a client with a single HttpBatchLink.
    */
-  createHttpBatchClient: (options?: HttpBatchLinkOptions) => EdenClient<TElysia>
+  createHttpBatchClient: (options?: HttpBatchLinkOptions<TElysia>) => EdenClient<TElysia>
 
   createQueries: EdenTreatyCreateQueries<TElysia>
 }
