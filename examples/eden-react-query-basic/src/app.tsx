@@ -33,6 +33,8 @@ export function App() {
           endpoint: '/api/batch',
           transformer: SuperJSON,
           domain: 'http://localhost:3000',
+          maxURLLength: 123,
+          method: 'POST',
         }),
       ],
     })
