@@ -76,8 +76,11 @@ export type InferOutput = InferTreatyQueryOutput<App>
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
+import { batchPlugin } from '@elysiajs/eden-react-query'
 
-export const app = new Elysia().get('/', () => 'Hello, World!')
+export const app = new Elysia()
+  .use(batchPlugin())
+  .get('/', () => 'Hello, World!')
 
 export type App = typeof app
 

@@ -12,7 +12,7 @@ slug: /client/links/splitLink
 It's important to note that when you provide links for `splitLink` to execute, `splitLink` will create an entirely new link chain based on the links you passed. Therefore, you need to use a [**terminating link**](./overview.md#the-terminating-link) if you only provide one link or add the terminating link at the end of the array if you provide multiple links to be executed on a branch. Here's a visual representation of how `splitLink` works:
 
 <div align="center" style="marginBottom: 12px">
-  <img src="/assets/split-link-diagram.svg" alt="Eden Split Link Diagram"/>
+  <img src="/assets/split-link-diagram.png" alt="Eden Split Link Diagram"/>
   <small>
     <span>Eden Split Link Diagram. Based on </span>
     <a href="https://trpc.io/docs/client/links/splitLink" target="_blank">tRPC's </a>,
@@ -25,7 +25,7 @@ It's important to note that when you provide links for `splitLink` to execute, `
 
 Let's say you're using `httpBatchLink` as the terminating link in your tRPC client config. This means request batching is enabled in every request. However, if you need to disable batching only for certain requests, you would need to change the terminating link in your tRPC client config dynamically between `httpLink` and `httpBatchLink`. This is a perfect opportunity for `splitLink` to be used:
 
-#### 1. Configure client / `utils/trpc.ts`
+#### 1. Configure client / `lib/eden.ts`
 
 ```typescript twoslash
 // @filename: server.ts
@@ -42,21 +42,19 @@ import type { App } from './server'
 
 const domain = 'http://localhost:3000'
 
-const client = new EdenClient<App>({
+export const client = new EdenClient<App>({
   links: [
     splitLink({
-      condition(op) {
-        // check for context property `skipBatch`
-        return Boolean(op.context.skipBatch)
+      condition(operation) {
+        // Check for context property `skipBatch`.
+        return Boolean(operation.context.skipBatch)
       },
-      // when condition is true, use normal request
-      true: httpLink({
-        domain,
-      }),
-      // when condition is false, use batching
-      false: httpBatchLink({
-        domain,
-      }),
+
+      // When condition is true, use normal request.
+      true: httpLink({ domain }),
+
+      // When condition is false, use batching.
+      false: httpBatchLink({ domain }),
     }),
   ],
 })
@@ -97,36 +95,33 @@ export type App = typeof app
 import { createEdenTreatyQuery, httpBatchLink, httpLink, splitLink } from '@elysiajs/eden-react-query'
 import type { App } from './server'
 
+const domain = 'http://localhost:3000'
+
 export const eden = createEdenTreatyQuery<App>()
+
+export const client = eden.createClient({
+  links: [
+    splitLink({
+      condition(operation) {
+        // Check for context property `skipBatch`.
+        return Boolean(operation.context.skipBatch)
+      },
+
+      // When condition is true, use normal request.
+      true: httpLink({ domain }),
+
+      // When condition is false, use batching.
+      false: httpBatchLink({ domain }),
+    }),
+  ],
+})
 
 // @filename: component.tsx
 // ---cut---
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink, httpLink, splitLink } from '@elysiajs/eden-react-query'
-import { eden } from './eden'
-
-const domain = 'http://localhost:3000'
-
-/**
- * Create a client and set in the provider's context.
- */
-const client = eden.createClient({
-  links: [
-    splitLink({
-      condition(op) {
-        // check for context property `skipBatch`
-        return Boolean(op.context.skipBatch)
-      },
-
-      // when condition is true, use normal request
-      true: httpLink({ domain, }),
-
-      // when condition is false, use batching
-      false: httpBatchLink({ domain, }),
-    }),
-  ],
-})
+import { client, eden } from './eden'
 
 const queryClient = new QueryClient()
 

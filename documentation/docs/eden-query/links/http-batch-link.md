@@ -20,8 +20,9 @@ You can import and add the `httpBatchLink` to the `links` array as such:
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
+import { batchPlugin } from '@elysiajs/eden-react-query'
 
-export const app = new Elysia().get('/', () => 'Hello, World!')
+export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
 export type App = typeof app
 
@@ -59,32 +60,33 @@ The usage displayed above is WIP, not implemented yet...
 
 The `httpBatchLink` function takes an options object that has the `HTTPBatchLinkOptions` shape.
 
-```ts
+```typescript
 export interface HTTPBatchLinkOptions extends HTTPLinkOptions {
   maxURLLength?: number
 }
 
 export interface HTTPLinkOptions {
   url: string
+
   /**
-   * Add ponyfill for fetch
+   * Custom polyfill for fetch.
    */
   fetch?: typeof fetch
 
   /**
-   * Add ponyfill for AbortController
+   * Custom polyfill for AbortController.
    */
   AbortController?: typeof AbortController | null
 
   /**
-   * Data transformer
-   * @link https://trpc.io/docs/data-transformers
+   * Data transformer.
+   * @see https://ap0nia.github.io/eden-query/eden-query/transformers
    **/
   transformer?: DataTransformerOptions
 
   /**
-   * Headers to be set on outgoing requests or a callback that of said headers
-   * @link http://trpc.io/docs/header
+   * Headers to set on outgoing requests or a callback returns headers to set.
+   * @see https://ap0nia.github.io/eden-query/eden-query/headers
    */
   headers?: HTTPHeaders | ((opts: { opList: Operation[] }) => HTTPHeaders | Promise<HTTPHeaders>)
 }
@@ -94,15 +96,19 @@ export interface HTTPLinkOptions {
 
 When sending batch requests **_via GET requests_** and encoding the information in the request query,
 sometimes the URL can become too large, causing HTTP errors like
-[`413 Payload Too Large`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/413), [`414 URI Too Long`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/414), and [`404 Not Found`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404). The `maxURLLength` option will limit the number of requests that can be sent together in a batch.
+[`413 Payload Too Large`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/413),
+[`414 URI Too Long`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/414),
+and [`404 Not Found`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/404).
+The `maxURLLength` option will limit the number of requests that can be sent together in a batch.
 
 > An alternative way of adding an HTTP Batch Link is demonstrated below
 
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
+import { batchPlugin } from '@elysiajs/eden-react-query'
 
-export const app = new Elysia().get('/', () => 'Hello, World!')
+export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
 export type App = typeof app
 
