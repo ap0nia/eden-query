@@ -1,3 +1,5 @@
+import type { AnyElysia } from 'elysia'
+
 import type { Range } from './utils/types'
 
 export class EdenFetchError<Status extends number = number, Value = unknown> extends Error {
@@ -20,3 +22,14 @@ export type MapError<T extends Record<number, unknown>> = [
   : false
 
 export type ErrorRange = Range<300, 599>
+
+/**
+ * @todo
+ */
+export type EdenClientErrorLike<_T extends AnyElysia> = any
+
+export const ERROR_SYMBOL = Symbol('TypeError')
+
+export type TypeError<TMessage extends string> = TMessage & {
+  _: typeof ERROR_SYMBOL
+}

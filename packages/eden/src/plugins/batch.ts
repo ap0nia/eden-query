@@ -1,6 +1,14 @@
-import { Elysia } from 'elysia'
+import {
+  type DefinitionBase,
+  Elysia,
+  type EphemeralType,
+  type MetadataBase,
+  type RouteBase,
+  type SingletonBase,
+} from 'elysia'
 
 import { BATCH_ENDPOINT } from '../constants'
+import type { EdenQueryStoreKey } from '../constraints'
 import { parseResponse } from '../resolve'
 
 export type BatchedRequestData = {
@@ -188,8 +196,71 @@ function createUrl(path: string, query?: URLSearchParams): string {
   return path + (query?.size ? `?${query.toString()}` : '')
 }
 
+/**
+ * Given a dot-concatenated string path, deeply set a property, filling in any missing objects along the way.
+ */
+function set<T>(obj: unknown, key: PropertyKey, value: unknown): T {
+  if (obj == null) {
+    return value as any
+  }
+
+  if (typeof key === 'number' || typeof key === 'symbol') {
+    obj[key as keyof typeof obj] = value as never
+    return obj[key as keyof typeof obj] as T
+  }
+
+  const keyArray = key
+    .replace(/["|']|\]/g, '')
+    .split(/\.|\[/)
+    .filter(Boolean)
+
+  const lastIndex = keyArray.length - 1
+
+  const lastKey = keyArray[lastIndex]
+
+  const result = keyArray.reduce((currentResult, currentKey, index) => {
+    if (index === lastIndex) {
+      currentResult[currentKey as keyof typeof currentResult] = value as never
+      return currentResult
+    }
+
+    currentResult[currentKey as keyof typeof currentResult] ??= (
+      isNaN(keyArray[index + 1] as any) ? {} : []
+    ) as never
+
+    return currentResult[currentKey as keyof typeof currentResult]
+  }, obj)
+
+  return result[lastKey as keyof typeof result] as T
+}
+
+/**
+ * @fixme:
+ *
+ * TS 4118 The type of this node cannot be serialized because its property '[EdenQueryStoreKey]' cannot be serialized.
+ */
 export function batchPlugin(options?: BatchPluginOptions) {
-  return (elysia: Elysia) => {
+  const plugin = <
+    BasePath extends string,
+    Scoped extends boolean,
+    Singleton extends SingletonBase,
+    Definitions extends DefinitionBase,
+    Metadata extends MetadataBase,
+    Routes extends RouteBase,
+    Ephemeral extends EphemeralType,
+    Volatile extends EphemeralType,
+  >(
+    elysia: Elysia<BasePath, Scoped, Singleton, Definitions, Metadata, Routes, Ephemeral, Volatile>,
+  ): Elysia<
+    BasePath,
+    false,
+    {
+      decorator: {}
+      store: Record<typeof EdenQueryStoreKey, { batch: true }>
+      derive: {}
+      resolve: {}
+    }
+  > => {
     const endpoint = options?.endpoint ?? BATCH_ENDPOINT
 
     const instance = new Elysia()
@@ -306,44 +377,8 @@ export function batchPlugin(options?: BatchPluginOptions) {
       })
 
     // Assert that the return type is the same as the input type so this route is hidden.
-    return elysia.use(instance) as typeof elysia
-  }
-}
-
-/**
- * Given a dot-concatenated string path, deeply set a property, filling in any missing objects along the way.
- */
-export function set<T>(obj: unknown, key: PropertyKey, value: unknown): T {
-  if (obj == null) {
-    return value as any
+    return elysia.use(instance) as any
   }
 
-  if (typeof key === 'number' || typeof key === 'symbol') {
-    obj[key as keyof typeof obj] = value as never
-    return obj[key as keyof typeof obj] as T
-  }
-
-  const keyArray = key
-    .replace(/["|']|\]/g, '')
-    .split(/\.|\[/)
-    .filter(Boolean)
-
-  const lastIndex = keyArray.length - 1
-
-  const lastKey = keyArray[lastIndex]
-
-  const result = keyArray.reduce((currentResult, currentKey, index) => {
-    if (index === lastIndex) {
-      currentResult[currentKey as keyof typeof currentResult] = value as never
-      return currentResult
-    }
-
-    currentResult[currentKey as keyof typeof currentResult] ??= (
-      isNaN(keyArray[index + 1] as any) ? {} : []
-    ) as never
-
-    return currentResult[currentKey as keyof typeof currentResult]
-  }, obj)
-
-  return result[lastKey as keyof typeof result] as T
+  return plugin
 }
