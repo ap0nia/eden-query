@@ -11,7 +11,7 @@ import type { RouteSchema } from 'elysia'
 
 import { type EdenContextState, useSSRQueryOptionsIfNeeded } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
-import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
+import type { ExtractCursorType } from '../internal/infinite-query'
 import type { ParsedPathAndMethod } from '../internal/parse-paths-and-method'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
@@ -41,7 +41,7 @@ export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = WithEdenQ
 export type EdenUseInfiniteQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
+  TInput = InferRouteOptions<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
