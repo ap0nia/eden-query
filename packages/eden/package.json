@@ -1,5 +1,5 @@
 {
-  "name": "@elysiajs/eden",
+  "name": "@ap0nia/eden",
   "version": "0.0.0",
   "description": "Fully type-safe Elysia.js client",
   "private": true,
@@ -7,7 +7,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/ap0nia/eden-query",
-    "directory": "packages/eden-svelte-query"
+    "directory": "packages/eden"
   },
   "type": "module",
   "main": "./src/index.ts",

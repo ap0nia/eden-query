@@ -37,8 +37,8 @@
   },
   "devDependencies": {
     "@elysiajs/eden": "1.1.0",
-    "@elysiajs/eden-react-query": "workspace:^",
-    "@elysiajs/eden-svelte-query": "workspace:^",
+    "@ap0nia/eden-react-query": "workspace:^",
+    "@ap0nia/eden-svelte-query": "workspace:^",
     "@elysiajs/html": "1.1.0",
     "@elysiajs/opentelemetry": "1.1.0",
     "@elysiajs/swagger": "1.1.0",

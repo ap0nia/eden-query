@@ -4,13 +4,11 @@ import type {
   EdenRequestOptions,
   HttpBatchLinkOptions,
   HTTPLinkOptions,
-  InferRouteOptions,
-} from '@elysiajs/eden'
-import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
-} from '@elysiajs/eden/http.ts'
+  InferRouteOptions,
+} from '@ap0nia/eden'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 

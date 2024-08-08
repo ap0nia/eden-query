@@ -8,7 +8,7 @@ import type {
   HttpQueryMethod,
   HttpSubscriptionMethod,
   InferRouteOptions,
-} from '@elysiajs/eden'
+} from '@ap0nia/eden'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 

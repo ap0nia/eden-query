@@ -8,7 +8,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@elysiajs/eden-svelte-query": "workspace:^",
+    "@ap0nia/eden-svelte-query": "workspace:^",
     "@tanstack/svelte-query": "^5.51.15",
     "elysia": "^1.1.4",
     "superjson": "^2.2.1"

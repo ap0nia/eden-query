@@ -1,5 +1,5 @@
 {
-  "name": "@elysiajs/eden-svelte-query",
+  "name": "@ap0nia/eden-svelte-query",
   "version": "0.0.0",
   "description": "elysia.js eden and svelte-query integration",
   "private": true,
@@ -12,7 +12,7 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
-    "@elysiajs/eden": "workspace:^",
+    "@ap0nia/eden": "workspace:^",
     "@tanstack/svelte-query": "^5.51.15",
     "elysia": "^1.1.4"
   },

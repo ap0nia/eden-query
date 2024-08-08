@@ -1,9 +1,4 @@
-import type {
-  EdenClient,
-  InferRouteError,
-  InferRouteOptions,
-  InferRouteOutput,
-} from '@elysiajs/eden'
+import type { EdenClient, InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
 import type { SuspenseQueriesOptions, SuspenseQueriesResults } from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 

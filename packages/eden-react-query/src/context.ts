@@ -2,7 +2,7 @@ import {
   EdenClient,
   type EdenClientError as EdenClientError,
   type EdenRequestParams,
-} from '@elysiajs/eden'
+} from '@ap0nia/eden'
 import {
   type CancelOptions,
   type FetchQueryOptions,

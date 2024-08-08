@@ -1,10 +1,12 @@
-import type {
-  EdenClientError,
-  EdenCreateClient,
-  HttpBatchLinkOptions,
-  HTTPLinkOptions,
-} from '@elysiajs/eden'
-import { EdenClient, httpBatchLink, httpLink } from '@elysiajs/eden'
+import {
+  EdenClient,
+  type EdenClientError,
+  type EdenCreateClient,
+  httpBatchLink,
+  type HttpBatchLinkOptions,
+  httpLink,
+  type HTTPLinkOptions,
+} from '@ap0nia/eden'
 import {
   useInfiniteQuery as __useInfiniteQuery,
   useQueries as __useQueries,

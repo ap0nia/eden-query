@@ -1,4 +1,4 @@
-import type { EdenClient, EdenClientError, EdenRequestParams } from '@elysiajs/eden'
+import type { EdenClient, EdenClientError, EdenRequestParams } from '@ap0nia/eden'
 import type {
   CancelOptions,
   FetchQueryOptions,
@@ -240,13 +240,13 @@ export function createUtilityFunctions<T extends AnyElysia>(
         queryFn: async (queryFunctionContext) => {
           let options: any = queryKey[1]?.input
 
-          const params = {
+          const params: EdenRequestParams = {
             ...config,
             options,
             path,
             method,
             ...eden,
-          } satisfies EdenRequestParams
+          }
 
           const shouldForwardSignal = eden?.abortOnUnmount ?? config?.abortOnUnmount
 

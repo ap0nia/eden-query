@@ -1,2 +1,2 @@
 export * from './implementation/treaty'
-export * from '@elysiajs/eden'
+export * from '@ap0nia/eden'

@@ -1,4 +1,4 @@
-import { isHttpMethod } from '@elysiajs/eden/utils/http.ts'
+import { isHttpMethod } from '@ap0nia/eden'
 
 /**
  * The result of parsing a paths array.

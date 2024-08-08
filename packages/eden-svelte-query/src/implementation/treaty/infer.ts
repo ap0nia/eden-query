@@ -1,5 +1,9 @@
-import type { InferRouteBody, InferRouteOptions, InferRouteOutput } from '@elysiajs/eden'
-import type { HttpQueryMethod } from '@elysiajs/eden/http.ts'
+import type {
+  HttpQueryMethod,
+  InferRouteBody,
+  InferRouteOptions,
+  InferRouteOutput,
+} from '@ap0nia/eden'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
 export type InferTreatyQueryIO<T extends AnyElysia> = T extends {

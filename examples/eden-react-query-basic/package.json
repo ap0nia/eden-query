@@ -10,8 +10,7 @@
   "type": "module",
   "dependencies": {
     "@elysiajs/cors": "^1.1.0",
-    "@elysiajs/eden": "workspace:^",
-    "@elysiajs/eden-react-query": "workspace:^",
+    "@ap0nia/eden-react-query": "workspace:^",
     "@tanstack/react-query": "^5.51.16",
     "elysia": "^1.1.4",
     "react": "^18.3.1",

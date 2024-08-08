@@ -4,7 +4,7 @@ import type {
   InferRouteError,
   InferRouteOptions,
   InferRouteOutput,
-} from '@elysiajs/eden'
+} from '@ap0nia/eden'
 import {
   type DefaultError,
   type MutateOptions,

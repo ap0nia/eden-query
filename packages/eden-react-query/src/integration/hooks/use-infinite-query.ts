@@ -1,4 +1,4 @@
-import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@elysiajs/eden'
+import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
 import {
   type InfiniteData,
   type InfiniteQueryObserverSuccessResult,

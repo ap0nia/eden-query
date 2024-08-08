@@ -3,7 +3,7 @@ import {
   type InferRouteError,
   type InferRouteOptions,
   type InferRouteOutput,
-} from '@elysiajs/eden'
+} from '@ap0nia/eden'
 import {
   type DefinedUseQueryResult,
   type InitialDataFunction,

@@ -1,11 +1,12 @@
 import type {
   EdenCreateClient,
+  HttpMutationMethod,
+  HttpQueryMethod,
   InferRouteBody,
   InferRouteError,
   InferRouteOptions,
   InferRouteOutput,
-} from '@elysiajs/eden'
-import type { HttpMutationMethod, HttpQueryMethod } from '@elysiajs/eden/http.ts'
+} from '@ap0nia/eden'
 import {
   type CancelOptions,
   type CreateInfiniteQueryOptions,

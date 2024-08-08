@@ -3,7 +3,7 @@ import type {
   InferRouteError,
   InferRouteOptions,
   InferRouteOutput,
-} from '@elysiajs/eden'
+} from '@ap0nia/eden'
 import {
   type CreateInfiniteQueryOptions,
   type CreateInfiniteQueryResult,
@@ -89,13 +89,13 @@ export function edenCreateInfiniteQueryOptions(
   }
 
   resolvedQueryOptions.queryFn = async (queryFunctionContext) => {
-    const params = {
+    const params: EdenRequestParams = {
       ...config,
       path,
       method,
       options: { ...input },
       ...eden,
-    } satisfies EdenRequestParams
+    }
 
     const shouldForwardSignal = config?.abortOnUnmount ?? eden?.abortOnUnmount ?? abortOnUnmount
 
@@ -108,9 +108,9 @@ export function edenCreateInfiniteQueryOptions(
     // e.g. /api/pages/:cursor -> /api/pages/1 or /api/pages?cursor=1
 
     if (queryFunctionContext.pageParam != null) {
-      if (params.options.query) {
+      if (params.options?.query) {
         ;(params.options.query as any)['cursor'] = queryFunctionContext.pageParam
-      } else if (params.options.params) {
+      } else if (params.options?.params) {
         ;(params.options.params as any)['cursor'] = queryFunctionContext.pageParam
       }
     }

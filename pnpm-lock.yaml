@@ -155,15 +155,15 @@ importers:
         specifier: ^3.5.6
         version: 3.5.6
     devDependencies:
+      '@ap0nia/eden-react-query':
+        specifier: workspace:^
+        version: link:../packages/eden-react-query
+      '@ap0nia/eden-svelte-query':
+        specifier: workspace:^
+        version: link:../packages/eden-svelte-query
       '@elysiajs/eden':
         specifier: 1.1.0
         version: 1.1.0(elysia@1.1.4(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
-      '@elysiajs/eden-react-query':
-        specifier: workspace:^
-        version: link:../packages/eden-react-query
-      '@elysiajs/eden-svelte-query':
-        specifier: workspace:^
-        version: link:../packages/eden-svelte-query
       '@elysiajs/html':
         specifier: 1.1.0
         version: 1.1.0(elysia@1.1.4(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))(typescript@5.5.4)
@@ -209,15 +209,12 @@ importers:
 
   examples/eden-react-query-basic:
     dependencies:
+      '@ap0nia/eden-react-query':
+        specifier: workspace:^
+        version: link:../../packages/eden-react-query
       '@elysiajs/cors':
         specifier: ^1.1.0
         version: 1.1.0(elysia@1.1.4(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
-      '@elysiajs/eden':
-        specifier: workspace:^
-        version: link:../../packages/eden
-      '@elysiajs/eden-react-query':
-        specifier: workspace:^
-        version: link:../../packages/eden-react-query
       '@tanstack/react-query':
         specifier: ^5.51.16
         version: 5.51.21(react@18.3.1)
@@ -258,7 +255,7 @@ importers:
 
   examples/eden-svelte-query-basic:
     dependencies:
-      '@elysiajs/eden-svelte-query':
+      '@ap0nia/eden-svelte-query':
         specifier: workspace:^
         version: link:../../packages/eden-svelte-query
       '@tanstack/svelte-query':
@@ -311,7 +308,7 @@ importers:
 
   packages/eden-react-query:
     dependencies:
-      '@elysiajs/eden':
+      '@ap0nia/eden':
         specifier: workspace:^
         version: link:../eden
       '@tanstack/react-query':
@@ -333,7 +330,7 @@ importers:
 
   packages/eden-svelte-query:
     dependencies:
-      '@elysiajs/eden':
+      '@ap0nia/eden':
         specifier: workspace:^
         version: link:../eden
       '@tanstack/svelte-query':

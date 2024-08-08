@@ -1,5 +1,5 @@
 {
-  "name": "@elysiajs/eden-react-query",
+  "name": "@ap0nia/eden-react-query",
   "version": "0.0.0",
   "description": "elysia.js eden and react-query integration",
   "private": true,
@@ -12,7 +12,7 @@
   "type": "module",
   "main": "src/index.ts",
   "dependencies": {
-    "@elysiajs/eden": "workspace:^",
+    "@ap0nia/eden": "workspace:^",
     "@tanstack/react-query": "^5.51.16",
     "elysia": "^1.1.4",
     "react": "^18.3.1"
