@@ -62,25 +62,22 @@ import { Elysia, t } from 'elysia'
 
 const app = new Elysia()
   .get('/', 'hi')
-  .get('/users', () => 'Skadi')
   .put('/nendoroid/:id', ({ body }) => body, {
     body: t.Object({
       name: t.String(),
       from: t.String(),
     }),
   })
-  .get('/nendoroid/:id/name', () => 'Skadi')
   .listen(3000)
 
 export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { treaty } from '@elysiajs/eden'
-import { createEdenTreatyQuery } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
-export const app = createEdenTreatyQuery<App>({ domain: 'localhost:3000' })
+export const app = createEdenTreatyReactQuery<App>({ domain: 'localhost:3000' })
 
 // useQuery + [GET] at '/'
 const { data } = await app.index.get.useQuery()
@@ -117,18 +114,17 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { treaty } from '@elysiajs/eden'
-import { createEdenTreatyQuery } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
-export const eden = createEdenTreatyQuery<App>({ domain: 'localhost:3000' })
+export const eden = createEdenTreatyReactQuery<App>({ domain: 'localhost:3000' })
 
 const utils = eden.useUtils()
 
-// this implementation of treaty:
+// This implementation of treaty passes in params in the argument:
 utils.nendoroid[':id'].name.get.fetch({ params: { id: '1895' } })
 
-// possible implementation similar to official treaty:
+// Possible future implementation that's more similar to official treaty:
 // utils.nendoroid({ id: '1895' }).name.get.fetch()
 ```
 
@@ -151,13 +147,13 @@ helper methods are exposed to make it simpler.
 
 #### eden.createHttpClient
 
-Creates the most basic eden client, resolves requests in the same way as the official eden implementation.
+Creates the most basic eden client, which resolves requests in the same way as the official eden implementation.
 This is a good default option to use.
 
 ```typescript twoslash
-import { createEdenTreatyQuery, httpLink } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
 
-const eden = createEdenTreatyQuery()
+const eden = createEdenTreatyReactQuery()
 
 const domain = 'http://localhost:3000'
 
@@ -176,38 +172,63 @@ Creates a client similar to the basic one, but coalesces multiple requests sent 
 event loop into a single batch request.
 
 :::info
-In order to use this client successfully, the elysia server application must use the `batchPlugin`.
+In order to use this client successfully, the elysia server application must use the `batchPlugin`
+or `edenPlugin` with the `batch` property defined.
 :::
 
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@elysiajs/eden-react-query'
+import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
+
+/**
+ * Batch options are optional...
+
+ * @remarks Note the custom endpoint!.
+ */
+const batchOptions = { endpoint: '/api/batch' }
 
 const app = new Elysia()
-  .use(batchPlugin())
-  .get('/a', () => 'A')
-  .get('/b', () => 'B')
+  /**
+   * Option 1: use `batchPlugin` directly.
+   */
+  .use(batchPlugin(batchOptions))
+
+  /**
+   * Option 2: use `edenPlugin` and pass `batchOptions` as the `batch` property.
+   */
+  .use(edenPlugin({ batch: batchOptions }))
+
+  /**
+   * Option 3: to enable batching but without any options, pass `true`.
+   */
+  .use(edenPlugin({ batch: true }))
 
 export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { createEdenTreatyQuery, httpBatchLink } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
-const eden = createEdenTreatyQuery<App>()
+const eden = createEdenTreatyReactQuery<App>()
 
 const domain = 'http://localhost:3000'
 
 // Both are the exact same clients.
 
 const clientOne = eden.createClient({
-  links: [httpBatchLink({ domain })],
+  links: [httpBatchLink({ domain, endpoint: '/api/batch' })],
 })
 
 const clientTwo = eden.createHttpBatchClient({ domain })
 ```
+
+:::warning
+If the batch endpoint is custom on the backend, ensure that it's the same on the client.
+
+TODO: maybe enforce this at the type-level?
+:::
 
 ### Transformers
 
@@ -221,6 +242,14 @@ i.e. NOT GET, OPTIONS, or HEAD requests; only POST, PUT, PATCH, etc.
 ## Notes
 
 ### Implementing Treaty Params
+
+In Svelte (4), all reactivity needs to be encapsulated via readable, writable, etc. interfaces
+in order for features like [placeholder data](https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries#better-paginated-queries-with-placeholderdata)
+to function properly.
+
+However, this means that a heuristic has to be applied to every function call in order
+to determine if it's a valid `eden-treaty-svelte-query` hook, and the accummulation of
+both readable and static params must be parsed and reduced into a single object...difficult!
 
 ```ts twoslash
 // @filename: server.ts
@@ -245,27 +274,41 @@ export type App = typeof app
 // @filename: index.ts
 // ---cut---
 import { derived, readable, writable, type Readable } from 'svelte/store'
-import { treaty } from '@elysiajs/eden'
-import { createEdenTreatyQuery } from '@elysiajs/eden-svelte-query'
-import type { App } from './server'
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import { createQuery, type StoreOrVal } from '@tanstack/svelte-query'
+import type { App } from './server'
 
-export const eden = createEdenTreatyQuery<App>({ domain: 'localhost:3000' })
+export const eden = createEdenTreatySvelteQuery<App>({ domain: 'localhost:3000' })
 
+/**
+ * Dynamic and reactive path param.
+ */
 const id = writable({ id: '1895' })
 
+/**
+ * Static path param.
+ */
+const name = { name: '' }
+
+/**
+ * Reactive query input.
+ */
 const query = writable({ query: { filter: '' } })
 
-// If params were passed in via function calls in the middle of the proxy chain.
-// It would need to support readable objects and regular objects.
+// The implementation needs to support both reactive and static inputs at all points in the chain...
 
-const example = (eden as any).nendoroid(id)({ name: '' }).get.createQuery(query)
+const example = (eden as any).nendoroid(id)(name).get.createQuery(query)
 
 function isStore<T>(value: StoreOrVal<T>): value is Readable<T> {
   return value != null && typeof value === 'object' && 'subscribe' in value
 }
 
-// implementation
+/**
+ * Proxy implementation (Svelte 4).
+ *
+ * Would be similar but simpler for React since the original reference to inputs doesn't need to be
+ * preserved; the entire component probably re-renders anyways.
+ */
 function createQueryProxy(paths: string[] = [], params: any[] = []) {
   return new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
@@ -281,33 +324,57 @@ function createQueryProxy(paths: string[] = [], params: any[] = []) {
 
       // Do something if it's a valid hook...
       if (hook === 'createQuery') {
+        // Filter through all params that were parsed...
+
+        const readableParams: Readable<any>[] = []
+
         /**
-         * Params are manually added to the `params` array if they were in a function call.
+         * Non-readable params can be used to calculate the intial params.
          */
-        const readableParams: Readable<any>[] = params.map((previous, current) => {
-          const currentStore = isStore(current) ? current : readable(current)
-          previous.push(currentStore)
-          return previous
-        }, [])
+        const staticParams: any = {}
+
+        for (const p of params) {
+          if (isStore(p)) {
+            readableParams.push(p)
+            continue
+          }
+
+          const first = Object.entries(p)[0]
+
+          // Null check, but params should always be one key -> one value
+          if (first?.[0] == null || first?.[1] == null) continue
+
+          staticParams[first[0]] = first[1]
+        }
 
         const paramsStore = derived(readableParams, ($paramsArray) => {
-          return $paramsArray.reduce((previous, current) => {
-            const firstPair = Object.entries(current)[0]
+          /**
+           * Using a shallow copy of the staticly calculated params as a based,
+           * set all params that were readable and may have updated.
+           */
+          const result = $paramsArray.reduce(
+            (previous, current) => {
+              const firstPair = Object.entries(current)[0]
 
-            if (firstPair == null) return previous
+              if (firstPair == null) return previous
 
-            const [paramKey, paramValue] = firstPair
+              const [paramKey, paramValue] = firstPair
 
-            if (paramKey && paramValue) {
-              previous[paramKey] = paramValue
-            }
+              if (paramKey && paramValue) {
+                previous[paramKey] = paramValue
+              }
 
-            return previous
-          }, {} as any)
+              return previous
+            },
+            { ...staticParams },
+          )
+
+          return result
         })
 
         /**
          * GET options like `query` and `headers`. Does NOT include `params`.
+         * Just convert to a store so it's easy to include in the `derived` function call.
          */
         const optionsStore = isStore(options) ? options : readable(options)
 
@@ -335,7 +402,9 @@ function createQueryProxy(paths: string[] = [], params: any[] = []) {
       }
 
       /**
-       * If the first argument is a store, pass it into the params array for processing later.
+       * If the first argument is a param, pass it into the params array for processing later in the proxy.
+       *
+       * @todo Better heuristic for determining if it's a path param...
        */
       if (options != null || isStore(options)) {
         return createQueryProxy(paths, [...params, options])

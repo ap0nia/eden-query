@@ -36,7 +36,7 @@ npm install superjson
 #### 2. Add the plugin to your Elysia.js server application.
 
 ```typescript twoslash
-import { initTRPC } from '@trpc/server'
+import { initTRPC } from '@ap0nia/eden-react-query'
 import superjson from 'superjson'
 
 export const t = initTRPC.create({

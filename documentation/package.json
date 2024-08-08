@@ -36,6 +36,7 @@
     "windicss": "^3.5.6"
   },
   "devDependencies": {
+    "@ap0nia/eden": "workspace:^",
     "@ap0nia/eden-react-query": "workspace:^",
     "@ap0nia/eden-svelte-query": "workspace:^",
     "@elysiajs/eden": "1.1.0",

@@ -22,7 +22,7 @@ This is enabled on the server, and the client can opt into batch requests.
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@elysiajs/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
 const app = new Elysia()
   .use(batchPlugin())
@@ -33,10 +33,10 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { createEdenTreatyQuery } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
-const eden = createEdenTreatyQuery<App>()
+const eden = createEdenTreatyReactQuery<App>()
 
 const client = eden.createHttpBatchClient()
 ```
