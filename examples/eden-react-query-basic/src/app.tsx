@@ -1,4 +1,4 @@
-import { httpBatchLink } from '@elysiajs/eden-react-query'
+import { httpBatchLink } from '@ap0nia/eden-react-query'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
 import { createBrowserRouter, Link, Outlet, RouterProvider } from 'react-router-dom'
