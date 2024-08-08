@@ -14,8 +14,8 @@
     "allowJs": true,
     "checkJs": true,
 
-    "declaration": true,
-    "declarationMap": true,
+    "declaration": false,
+    "declarationMap": false,
     "sourceMap": true,
     "outDir": "dist",
     "inlineSources": true,
