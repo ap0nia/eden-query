@@ -11,13 +11,14 @@ import {
   type InfiniteQueryObserverSuccessResult,
   type SkipToken,
   skipToken,
+  type StoreOrVal,
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../../config'
 import type { EdenContextState } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
-import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
+import type { ExtractCursorType } from '../internal/infinite-query'
 import type { ParsedPathAndMethod } from '../internal/parse-paths-and-method'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
@@ -49,11 +50,11 @@ export type EdenCreateInfiniteQuerySuccessResult<TData, TError, TInput> = WithEd
 export type EdenCreateInfiniteQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
+  TInput = InferRouteOptions<TRoute>,
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  input: TInput | SkipToken,
+  input: StoreOrVal<({} extends TInput ? void | TInput : TInput) | SkipToken>,
   options: EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>,
 ) => EdenCreateInfiniteQueryResult<TOutput, TError, TInput>
 

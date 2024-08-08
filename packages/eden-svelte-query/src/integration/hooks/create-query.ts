@@ -12,6 +12,7 @@ import {
   type InitialDataFunction,
   type SkipToken,
   skipToken,
+  type StoreOrVal,
 } from '@tanstack/svelte-query'
 import type { RouteSchema } from 'elysia'
 
@@ -63,12 +64,12 @@ export interface EdenCreateQuery<
   TError = InferRouteError<TRoute>,
 > {
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: {} extends TInput ? void | TInput : TInput,
+    input: StoreOrVal<{} extends TInput ? void | TInput : TInput>,
     options: EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
   ): EdenDefinedCreateQueryResult<TData, TError>
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: ({} extends TInput ? void | TInput : TInput) | SkipToken,
+    input: StoreOrVal<({} extends TInput ? void | TInput : TInput) | SkipToken>,
     options?: EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
   ): EdenCreateQueryResult<TData, TError>
 }
