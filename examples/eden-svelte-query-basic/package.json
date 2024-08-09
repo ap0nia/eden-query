@@ -4,9 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "vite dev"
   },
   "dependencies": {
     "@ap0nia/eden-svelte-query": "workspace:^",
