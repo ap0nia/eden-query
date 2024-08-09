@@ -30,14 +30,15 @@ Let's say you're using `httpBatchLink` as the terminating link in your tRPC clie
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
-export const app = new Elysia().get('/', () => 'Hello, World!')
+export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
 export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenClient, httpBatchLink, httpLink, splitLink } from '@elysiajs/eden-react-query'
+import { EdenClient, httpBatchLink, httpLink, splitLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const domain = 'http://localhost:3000'
@@ -79,10 +80,12 @@ or:
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
 const posts = ['post 1', 'post 2', 'post 3']
 
 export const app = new Elysia()
+  .use(batchPlugin())
   .get('/', () => 'Hello, World!')
   .get('/posts', () => {
     return posts
@@ -92,12 +95,12 @@ export type App = typeof app
 
 // @filename: eden.ts
 // ---cut---
-import { createEdenTreatyQuery, httpBatchLink, httpLink, splitLink } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery, httpBatchLink, httpLink, splitLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const domain = 'http://localhost:3000'
 
-export const eden = createEdenTreatyQuery<App>()
+export const eden = createEdenTreatyReactQuery<App>()
 
 export const client = eden.createClient({
   links: [
@@ -120,7 +123,7 @@ export const client = eden.createClient({
 // ---cut---
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { httpBatchLink, httpLink, splitLink } from '@elysiajs/eden-react-query'
+import { httpBatchLink, httpLink, splitLink } from '@ap0nia/eden-react-query'
 import { client, eden } from './eden'
 
 const queryClient = new QueryClient()

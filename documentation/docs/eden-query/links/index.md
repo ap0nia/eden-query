@@ -42,9 +42,9 @@ Here's a visual representation of the link chain:
 </div>
 
 ```typescript twoslash
-import { createEdenTreatyQuery, httpLink, loggerLink } from '@elysiajs/eden-react-query'
+import { createEdenTreatyReactQuery, httpLink, loggerLink } from '@ap0nia/eden-react-query'
 
-const eden = createEdenTreatyQuery()
+const eden = createEdenTreatyReactQuery()
 
 const domain = `http://localhost:3000`
 
@@ -82,7 +82,7 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenLink, Observable } from '@elysiajs/eden-react-query'
+import { EdenLink, Observable } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 export const customLink: EdenLink<App> = () => {

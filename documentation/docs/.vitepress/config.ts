@@ -2,6 +2,7 @@ import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import ci from 'ci-info'
 import { defineConfig } from 'vitepress'
 import { repository } from '../../../package.json'
+import { npmToYarn } from './vitepress-plugin-npm-to-yarn'
 
 const repositoryName = repository.url.split('/').pop() ?? ''
 
@@ -15,6 +16,9 @@ const config = defineConfig({
   ignoreDeadLinks: true,
   lastUpdated: true,
   markdown: {
+    config: async (md) => {
+      md.use(npmToYarn({ sync: true }))
+    },
     theme: {
       light: 'github-light',
       dark: 'github-dark',

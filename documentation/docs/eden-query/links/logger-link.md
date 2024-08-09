@@ -1,10 +1,3 @@
----
-id: loggerLink
-title: Logger Link
-sidebar_label: Logger Link
-slug: /client/links/loggerLink
----
-
 # Logger Link
 
 `loggerLink` is a link that lets you implement a logger for your tRPC client. It allows you to see more clearly what operations are queries, mutations, or subscriptions, their requests, and responses. The link, by default, prints a prettified log to the browser's console. However, you can customize the logging behavior and the way it prints to the console with your own implementations.
@@ -16,14 +9,15 @@ You can import and add the `loggerLink` to the `links` array as such:
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
-export const app = new Elysia().get('/', () => 'Hello, World!')
+export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
 export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenClient, httpBatchLink, loggerLink } from '@elysiajs/eden-react-query'
+import { EdenClient, httpBatchLink, loggerLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const client = new EdenClient<App>({

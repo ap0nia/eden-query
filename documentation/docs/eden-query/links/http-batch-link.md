@@ -20,7 +20,7 @@ You can import and add the `httpBatchLink` to the `links` array as such:
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@elysiajs/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
 export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
@@ -28,7 +28,7 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenClient, httpBatchLink } from '@elysiajs/eden-react-query'
+import { EdenClient, httpBatchLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const client = new EdenClient<App>({
@@ -106,7 +106,7 @@ The `maxURLLength` option will limit the number of requests that can be sent tog
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@elysiajs/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
 export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
@@ -114,7 +114,7 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenClient, httpBatchLink } from '@elysiajs/eden-react-query'
+import { EdenClient, httpBatchLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const client = new EdenClient<App>({
@@ -147,7 +147,7 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenClient, httpLink } from '@elysiajs/eden-react-query'
+import { EdenClient, httpLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const client = new EdenClient<App>({
@@ -168,7 +168,7 @@ There is no explicit Next.js support yet. This is an example of what it may look
 
 ```tsx
 import type { App } from '@/server/routers/app'
-import { createEdenNext, httpLink } from '@elysiajs/eden-next'
+import { createEdenNext, httpLink } from '@ap0nia/eden-next'
 
 export const eden = createEdenNext<App>({
   config() {

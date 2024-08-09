@@ -23,43 +23,60 @@ You are able to serialize the response data & input args. The transformers need 
 
 ## Using [superjson](https://github.com/blitz-js/superjson)
 
-SuperJSON allows us to transparently use, e.g., standard `Date`/`Map`/`Set`s over the wire between the server and client. That is, you can return any of these types from your API-resolver and use them in the client without having to recreate the objects from JSON.
+SuperJSON allows us to transparently use, e.g., standard `Date`/`Map`/`Set`s over the wire between the server and client.
+That is, you can return any of these types from your API-resolver and use them in the client without having to recreate the objects from JSON.
 
-### How to
+### Steps
 
-#### 1. Install
+#### 1. Install superjson
 
-```bash
-npm install superjson
+```sh npm2yarn
+yarn add superjson
 ```
 
-#### 2. Add the plugin to your Elysia.js server application.
+#### 2. Add SuperJSON via the `transformPlugin` to your Elysia.js server application.
 
 ```typescript twoslash
-import { initTRPC } from '@ap0nia/eden-react-query'
-import superjson from 'superjson'
+// @filename: server.ts
+import { Elysia, t } from 'elysia'
+import { transformPlugin } from '@ap0nia/eden-react-query'
+import SuperJSON from 'superjson'
 
-export const t = initTRPC.create({
-  transformer: superjson,
-})
+const app = new Elysia()
+  .use(transformPlugin(SuperJSON))
+  .get('/a', () => 'A')
+  .get('/b', () => 'B')
+
+export type App = typeof app
 ```
 
-#### 3. Add to `httpLink()`, `wsLink()`, etc
+#### 3. Create a client with links, e.g. `httpLink()`, `httpBatchLink()`, etc
 
-> TypeScript will guide you to where you need to add `transformer` as soon as you've added it on the `initTRPC`-object
+> TypeScript will guide you to where you need to add `transformer` as soon as you've added it your server application via the `transformPlugin` helper.
 
-`createTRPCClient()`:
+```typescript twoslash
+// @filename: server.ts
+import { Elysia, t } from 'elysia'
+import { transformPlugin } from '@ap0nia/eden-react-query'
+import SuperJSON from 'superjson'
 
-```ts title='src/app/_trpc/client.ts'
-import { createTRPCClient } from '@trpc/client'
-import type { AppRouter } from '~/server/routers/_app'
-import superjson from 'superjson'
+const app = new Elysia().use(transformPlugin(SuperJSON)).get('/nendoroid/:id/name', () => 'Skadi')
 
-export const client = createTRPCClient<AppRouter>({
+export type App = typeof app
+
+// @filename: index.ts
+// ---cut---
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
+import SuperJSON from 'superjson'
+import type { App } from './server'
+
+const eden = createEdenTreatyReactQuery<App>()
+
+export const client = eden.createClient({
   links: [
     httpLink({
-      url: 'http://localhost:3000',
-      // transformer: superjson
+      domain: 'http://localhost:3000',
+      transformer: SuperJSON,
     }),
   ],
 })
@@ -67,28 +84,32 @@ export const client = createTRPCClient<AppRouter>({
 
 ## Different transformers for upload and download
 
-If a transformer should only be used for one direction or different transformers should be used for upload and download (e.g., for performance reasons), you can provide individual transformers for upload and download. Make sure you use the same combined transformer everywhere.
+If a transformer should only be used for one direction or different transformers
+should be used for upload and download (e.g., for performance reasons),
+you can provide individual transformers for upload and download.
+Make sure you use the same combined transformer everywhere.
 
-### How to
+### Steps
 
-Here [superjson](https://github.com/blitz-js/superjson) is used for uploading and [devalue](https://github.com/Rich-Harris/devalue) for downloading data because devalue is a lot faster but insecure to use on the server.
+Here [superjson](https://github.com/blitz-js/superjson) is used for uploading and
+[devalue](https://github.com/Rich-Harris/devalue) for downloading data because devalue
+is a lot faster but insecure to use on the server.
 
 #### 1. Install
 
-```bash
+```bash npm2yarn
 yarn add superjson devalue
 ```
 
-#### 2. Add to `utils/trpc.ts`
+#### 2. Add to `utils/eden.ts`
 
-```ts title='utils/trpc.ts'
+```typescript twoslash
 import { uneval } from 'devalue'
-import superjson from 'superjson'
+import SuperJSON from 'superjson'
+import type { DataTransformerOptions } from '@ap0nia/eden-react-query'
 
-// [...]
-
-export const transformer = {
-  input: superjson,
+export const transformer: DataTransformerOptions = {
+  input: SuperJSON,
   output: {
     serialize: (object) => uneval(object),
     // This `eval` only ever happens on the **client**
@@ -97,18 +118,34 @@ export const transformer = {
 }
 ```
 
-#### 3. Add to your `AppRouter`
+#### 3. Add the transformer via the `transformPlugin` to your Elysia.js server application.
 
-```ts title='server/routers/_app.ts'
-import { initTRPC } from '@trpc/server'
-import { transformer } from '../../utils/trpc'
+```typescript twoslash
+// @filename: utils/eden.ts
+import { uneval } from 'devalue'
+import SuperJSON from 'superjson'
+import type { DataTransformerOptions } from '@ap0nia/eden-react-query'
 
-export const t = initTRPC.create({
-  transformer,
-})
+export const transformer: DataTransformerOptions = {
+  input: SuperJSON,
+  output: {
+    serialize: (object) => uneval(object),
+    // This `eval` only ever happens on the **client**
+    deserialize: (object) => eval(`(${object})`),
+  },
+}
 
-export const appRouter = t.router({
-  // [...]
+// @filename: src/routers/_app.ts
+// ---cut---
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
+import { transformer } from '../../utils/eden'
+
+export const eden = createEdenTreatyReactQuery()
+
+export const client = eden.createClient({
+  links: [
+    httpLink({ transformer })
+  ]
 })
 ```
 

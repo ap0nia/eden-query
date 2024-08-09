@@ -104,7 +104,7 @@ so pay attention to the types.
 
 For example.
 
-```ts twoslash
+```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
 

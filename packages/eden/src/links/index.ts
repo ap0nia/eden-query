@@ -1,6 +1,7 @@
 export * from './http-batch-link'
 export * from './http-link'
 export * from './internal/observable'
-export type { EdenLink } from './internal/operation'
+export * from './internal/operation'
+export * from './internal/transformer'
 export * from './logger-link'
 export * from './split-link'

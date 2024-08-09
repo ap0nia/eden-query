@@ -57,14 +57,14 @@ export type App = typeof app
 // @filename: src/lib/eden.ts
 // ---cut---
 import {
-  createEdenTreatyQuery,
+  createEdenTreatyReactQuery,
   type InferTreatyQueryInput,
   type InferTreatyQueryOutput,
-} from '@elysiajs/eden-react-query'
+} from '@ap0nia/eden-react-query'
 
 import type { App } from '../../server'
 
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+export const eden = createEdenTreatyReactQuery<App>({ abortOnUnmount: true })
 
 export type InferInput = InferTreatyQueryInput<App>
 
@@ -76,7 +76,7 @@ export type InferOutput = InferTreatyQueryOutput<App>
 ```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@elysiajs/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query'
 
 export const app = new Elysia()
   .use(batchPlugin())
@@ -87,14 +87,14 @@ export type App = typeof app
 // @filename: src/lib/eden.ts
 // ---cut---
 import {
-  createEdenTreatyQuery,
+  createEdenTreatyReactQuery,
   type InferTreatyQueryInput,
   type InferTreatyQueryOutput,
-} from '@elysiajs/eden-react-query'
+} from '@ap0nia/eden-react-query'
 
 import type { App } from '../../server'
 
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+export const eden = createEdenTreatyReactQuery<App>({ abortOnUnmount: true })
 
 export type InferInput = InferTreatyQueryInput<App>
 
@@ -104,7 +104,7 @@ export type InferOutput = InferTreatyQueryOutput<App>
 // ---cut---
 import React from 'react'
 import { useState } from 'react'
-import { httpBatchLink } from '@elysiajs/eden-react-query'
+import { httpBatchLink } from '@ap0nia/eden-react-query'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { eden } from './lib/eden'
 
@@ -179,14 +179,14 @@ export type App = typeof app
 // @filename: src/lib/eden.ts
 // ---cut---
 import {
-  createEdenTreatyQuery,
+  createEdenTreatyReactQuery,
   type InferTreatyQueryInput,
   type InferTreatyQueryOutput,
-} from '@elysiajs/eden-react-query'
+} from '@ap0nia/eden-react-query'
 
 import type { App } from '../../server'
 
-export const eden = createEdenTreatyQuery<App>({ abortOnUnmount: true })
+export const eden = createEdenTreatyReactQuery<App>({ abortOnUnmount: true })
 
 export type InferInput = InferTreatyQueryInput<App>
 

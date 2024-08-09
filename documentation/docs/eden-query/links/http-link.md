@@ -26,7 +26,7 @@ export type App = typeof app
 
 // @filename: index.ts
 // ---cut---
-import { EdenClient, httpLink } from '@elysiajs/eden-react-query'
+import { EdenClient, httpLink } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
 const client = new EdenClient<App>({
