@@ -12,6 +12,8 @@ node_modules/
 ## TypeScript compiler (tsc) output.
 dist/
 
+## Nx cache.
+.nx/
 
 #####################################################################################
 # Operating System

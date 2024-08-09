@@ -27,7 +27,8 @@
   ],
   "type": "module",
   "scripts": {
-    "postinstall": "changeset init && husky install"
+    "postinstall": "changeset init && husky install",
+    "build": "nx run-many -t build"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.7",
@@ -49,6 +50,7 @@
     "globals": "^15.8.0",
     "husky": "^9.1.4",
     "lint-staged": "^15.2.7",
+    "nx": "^19.5.7",
     "prettier": "^3.3.3",
     "svelte": "^4.2.18",
     "svelte-eslint-parser": "^0.41.0",
