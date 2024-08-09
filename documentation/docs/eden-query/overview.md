@@ -42,6 +42,38 @@ while supporting all the functionality provided by the
     </Card>
 </Deck>
 
+
+```ts twoslash include main
+const a = 1
+// - 1
+const b = 2
+// - 2
+const c= 3
+```
+Let's talk a bit about `a`:
+```ts twoslash
+// @include: main-1
+```
+`a` can be added to another number
+```ts twoslash
+// @include: main-1
+// ---cut---
+const nextA = a + 13
+```
+Look what happens when you add `a + b`
+```ts twoslash
+// @include: main-2
+// ---cut---
+const result = a + b
+//    ^?
+```
+Finally here is `c`:
+```ts twoslash
+// @include: main
+// ---cut---
+c.toString()
+```
+
 ## Implementations
 
 eden + tanstack-query aims to offer two implementations/APIs, **treaty** and **fetch**,
@@ -55,6 +87,39 @@ None of the integrations have implemented this yet...
 
 Based on the [official example of eden treaty](/eden/treaty/overview),
 this is how the react-query hooks have been integrated with eden.
+
+Given an Elysia.js server application that looks like this:
+
+```typescript twoslash include myBlock
+type SomeString = string
+```
+
+```typescript twoslash
+// @include: myBlock
+// @filename: hello.ts
+const a: SomeString = 'string'
+```
+
+```ts twoslash include basicElysiaDemo
+import { Elysia, t } from 'elysia'
+
+const app = new Elysia()
+  .get('/', 'hi')
+  .put('/nendoroid/:id', ({ body }) => body, {
+    body: t.Object({
+      name: t.String(),
+      from: t.String(),
+    }),
+  })
+  .listen(3000)
+
+export type App
+```
+
+```ts twoslash
+// @include: basicElysiaDemo
+let n: N
+```
 
 ```typescript twoslash
 // @filename: server.ts
@@ -101,8 +166,6 @@ The official Eden Treaty implementation uses function calls to pass in
 This implementation of Treaty will have dynamic path params passed via a `params` property in an argument.
 The position of this argument may vary depending on the type of tanstack-query hook invoked,
 so pay attention to the types.
-
-For example.
 
 ```typescript twoslash
 // @filename: server.ts
