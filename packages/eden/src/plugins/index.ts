@@ -1,12 +1,5 @@
 import type Elysia from 'elysia'
-import type {
-  AnyElysia,
-  DefinitionBase,
-  EphemeralType,
-  MetadataBase,
-  RouteBase,
-  SingletonBase,
-} from 'elysia'
+import type { AnyElysia } from 'elysia'
 
 import type { EdenQueryConstraints, EdenQueryStoreKey } from '../constraints'
 import { batchPlugin } from './batch'
@@ -34,17 +27,8 @@ export type EdenPluginOptions = EdenQueryConstraints
  *   but it's not guranteed to be parsed correctly by the server...
  */
 export function edenPlugin<T extends EdenQueryConstraints>(config: T) {
-  const plugin = <
-    BasePath extends string,
-    Scoped extends boolean,
-    Singleton extends SingletonBase,
-    Definitions extends DefinitionBase,
-    Metadata extends MetadataBase,
-    Routes extends RouteBase,
-    Ephemeral extends EphemeralType,
-    Volatile extends EphemeralType,
-  >(
-    elysia: Elysia<BasePath, Scoped, Singleton, Definitions, Metadata, Routes, Ephemeral, Volatile>,
+  const plugin = <BasePath extends string>(
+    elysia: Elysia<BasePath>,
   ): Elysia<
     BasePath,
     false,
