@@ -3,11 +3,14 @@ import ci from 'ci-info'
 import { defineConfig } from 'vitepress'
 import { repository } from '../../../package.json'
 import { npmToYarn } from './vitepress-plugin-npm-to-yarn'
+import { addIncludes, parseIncludeMeta, replaceIncludesInCode } from './twoslash-include'
 
 const repositoryName = repository.url.split('/').pop() ?? ''
 
 const description =
   'Ergonomic Framework for Humans. TypeScript framework supercharged by Bun with End - to - End Type Safety, unified type system and outstanding developer experience'
+
+const includes = new Map<string, string>()
 
 const config = defineConfig({
   lang: 'en-US',
@@ -23,7 +26,21 @@ const config = defineConfig({
       light: 'github-light',
       dark: 'github-dark',
     },
-    codeTransformers: [transformerTwoslash()],
+    codeTransformers: [
+      {
+        name: 'twoslash-replace-include',
+        preprocess: (code, options) => {
+          const include = parseIncludeMeta(options.meta?.__raw)
+
+          if (include) addIncludes(includes, include, code)
+
+          const codeWithIncludes = replaceIncludesInCode(includes, code)
+
+          return codeWithIncludes
+        },
+      },
+      transformerTwoslash(),
+    ],
   },
   // ![INFO] uncomment for support hot reload on WSL - https://github.com/vitejs/vite/issues/1153#issuecomment-785467271
   vite: {
