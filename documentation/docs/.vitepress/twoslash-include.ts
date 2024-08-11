@@ -35,10 +35,10 @@ export function replaceIncludesInCode(_map: Map<string, string>, code: string) {
 
     if (!replaceWith) {
       const msg = `Could not find an include with the key: '${key}'.\nThere is: ${Array.from(_map.keys())}.`
-      throw new Error(msg)
+      console.error(msg)
+    } else {
+      toReplace.push([match.index, match[0].length, replaceWith])
     }
-
-    toReplace.push([match.index, match[0].length, replaceWith])
   }
 
   let newCode = code.toString()
@@ -59,7 +59,7 @@ export function replaceIncludesInCode(_map: Map<string, string>, code: string) {
  *
  * The name should be captured in the first capturing group, i.e. match[1].
  */
-const INCLUDE_META_REGEX = /include\s+(\w+)\b.*?/
+const INCLUDE_META_REGEX = /include\s+([\w-]+)\b.*?/
 
 /**
  * Given the raw meta, try to parse the include name.
