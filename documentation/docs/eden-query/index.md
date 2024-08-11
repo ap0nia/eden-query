@@ -61,7 +61,6 @@ this is how the react-query hooks have been integrated with eden.
 This is an example Elysia.js server application.
 
 ```typescript twoslash include elysia-nendoroid
-// @filename: server.ts
 import { Elysia, t } from 'elysia'
 
 const app = new Elysia()
@@ -84,6 +83,7 @@ This is how a React client can interact with the server application via the hook
 by the eden + react-query integration.
 
 ```typescript twoslash
+// @filename: server.ts
 // @include: elysia-nendoroid
 
 // @filename: index.ts
@@ -183,7 +183,7 @@ const clientTwo = eden.createHttpClient({ domain })
 
 #### eden.createHttpBatchClient
 
-Creates a client similar to the basic one, but merges multiple requests into a single batch request.
+Creates a client similar to the basic one, but combines multiple requests into a single batch request.
 
 :::warning
 In order to use this client successfully, the elysia server application must use the `batchPlugin`
