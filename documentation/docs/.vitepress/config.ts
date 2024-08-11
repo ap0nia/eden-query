@@ -154,6 +154,14 @@ const config = defineConfig({
             docFooterText: 'Eden Query Overview',
           },
           {
+            text: 'Batching',
+            link: '/eden-query/batching.md',
+          },
+          {
+            text: 'Transformers',
+            link: '/eden-query/transformers.md',
+          },
+          {
             text: 'Links',
             link: '/eden-query/links/index.md',
             collapsed: false,
@@ -175,14 +183,6 @@ const config = defineConfig({
                 link: '/eden-query/links/logger-link.md',
               },
             ],
-          },
-          {
-            text: 'Transformers',
-            link: '/eden-query/transformers.md',
-          },
-          {
-            text: 'Batching',
-            link: '/eden-query/batching.md',
           },
           {
             text: 'Eden-React-Query',
