@@ -63,6 +63,12 @@ const isDark = useDark()
                     Explore plugins
                 </a>
             </div>
+            <div class="mt-4">
+              <p class='text-error'>
+                Please refer to the official documentation for information about plugins and
+                topics unrelated to eden.
+              </p>
+            </div>
         </section>
         <section class="flex flex-col w-full max-w-xl">
             <ol
@@ -70,12 +76,13 @@ const isDark = useDark()
             >
                 <li
                     v-for="[name, icon, href, darkIcon = ''] in plugins"
-                    class="aspect-square rounded-xl border dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700/75 dark:to-gray-800/75 text-xl transform transition-all ease-out duration-200 hover:shadow-lg focus:shadow-lg hover:-translate-y-1.5 focus:-translate-y-1.5"
+                    class="aspect-square rounded-xl border dark:border-gray-700 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700/75 dark:to-gray-800/75 text-xl transform transition-all ease-out duration-200"
                 >
                     <a
                         :href="href"
                         :target="href.startsWith('http') ? '_blank' : ''"
-                        class="flex flex-col justify-center items-center gap-3 w-full h-full text-lg font-medium text-gray-600 dark:text-gray-400 overflow-hidden"
+                        class="btn-disabled opacity-50 flex flex-col justify-center items-center gap-3 w-full h-full text-lg font-medium text-gray-600 dark:text-gray-400 overflow-hidden"
+                        disabled
                     >
                         <img
                             :src="isDark && darkIcon ? darkIcon ?? icon : icon"

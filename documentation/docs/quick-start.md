@@ -15,45 +15,55 @@ head:
 ---
 
 # Quick Start
+
 Elysia is optimized for Bun which is a JavaScript runtime that aims to be a drop-in replacement for Node.js.
 
 You can install Bun with the command below:
+
 ```bash
 curl https://bun.sh/install | bash
 ```
 
+:::info
+Read more about Bun from [their official documentation](https://bun.sh/).
+:::
+
 ## Automatic Installation
-We recommend starting a new Elysia server using `bun create elysia`, which sets up everything automatically.
+
+1. Run the command ,`bun create elysia`, to automatically setup a new application.
 
 ```bash
 bun create elysia app
 ```
 
-Once done, you should see the folder name `app` in your directory.
+2. Once the command is done, you should see the folder `app` in your current directory.
 
 ```bash
 cd app
 ```
 
-Start a development server by:
+3. Start the development server by running the `dev` command.
+
 ```bash
 bun dev
 ```
 
-Navigate to [localhost:3000](http://localhost:3000) should greet you with "Hello Elysia".
+4. Navigate to [localhost:3000](http://localhost:3000) and you should be greeted with "Hello Elysia".
 
 ::: tip
-Elysia ships you with `dev` command to automatically reload your server on file change.
+Elysia provides the `dev` command to automatically reload your server on file changes.
 :::
 
 ## Manual Installation
-To manually create a new Elysia app, install Elysia as a package:
 
-```typescript
-bun add elysia
+1. To manually create a new Elysia app, install Elysia as a package:
+
+```bash npm2yarn
+npm install elysia
 ```
 
-Open your `package.json` file and add the following scripts:
+2. Open your `package.json` file and add the following scripts:
+
 ```json
 {
   "scripts": {
@@ -71,7 +81,8 @@ These scripts refer to the different stages of developing an application:
 - **build** - Build the application for production usage.
 - **start** - Start an Elysia production server.
 
-If you are using TypeScript, make sure to create, and update `tsconfig.json` to include `compilerOptions.strict` to `true`:
+3. If you are using TypeScript, make sure to create a `tsconfig.json`, and set `compilerOptions.strict` to `true`:
+
 ```json
 {
   "compilerOptions": {
@@ -80,13 +91,39 @@ If you are using TypeScript, make sure to create, and update `tsconfig.json` to 
 }
 ```
 
+:::tip
+This ensures that you are getting the full benefits of Elysia's robust type safety!
+:::
+
+4. Create the entrypoint source file for your Elysia server application at `src/index.ts`
+
+```ts twoslash
+import { Elysia } from 'elysia'
+
+const app = new Elysia().get('/', () => 'Hello, Elysia')
+
+app.listen(3000)
+```
+
+5. Start the development server by running the `dev` command.
+
+```bash
+bun dev
+```
+
+6. Navigate to [localhost:3000](http://localhost:3000) and you should be greeted with "Hello Elysia".
+
 ## Structure
-Here's the recommended file structure for Elysia if you don't strictly prefer a specific convention:
-- **src** - Any file that associate with development of Elysia server.
-    - **index.ts** - Entry point for your Elysia server, ideal place for setting global plugin
-    - **setup.ts** - Composed of various plugins to be used as a Service Locator
-    - **controllers** - Instances which encapsulate multiple endpoints 
-    - **libs** - Utility functions
-    - **models** - Data Type Objects (DTOs) for Elysia instance
-    - **types** - Shared TypeScript type if needed
-- **test** - Test file for Elysia server
+
+Here is a simple project structure for starting out with Elysia development:
+
+```
+📁 src - Source code for your Elysia server application.
+│   ├── 🇹‌🇸‌ index.ts - Entry point for your application.
+│   ├── 🇹‌🇸‌ setup.ts - Various plugins to be used as a Service Locator.
+│   │── 📁 controllers - Elysia instances that encapsulate endpoints.
+│   │── 📁 libs - Utilities.
+│   │── 📁 models - Data Transfer Objects (DTOs) for your application.
+│   └── 📁 types - Shared TypeScript types, if needed.
+└── 📁 tests - Test for your Elysia server application.
+```

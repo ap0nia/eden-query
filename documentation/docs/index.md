@@ -87,7 +87,7 @@ new Elysia()
 
 <template v-slot:server>
 
-```typescript twoslash
+```typescript twoslash include user-profile
 // @filename: server.ts
 // ---cut---
 // server.ts
@@ -121,34 +121,10 @@ export type App = typeof app
   <template v-slot:client>
 
 ```typescript twoslash
-// @errors: 2322 1003
-// @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-const app = new Elysia()
-    .patch(
-        '/user/profile',
-        ({ body, error }) => {
-            if(body.age < 18)
-                return error(400, "Oh no")
-
-            if(body.name === 'Nagisa')
-                return error(418)
-
-            return body
-        },
-        {
-            body: t.Object({
-                name: t.String(),
-                age: t.Number()
-            })
-        }
-    )
-    .listen(80)
-
-export type App = typeof app
+// @include: user-profile
 
 // @filename: client.ts
+// @errors: 2322 1003
 // ---cut---
 // client.ts
 import { treaty } from '@elysiajs/eden'
