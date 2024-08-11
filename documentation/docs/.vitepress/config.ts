@@ -122,10 +122,6 @@ const config = defineConfig({
     logo: '/assets/elysia.svg',
     nav: [
       {
-        text: 'Eden',
-        link: '/eden/overview',
-      },
-      {
         text: 'Eden-Query',
         link: '/eden-query/overview',
       },
@@ -149,67 +145,12 @@ const config = defineConfig({
         ],
       },
       {
-        text: 'Eden',
-        collapsed: true,
-        items: [
-          {
-            text: 'Overview',
-            link: '/eden/overview.md',
-            docFooterText: 'Eden Overview',
-          },
-          {
-            text: 'Installation',
-            link: '/eden/installation.md',
-          },
-          {
-            text: 'Eden Treaty',
-            collapsed: false,
-            items: [
-              {
-                text: 'Overview',
-                link: '/eden/treaty/overview',
-                docFooterText: 'Eden Treaty Overview',
-              },
-              {
-                text: 'Parameters',
-                link: '/eden/treaty/parameters',
-              },
-              {
-                text: 'Response',
-                link: '/eden/treaty/response',
-              },
-              {
-                text: 'Web Socket',
-                link: '/eden/treaty/websocket',
-              },
-              {
-                text: 'Config',
-                link: '/eden/treaty/config',
-              },
-              {
-                text: 'Unit Test',
-                link: '/eden/treaty/unit-test',
-              },
-              {
-                text: 'Legacy (Treaty 1)',
-                link: '/eden/treaty/legacy.md',
-              },
-            ],
-          },
-          {
-            text: 'Eden Fetch',
-            link: '/eden/fetch.md',
-            docFooterText: 'Eden Fetch Overview',
-          },
-        ],
-      },
-      {
         text: 'Eden-Query',
         collapsed: false,
         items: [
           {
             text: 'Overview',
-            link: '/eden-query/overview.md',
+            link: '/eden-query/index.md',
             docFooterText: 'Eden Query Overview',
           },
           {
