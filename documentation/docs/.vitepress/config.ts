@@ -168,7 +168,7 @@ const config = defineConfig({
           {
             text: 'Links',
             link: '/eden-query/links/index.md',
-            collapsed: false,
+            collapsed: true,
             items: [
               {
                 text: 'HTTP Link',
@@ -190,7 +190,7 @@ const config = defineConfig({
           },
           {
             text: 'Eden-React-Query',
-            collapsed: false,
+            collapsed: true,
             link: '/eden-query/react/index.md',
             items: [
               {
@@ -257,7 +257,7 @@ const config = defineConfig({
           },
           {
             text: 'Eden-Svelte-Query',
-            collapsed: false,
+            collapsed: true,
             link: '/eden-query/svelte/index.md',
             items: [],
           },
