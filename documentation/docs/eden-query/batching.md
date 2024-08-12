@@ -19,18 +19,29 @@ head:
 A custom plugin allows requests from the client to be combined into one single request.
 This is enabled on the server, and the client can opt into batch requests.
 
-## Example Elysia server application
+<!-- Invisible code block that compiles first and can be reused. -->
+<template>
 
-```typescript twoslash include elysia-batch
+```typescript twoslash include batch-simple-example-application
 import { Elysia, t } from 'elysia'
 import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
-
-// All of these applications are equivalent!
 
 const app = new Elysia()
   .use(batchPlugin())
   .get('/a', () => 'A')
   .get('/b', () => 'B')
+
+export type App = typeof app
+```
+
+</template>
+
+## Example Elysia server application
+
+> All of the apps are equivalent!
+
+```typescript twoslash include elysia-batch
+// @include: batch-simple-example-application
 
 const app1 = new Elysia()
   .use(edenPlugin({ batch: true }))
@@ -41,15 +52,15 @@ const app2 = new Elysia()
   .use(edenPlugin({ batch: {} }))
   .get('/a', () => 'A')
   .get('/b', () => 'B')
-
-export type App = typeof app
 ```
 
 ## Example Eden-Query client Usage
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: elysia-batch
+// @include: batch-simple-example-application
 
 // @filename: index.ts
 // ---cut---
@@ -60,6 +71,12 @@ const eden = createEdenTreatyReactQuery<App>()
 
 const client = eden.createHttpBatchClient()
 ```
+
+```typescript twoslash [server.ts]
+// @include: batch-simple-example-application
+```
+
+:::
 
 ## Options
 

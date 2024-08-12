@@ -16,9 +16,17 @@ head:
 
 # Split Link
 
-`splitLink` is a link that allows you to branch your link chain's execution depending on a given condition. Both the `true` and `false` branches are required. You can provide just one link, or multiple links per branch via an array.
+`splitLink` is a link that allows you to branch your link chain's execution depending on a given condition.
+Both the `true` and `false` branches are required.
+You can provide just one link, or multiple links per branch via an array.
 
-It's important to note that when you provide links for `splitLink` to execute, `splitLink` will create an entirely new link chain based on the links you passed. Therefore, you need to use a [**terminating link**](./overview.md#the-terminating-link) if you only provide one link or add the terminating link at the end of the array if you provide multiple links to be executed on a branch. Here's a visual representation of how `splitLink` works:
+It's important to note that when you provide links for `splitLink` to execute,
+`splitLink` will create an entirely new link chain based on the links you passed.
+Therefore, you need to use a [**terminating link**](./index.md#the-terminating-link)
+if you only provide one link or add the terminating link at the end of the array
+if you provide multiple links to be executed on a branch.
+
+Here's a visual representation of how `splitLink` works:
 
 <div align="center" style="marginBottom: 12px">
   <img src="/assets/split-link-diagram.png" alt="Eden Split Link Diagram"/>
@@ -34,9 +42,11 @@ It's important to note that when you provide links for `splitLink` to execute, `
 
 Let's say you're using `httpBatchLink` as the terminating link in your tRPC client config. This means request batching is enabled in every request. However, if you need to disable batching only for certain requests, you would need to change the terminating link in your tRPC client config dynamically between `httpLink` and `httpBatchLink`. This is a perfect opportunity for `splitLink` to be used:
 
-#### 1. Create Elysia Server Application / `./src/server.ts`
+#### 1. Create Elysia Server Application
 
-```typescript twoslash include elysia-posts
+::: code-group
+
+```typescript twoslash include links-split-basic-example [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -52,13 +62,20 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-#### 2. Configure client / `./src/lib/eden.ts`
+:::
+
+#### 2. Configure eden client
 
 <template>
 
-```typescript twoslash include elysia-posts-client
+```typescript twoslash include links-split-eden-client
 // @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink, httpLink, splitLink } from '@ap0nia/eden-react-query'
+import {
+  createEdenTreatyReactQuery,
+  httpBatchLink,
+  httpLink,
+  splitLink,
+} from '@ap0nia/eden-react-query'
 import type { App } from '../server'
 
 const domain = 'http://localhost:3000'
@@ -85,7 +102,9 @@ export const client = eden.createClient({
 
   </template>
 
-```typescript twoslash include
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
 // @filename: ./src/server.ts
 // @include: elysia-posts
 
@@ -93,6 +112,12 @@ export const client = eden.createClient({
 // ---cut---
 // @include: elysia-posts-client
 ```
+
+```typescript twoslash [src/server.ts]
+// @include: elysia-posts
+```
+
+:::
 
 #### 3. Perform request without batching
 
@@ -110,7 +135,9 @@ const postResult = proxy.posts.query(null, {
 
 or:
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [src/component.tsx]
 // @filename: ./src/server.ts
 // @include: elysia-posts
 
@@ -120,7 +147,6 @@ or:
 
 // @filename: ./src/component.tsx
 // ---cut---
-// src/component.tsx
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink, httpLink, splitLink } from '@ap0nia/eden-react-query'
@@ -158,6 +184,21 @@ export default function Page() {
   )
 }
 ```
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: ./src/server.ts
+// @include: elysia-posts
+
+// @filename: ./src/lib/eden.ts
+// ---cut---
+// @include: elysia-posts-client
+```
+
+```typescript twoslash [src/server.ts]
+// @include: elysia-posts
+```
+
+:::
 
 ## `splitLink` Options
 

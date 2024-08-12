@@ -34,9 +34,9 @@ That is, you can return any of these types from your API-resolver and use them i
 yarn add superjson
 ```
 
-#### 2. Add SuperJSON via the `transformPlugin` to your Elysia.js server application.
+#### 2. Add SuperJSON via the `transformPlugin` to your Elysia.js server application
 
-```typescript twoslash include elysia
+```typescript twoslash include transformers-basic-application
 import { Elysia, t } from 'elysia'
 import { transformPlugin } from '@ap0nia/eden-react-query'
 import SuperJSON from 'superjson'
@@ -53,9 +53,11 @@ export type App = typeof app
 
 > TypeScript will guide you to where you need to add `transformer` as soon as you've added it your server application via the `transformPlugin` helper.
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: elysia
+// @include: transformers-basic-application
 
 // @filename: index.ts
 // ---cut---
@@ -75,6 +77,12 @@ export const client = eden.createClient({
 })
 ```
 
+```typescript twoslash [server.ts]
+// @include: transformers-basic-application
+```
+
+:::
+
 ## Different transformers for upload and download
 
 If a transformer should only be used for one direction or different transformers
@@ -88,15 +96,17 @@ Here [superjson](https://github.com/blitz-js/superjson) is used for uploading an
 [devalue](https://github.com/Rich-Harris/devalue) for downloading data because devalue
 is a lot faster but insecure to use on the server.
 
-#### 1. Install
+#### 1. Install dependencies
 
 ```bash npm2yarn
 yarn add superjson devalue
 ```
 
-#### 2. Add to `utils/eden.ts`
+#### 2. Create the transformer
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash include transformers-eden-utils [src/utils/eden.ts]
 import { uneval } from 'devalue'
 import SuperJSON from 'superjson'
 import type { DataTransformerOptions } from '@ap0nia/eden-react-query'
@@ -111,22 +121,15 @@ export const transformer: DataTransformerOptions = {
 }
 ```
 
-#### 3. Add the transformer via the `transformPlugin` to your Elysia.js server application.
+:::
 
-```typescript twoslash
+#### 3. Add the transformer via the `transformPlugin` to your Elysia.js server application
+
+::: code-group
+
+```typescript twoslash [src/routers/_app.ts]
 // @filename: utils/eden.ts
-import { uneval } from 'devalue'
-import SuperJSON from 'superjson'
-import type { DataTransformerOptions } from '@ap0nia/eden-react-query'
-
-export const transformer: DataTransformerOptions = {
-  input: SuperJSON,
-  output: {
-    serialize: (object) => uneval(object),
-    // This `eval` only ever happens on the **client**
-    deserialize: (object) => eval(`(${object})`),
-  },
-}
+// @include: transformers-eden-utils
 
 // @filename: src/routers/_app.ts
 // ---cut---
@@ -139,6 +142,12 @@ export const client = eden.createClient({
   links: [httpLink({ transformer })],
 })
 ```
+
+```typescript twoslash [src/utils/eden.ts]
+// @include: transformers-eden-utils
+```
+
+:::
 
 ## `DataTransformer` interface
 

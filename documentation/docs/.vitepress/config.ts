@@ -147,12 +147,8 @@ const config = defineConfig({
       {
         text: 'Eden-Query',
         collapsed: false,
+        link: '/eden-query/index.md',
         items: [
-          {
-            text: 'Overview',
-            link: '/eden-query/index.md',
-            docFooterText: 'Eden Query Overview',
-          },
           {
             text: 'Batching',
             link: '/eden-query/batching.md',

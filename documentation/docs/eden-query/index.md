@@ -1,5 +1,5 @@
 ---
-title: tanstack-query - ElysiaJS
+title: Eden-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
@@ -58,7 +58,11 @@ this is how the react-query hooks have been integrated with eden.
 
 #### Example Application
 
-This is an example Elysia.js server application.
+This is how a React client can interact with an example server application via the hooks provided
+by the eden + react-query integration.
+
+<!-- Invisible code snippet so it's compiled first and reusable. Display the index.ts first. -->
+<template>
 
 ```typescript twoslash include elysia-nendoroid
 import { Elysia, t } from 'elysia'
@@ -77,12 +81,11 @@ const app = new Elysia()
 export type App = typeof app
 ```
 
-#### Example Client Usage
+</template>
 
-This is how a React client can interact with the server application via the hooks provided
-by the eden + react-query integration.
+::: code-group
 
-```typescript twoslash
+```typescript twoslash [index.ts]
 // @filename: server.ts
 // @include: elysia-nendoroid
 
@@ -91,7 +94,9 @@ by the eden + react-query integration.
 import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
-export const app = createEdenTreatyReactQuery<App>({ domain: 'localhost:3000' })
+export const app = createEdenTreatyReactQuery<App>({
+  domain: 'localhost:3000',
+})
 
 // useQuery + [GET] at '/'
 const { data } = await app.index.get.useQuery()
@@ -103,6 +108,14 @@ const { data: nendoroid, error, mutate } = app.nendoroid[':id'].put.useMutation(
 mutate({ name: 'Skadi', from: 'Arknights' }, { params: { id: '1895' } })
 ```
 
+```typescript twoslash [server.ts]
+// @include: elysia-nendoroid
+```
+
+:::
+
+#### Example Client Usage
+
 ## Comparison with Eden-Treaty
 
 ### Params
@@ -112,11 +125,13 @@ Passing in dynamic path params is different between this implementation of Treat
 > TLDR
 
 ❌ Official implementation
+
 ```typescript
 utils.nendoroid({ id: '1895' }).name.get.fetch()
 ```
 
 ✅ This implementation
+
 ```typescript
 utils.nendoroid[':id'].name.get.fetch({ params: { id: '1895' } })
 ```
@@ -126,7 +141,10 @@ The official implementation treats the path param as a function call
 
 This implementation accepts a `params` property in one of the arguments of the final function call.
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [index.ts]
+// @filename: server.ts
 // @include: elysia-nendoroid
 
 // @filename: index.ts
@@ -134,12 +152,20 @@ This implementation accepts a `params` property in one of the arguments of the f
 import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
-export const eden = createEdenTreatyReactQuery<App>({ domain: 'localhost:3000' })
+export const eden = createEdenTreatyReactQuery<App>({
+  domain: 'localhost:3000',
+})
 
 const utils = eden.useUtils()
 
 utils.nendoroid[':id'].name.get.fetch({ params: { id: '1895' } })
 ```
+
+```typescript twoslash [server.ts]
+// @include: elysia-nendoroid
+```
+
+:::
 
 #### Reasoning
 
@@ -190,8 +216,10 @@ In order to use this client successfully, the elysia server application must use
 or `edenPlugin` with the `batch` property defined.
 :::
 
-```typescript twoslash
-// @filename: server.ts
+<!-- Invisible code snippet compiles first and can be reused. -->
+<template>
+
+```typescript twoslash include index-batch-server
 import { Elysia, t } from 'elysia'
 import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
 
@@ -204,21 +232,33 @@ const batchOptions = { endpoint: '/api/batch' }
 
 const app = new Elysia()
   /**
-   * Option 1: use `batchPlugin` directly.
+   * Option 1:
+   * Use `batchPlugin` directly and provide options if needed.
    */
   .use(batchPlugin(batchOptions))
 
   /**
-   * Option 2: use `edenPlugin` and pass `batchOptions` as the `batch` property.
+   * Option 2:
+   * Use `edenPlugin` and pass `batchOptions` as the `batch` property.
    */
   .use(edenPlugin({ batch: batchOptions }))
 
   /**
-   * Option 3: to enable batching but without any options, pass `true`.
+   * Option 3:
+   * Enable batching without setting any options with `true`.
    */
   .use(edenPlugin({ batch: true }))
 
 export type App = typeof app
+```
+
+</template>
+
+::: code-group
+
+```typescript twoslash [index.ts]
+// @filename: server.ts
+// @include: index-batch-server
 
 // @filename: index.ts
 // ---cut---
@@ -237,6 +277,12 @@ const clientOne = eden.createClient({
 
 const clientTwo = eden.createHttpBatchClient({ domain })
 ```
+
+```typescript twoslash [server.ts]
+// @include: index-batch-server
+```
+
+:::
 
 ### Transformers
 

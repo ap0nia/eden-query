@@ -26,14 +26,25 @@ to a batch endpoint.
 
 You can import and add the `httpBatchLink` to the `links` array as such:
 
-```typescript twoslash
-// @filename: server.ts
+<!-- -->
+<template>
+
+```typescript twoslash include links-batch-basic-application
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
 export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 
 export type App = typeof app
+```
+
+</template>
+
+::: code-group
+
+```typescript twoslash [index.ts]
+// @filename: server.ts
+// @include: links-batch-basic-application
 
 // @filename: index.ts
 // ---cut---
@@ -49,6 +60,12 @@ const client = new EdenClient<App>({
   ],
 })
 ```
+
+```typescript twoslash [server.ts]
+// @include: links-batch-basic-application
+```
+
+:::
 
 After that, you can make use of batching by setting all your procedures in a `Promise.all`.
 The code below will produce exactly **one** HTTP request and on the server exactly **one** database query:
@@ -112,14 +129,11 @@ The `maxURLLength` option will limit the number of requests that can be sent tog
 
 > An alternative way of adding an HTTP Batch Link is demonstrated below
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [index.ts]
 // @filename: server.ts
-import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
-
-export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
-
-export type App = typeof app
+// @include: links-batch-basic-application
 
 // @filename: index.ts
 // ---cut---
@@ -138,6 +152,12 @@ const client = new EdenClient<App>({
 })
 ```
 
+```typescript twoslash [server.ts]
+// @include: links-batch-basic-application
+```
+
+:::
+
 ## Disabling request batching
 
 ### 1. Do not use the batch plugin.
@@ -146,13 +166,11 @@ const client = new EdenClient<App>({
 
 ### 2. Replace `httpBatchLink` with [`httpLink`](./http-link.md) in your Eden Client
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [index.ts]
 // @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-export const app = new Elysia().get('/', () => 'Hello, World!')
-
-export type App = typeof app
+// @include: links-batch-basic-application
 
 // @filename: index.ts
 // ---cut---
@@ -168,6 +186,12 @@ const client = new EdenClient<App>({
   ],
 })
 ```
+
+```typescript twoslash [server.ts]
+// @include: links-batch-basic-application
+```
+
+:::
 
 or, if you're using Next.js:
 

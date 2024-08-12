@@ -25,13 +25,24 @@ Eden operation to an Eden request handler over HTTP.
 
 You can import and add the `httpLink` to the `links` array as such:
 
-```typescript twoslash
-// @filename: server.ts
+<!-- -->
+<template>
+
+```typescript twoslash include links-http-basic-application
 import { Elysia, t } from 'elysia'
 
 export const app = new Elysia().get('/', () => 'Hello, World!')
 
 export type App = typeof app
+```
+
+</template>
+
+::: code-group
+
+```typescript twoslash [index.ts]
+// @filename: server.ts
+// @include: links-http-basic-application
 
 // @filename: index.ts
 // ---cut---
@@ -47,6 +58,12 @@ const client = new EdenClient<App>({
   ],
 })
 ```
+
+```typescript twoslash [server.ts]
+// @include: links-http-basic-application
+```
+
+:::
 
 ## `httpLink` Options
 
