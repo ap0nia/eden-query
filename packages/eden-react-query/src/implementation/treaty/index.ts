@@ -7,6 +7,7 @@ import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
+  InferRouteBody,
   InferRouteOptions,
 } from '@ap0nia/eden'
 import type { AnyElysia, RouteSchema } from 'elysia'
@@ -17,8 +18,18 @@ import type { EdenContextProps, EdenContextState, EdenProvider } from '../../con
 import type { EdenUseInfiniteQuery } from '../../integration/hooks/use-infinite-query'
 import type { EdenUseMutation } from '../../integration/hooks/use-mutation'
 import type { EdenUseQuery } from '../../integration/hooks/use-query'
+import type { EdenUseSuspenseInfiniteQuery } from '../../integration/hooks/use-suspense-infinite-query'
+import type { EdenUseSuspenseQuery } from '../../integration/hooks/use-suspense-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
-import type { EdenQueryKey } from '../../integration/internal/query-key'
+import type {
+  EdenMutationKey,
+  EdenQueryKey,
+  EdenQueryType,
+} from '../../integration/internal/query-key'
+import {
+  getMutationKey as internalGetMutationKey,
+  getQueryKey as internalGetQueryKey,
+} from '../../integration/internal/query-key'
 import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
@@ -119,6 +130,7 @@ export type EdenTreatyQueryMapping<
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
 > = {
   useQuery: EdenUseQuery<TRoute, TPath>
+  useSuspenseQuery: EdenUseSuspenseQuery<TRoute, TPath>
 } & (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
   ? EdenTreatyInfiniteQueryMapping<TRoute, TPath>
   : {})
@@ -128,6 +140,7 @@ export type EdenTreatyQueryMapping<
  */
 export type EdenTreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
   useInfiniteQuery: EdenUseInfiniteQuery<TRoute, TPath>
+  useSuspenseInfiniteQuery: EdenUseSuspenseInfiniteQuery<TRoute, TPath>
 }
 
 /**
@@ -183,11 +196,36 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
 
       const hook = pathsCopy.pop() ?? ''
 
+      /**
+       * Hidden internal hook that returns the path array up to this point.
+       */
+      if (hook === '_defs') {
+        return pathsCopy
+      }
+
       return (rootHooks as any)[hook](pathsCopy, ...args)
     },
   })
 
   return edenTreatyQueryProxy
+}
+
+export function getQueryKey<TSchema extends Record<string, any>>(
+  route: EdenTreatyReactQueryHooksImplementation<TSchema>,
+  input?: TSchema extends RouteSchema ? InferRouteOptions<TSchema> : any,
+  type?: EdenQueryType,
+): EdenQueryKey {
+  const paths = (route as any).defs()
+  return internalGetQueryKey(paths, input, type ?? 'any')
+}
+
+export function getMutationKey<TSchema extends RouteSchema>(
+  route: EdenTreatyReactQueryHooksImplementation<TSchema>,
+  body?: TSchema extends RouteSchema ? InferRouteBody<TSchema> : any,
+  options?: TSchema extends RouteSchema ? InferRouteOptions<TSchema> : any,
+): EdenMutationKey {
+  const paths = (route as any).defs()
+  return internalGetMutationKey(paths, { body, ...options })
 }
 
 export * from './infer'

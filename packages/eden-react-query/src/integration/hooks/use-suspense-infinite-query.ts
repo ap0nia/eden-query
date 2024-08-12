@@ -1,8 +1,10 @@
+import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
 import type {
   InfiniteData,
   UseSuspenseInfiniteQueryOptions,
   UseSuspenseInfiniteQueryResult,
 } from '@tanstack/react-query'
+import type { RouteSchema } from 'elysia'
 
 import type { DistributiveOmit } from '../../utils/types'
 import type { ExtractCursorType } from '../internal/infinite-query'
@@ -37,3 +39,14 @@ export type EdenUseSuspenseInfiniteQueryResult<TData, TError, TInput> = [
     >
   >,
 ]
+
+export type EdenUseSuspenseInfiniteQuery<
+  TRoute extends RouteSchema,
+  _TPath extends any[] = [],
+  TInput = InferRouteOptions<TRoute>,
+  TOutput = InferRouteOutput<TRoute>,
+  TError = InferRouteError<TRoute>,
+> = (
+  input: {} extends TInput ? void | TInput : TInput,
+  options: EdenUseSuspenseInfiniteQueryOptions<TOutput, TOutput, TError>,
+) => EdenUseSuspenseInfiniteQueryResult<TOutput, TError, TInput>
