@@ -112,7 +112,6 @@ const rootController = new Elysia()
       }),
     },
   )
-  .get('/posts', () => [])
 
 export const app = new Elysia({ prefix: '/api' })
   .use(cors())

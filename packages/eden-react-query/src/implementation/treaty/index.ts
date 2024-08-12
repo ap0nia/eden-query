@@ -7,7 +7,6 @@ import type {
   HttpMutationMethod,
   HttpQueryMethod,
   HttpSubscriptionMethod,
-  InferRouteBody,
   InferRouteOptions,
 } from '@ap0nia/eden'
 import type { AnyElysia, RouteSchema } from 'elysia'
@@ -24,6 +23,7 @@ import type { InfiniteCursorKey } from '../../integration/internal/infinite-quer
 import type {
   EdenMutationKey,
   EdenQueryKey,
+  EdenQueryKeyOptions,
   EdenQueryType,
 } from '../../integration/internal/query-key'
 import {
@@ -221,11 +221,10 @@ export function getQueryKey<TSchema extends Record<string, any>>(
 
 export function getMutationKey<TSchema extends RouteSchema>(
   route: EdenTreatyReactQueryHooksImplementation<TSchema>,
-  body?: TSchema extends RouteSchema ? InferRouteBody<TSchema> : any,
-  options?: TSchema extends RouteSchema ? InferRouteOptions<TSchema> : any,
+  options?: EdenQueryKeyOptions,
 ): EdenMutationKey {
   const paths = (route as any).defs()
-  return internalGetMutationKey(paths, { body, ...options })
+  return internalGetMutationKey(paths, options)
 }
 
 export * from './infer'
