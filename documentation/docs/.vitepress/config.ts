@@ -245,7 +245,7 @@ const config = defineConfig({
               },
               {
                 text: 'Aborting Requests',
-                link: '/eden-query/react/abort',
+                link: '/eden-query/react/aborting',
                 docFooterText: 'Aborting Requests',
               },
               {
