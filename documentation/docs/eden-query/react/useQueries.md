@@ -112,8 +112,8 @@ export type MyProps = {
 }
 
 export function MyComponent(props: MyProps) {
-  const postQueries = eden.useQueries((t) => {
-    return props.postIds.map((id) => t.post[':id'].get({ id }))
+  const postQueries = eden.useQueries((e) => {
+    return props.postIds.map((id) => e.post[':id'].get({ id }))
   })
 
   return /* [...] */
@@ -197,13 +197,6 @@ export function MyComponent(props: MyProps) {
 ### Context
 
 You can also pass in an optional React Query context to override the default.
-
-```tsx
-const [post, greeting] = trpc.useQueries(
-  (t) => [t.post.byId({ id: '1' }), t.greeting({ text: 'world' })],
-  myCustomContext,
-)
-```
 
 ::: code-group
 

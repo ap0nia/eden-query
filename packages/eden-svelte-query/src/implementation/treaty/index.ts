@@ -18,7 +18,16 @@ import type { EdenCreateInfiniteQuery } from '../../integration/hooks/create-inf
 import type { EdenCreateMutation } from '../../integration/hooks/create-mutation'
 import type { EdenCreateQuery } from '../../integration/hooks/create-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
-import type { EdenQueryKey } from '../../integration/internal/query-key'
+import type {
+  EdenMutationKey,
+  EdenQueryKey,
+  EdenQueryKeyOptions,
+  EdenQueryType,
+} from '../../integration/internal/query-key'
+import {
+  getMutationKey as internalGetMutationKey,
+  getQueryKey as internalGetQueryKey,
+} from '../../integration/internal/query-key'
 import type { EdenTreatyCreateQueries } from './create-queries'
 import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
@@ -178,6 +187,23 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
   })
 
   return edenTreatyQueryProxy
+}
+
+export function getQueryKey<TSchema extends Record<string, any>>(
+  route: EdenTreatySvelteQueryHooksImplementation<TSchema>,
+  input?: TSchema extends RouteSchema ? InferRouteOptions<TSchema> : any,
+  type?: EdenQueryType,
+): EdenQueryKey {
+  const paths = (route as any).defs()
+  return internalGetQueryKey(paths, input, type ?? 'any')
+}
+
+export function getMutationKey<TSchema extends RouteSchema>(
+  route: EdenTreatySvelteQueryHooksImplementation<TSchema>,
+  options?: EdenQueryKeyOptions,
+): EdenMutationKey {
+  const paths = (route as any).defs()
+  return internalGetMutationKey(paths, options)
 }
 
 export * from './create-queries'

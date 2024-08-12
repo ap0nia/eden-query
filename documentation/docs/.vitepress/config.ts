@@ -259,7 +259,68 @@ const config = defineConfig({
             text: 'Eden-Svelte-Query',
             collapsed: true,
             link: '/eden-query/svelte/index.md',
-            items: [],
+            items: [
+              {
+                text: 'Setup',
+                link: '/eden-query/svelte/setup',
+                docFooterText: 'Setup',
+              },
+              {
+                text: 'Inferring Types',
+                link: '/eden-query/svelte/inferring-types',
+                docFooterText: 'Inferring Types',
+              },
+              {
+                text: 'createQuery()',
+                link: '/eden-query/svelte/createQuery',
+                docFooterText: 'createQuery',
+              },
+              {
+                text: 'createMutation()',
+                link: '/eden-query/svelte/createMutation',
+                docFooterText: 'createMutation',
+              },
+              {
+                text: 'createInfiniteQuery()',
+                link: '/eden-query/svelte/createInfiniteQuery',
+                docFooterText: 'createInfiniteQuery',
+              },
+              {
+                text: 'useUtils()',
+                link: '/eden-query/svelte/useUtils',
+                docFooterText: 'useUtils',
+              },
+              {
+                text: 'createUtils()',
+                link: '/eden-query/svelte/createUtils',
+                docFooterText: 'createUtils',
+              },
+              {
+                text: 'createQueries()',
+                link: '/eden-query/svelte/createQueries',
+                docFooterText: 'createQueries',
+              },
+              {
+                text: 'Reactive Queries',
+                link: '/eden-query/svelte/reactive',
+                docFooterText: 'Reactive Queries',
+              },
+              {
+                text: 'getQueryKey()',
+                link: '/eden-query/svelte/getQueryKey',
+                docFooterText: 'getQueryKey',
+              },
+              {
+                text: 'Aborting Requests',
+                link: '/eden-query/svelte/aborting',
+                docFooterText: 'Aborting Requests',
+              },
+              {
+                text: 'Disabling Queries',
+                link: '/eden-query/svelte/disabling',
+                docFooterText: 'Disabling Queries',
+              },
+            ],
           },
         ],
       },

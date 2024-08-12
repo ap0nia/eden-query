@@ -1,30 +1,31 @@
 ---
-title: useUtils Eden-React-Query - ElysiaJS
+title: useUtils Eden-Svelte-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
-      content: useUtils Eden-React-Query - ElysiaJS
+      content: useUtils Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - name: 'description'
-      content: useUtils Eden-React-Query - ElysiaJS
+      content: useUtils Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - property: 'og:description'
-      content: useUtils Eden-React-Query - ElysiaJS
+      content: useUtils Eden-Svelte-Query - ElysiaJS
 ---
 
 # useUtils
 
-`useUtils` is a hook that gives you access to helpers that let you manage the cached data of the queries you execute via `@ap0nia/eden-react-query`.
-These helpers are actually thin wrappers around `@tanstack/react-query`'s [`queryClient`](https://tanstack.com/query/v5/docs/reference/QueryClient) methods.
+`useUtils` is a hook that gives you access to helpers that let you manage the cached data of the queries you execute via `@ap0nia/eden-svelte-query`.
+These helpers are actually thin wrappers around `@tanstack/svelte-query`'s
+[`queryClient`](https://tanstack.com/query/v5/docs/reference/QueryClient) methods.
 
-If you want more in-depth information about options and usage patterns for `useContext` helpers than what we provide here,
-we will link to their respective `@tanstack/react-query` docs so you can refer to them accordingly.
+If you want more in-depth information about options and usage patterns for `getContext` helpers than what we provide here,
+we will link to their respective `@tanstack/svelte-query` docs so you can refer to them accordingly.
 
 :::info
 
-This hook is an alias for `useContext()`.
+This hook is an alias for `getContext()`.
 
 :::
 
@@ -32,9 +33,9 @@ This hook is an alias for `useContext()`.
 
 <template>
 
-```typescript twoslash include react-useUtils-application
+```typescript twoslash include svelte-useUtils-application
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
 export const app = new Elysia()
   .use(batchPlugin())
@@ -70,26 +71,18 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useUtils-eden
+```typescript twoslash include svelte-useUtils-eden
 // @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
+export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
 </template>
 
 `useUtils` returns an object with all the available queries you have in your routers.
-You use it the same way as your `eden` "utils" object.
+You use it the same way as your `eden` utils object.
 Once you reach a query, you'll have access to the query helpers.
 
 In our component, when we navigate the object `useUtils` gives us and reach the `post.all` query,
@@ -97,50 +90,35 @@ we'll get access to our query helpers!
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useUtils-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$lib/eden'
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useUtils-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-// @noErrors
-import React from 'react'
-import { eden } from '../lib/eden'
-
-export function MyComponent() {
   const utils = eden.useUtils()
-  utils.post.all.get.f
-  //                  ^|
-  // [...]
-}
+</script>
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useUtils-eden
+// @include: svelte-useUtils-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 ```
 
 :::
 
 ## Helpers
 
-These are the helpers you'll get access to via `useUtils`.
-The table below will help you know which Eden helper wraps which `@tanstack/react-query` helper method.
-Each react-query method will link to its respective docs/guide:
+These are the helpers you'll get access to via `useUtils`. The table below will help you know which tRPC helper wraps which `@tanstack/svelte-query` helper method.
+Each svelte-query method will link to its respective docs/guide:
 
-| eden helper wrapper   | `@tanstack/react-query` helper method                                                                                            |
+| eden helper wrapper   | `@tanstack/svelte-query` helper method                                                                                           |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `fetch`               | [`queryClient.fetchQuery`](https://tanstack.com/query/v5/docs/reference/QueryClient#queryclientfetchquery)                       |
 | `prefetch`            | [`queryClient.prefetchQuery`](https://tanstack.com/query/v5/docs/framework/react/guides/prefetching)                             |
@@ -161,10 +139,10 @@ Each react-query method will link to its respective docs/guide:
 
 ### ❓ The function I want isn't here!
 
-`@tanstack/react-query` has a lot of functions that we haven't put in the Eden context yet.
+`@tanstack/svelte-query` has a lot of functions that we haven't put in the Eden context yet.
 If you need a function that isn't here, feel free to [open a feature request](https://github.com/trpc/trpc/issues/new/choose) requesting it.
 
-In the meantime, you can import and use the function directly from `@tanstack/react-query`.
+In the meantime, you can import and use the function directly from `@tanstack/svelte-query`.
 We also provide a [getQueryKey](./getQueryKey)
 which you can use to get the correct queryKey on the filters when using these functions.
 
@@ -174,7 +152,7 @@ which you can use to get the correct queryKey on the filters when using these fu
 WIP, this should be the same as the official Eden-Treaty API.
 :::
 
-In addition to the above react-query helpers, the context also exposes your Eden proxy client.
+In addition to the above svelte-query helpers, the context also exposes your Eden proxy client.
 This lets you call your procedures with `async`/`await` without needing to create an additional vanilla client.
 
 ```tsx
@@ -211,44 +189,31 @@ on the input passed to it to prevent unnecessary calls to the back end.
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useUtils-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
-
-function MyComponent() {
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$lib/eden'
   const utils = eden.useUtils()
 
-  const mutation = eden.post.edit.post.useMutation({
+  const mutation = eden.post.edit.post.createMutation({
     onSuccess(input) {
       utils.post.all.invalidate()
       utils.post[':id'].invalidate({ params: { id: input.id } }) // Will not invalidate queries for other id's 👍
     },
   })
-
-  // [...]
-}
+</script>
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useUtils-eden
+// @include: svelte-useUtils-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 ```
 
 :::
@@ -260,20 +225,19 @@ just one query.
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useUtils-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$lib/eden'
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useUtils-eden
+  const utils = eden.useUtils()
 
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
+  const mutation = eden.post.edit.post.createMutation({
+    onSuccess(input) {
+      utils.post.all.invalidate()
+      utils.post[':id'].invalidate({ params: { id: input.id } }) // Will not invalidate queries for other id's 👍
+    },
+  })
 
-export function MyComponent() {
   const invalidateAllQueriesAcrossAllRouters = () => {
     // 1️⃣
     // All queries on all routers will be invalidated 🔥
@@ -293,24 +257,24 @@ export function MyComponent() {
   }
 
   // Example queries
-  eden.user.all.get.useQuery() // Would only be validated by 1️⃣ only.
-  eden.post.all.get.useQuery() // Would be invalidated by 1️⃣ & 2️⃣
-  eden.post[':id'].useQuery({ params: { id: 1 } }) // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
-  eden.post[':id'].useQuery({ params: { id: 2 } }) // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
-}
+  eden.user.all.get.createQuery() // Would only be validated by 1️⃣ only.
+  eden.post.all.get.createQuery() // Would be invalidated by 1️⃣ & 2️⃣
+  eden.post[':id'].createQuery({ params: { id: 1 } }) // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
+  eden.post[':id'].createQuery({ params: { id: 2 } }) // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
+</script>
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useUtils-eden
+// @include: svelte-useUtils-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 ```
 
 :::
@@ -325,32 +289,31 @@ We have added a feature to help with this:
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-
 // @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import { createEdenTreatySvelteQuery, httpBatchLink } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
-export const eden = createEdenTreatyReactQuery<App>({
+export const eden = createEdenTreatySvelteQuery<App>({
   overrides: {
-    useMutation: {
+    createMutation: {
       /**
-       * This function is called whenever a `.useMutation` succeeds
-       **/
+       * This function is called whenever a `.createMutation` succeeds
+       */
       async onSuccess(opts) {
         /**
          * @note that order here matters:
          * The order here allows route changes in `onSuccess` without
          * having a flash of content change whilst redirecting.
-         **/
+         */
 
-        // Calls the `onSuccess` defined in the `useQuery()`-options:
+        // Calls the `onSuccess` defined in the `createQuery()`-options:
         await opts.originalFn()
 
-        // Invalidate all queries in the react-query cache:
+        // Invalidate all queries in the svelte-query cache:
         await opts.queryClient.invalidateQueries()
       },
     },
@@ -358,16 +321,12 @@ export const eden = createEdenTreatyReactQuery<App>({
 })
 
 export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
+  links: [httpBatchLink()],
 })
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
+// @include: svelte-useUtils-application
 ```
 
 :::

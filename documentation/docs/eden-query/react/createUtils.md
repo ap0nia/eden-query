@@ -32,7 +32,8 @@ for example in react-router's loaders.
 
 :::warning
 
-You should avoid using `createTRPCQueryUtils` in React Components. Instead, use `useUtils` which is a React hook that implements `useCallback` and `useQueryClient` under the hood.
+You should avoid using `createUtils` in React Components.
+Instead, use `useUtils` which is a React hook that implements `useCallback` and `useQueryClient` under the hood.
 
 :::
 

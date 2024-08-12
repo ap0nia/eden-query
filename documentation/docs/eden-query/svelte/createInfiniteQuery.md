@@ -1,20 +1,20 @@
 ---
-title: useInfiniteQuery Eden-React-Query - ElysiaJS
+title: createInfiniteQuery Eden-Svelte-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
-      content: useInfiniteQuery Eden-React-Query - ElysiaJS
+      content: createInfiniteQuery Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - name: 'description'
-      content: useInfiniteQuery Eden-React-Query - ElysiaJS
+      content: createInfiniteQuery Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - property: 'og:description'
-      content: useInfiniteQuery Eden-React-Query - ElysiaJS
+      content: createInfiniteQuery Eden-Svelte-Query - ElysiaJS
 ---
 
-# useInfiniteQuery
+# createInfiniteQuery
 
 :::info
 
@@ -24,13 +24,13 @@ head:
 
 :::
 
-## Example Procedure
+## Example Application
 
 <template>
 
-```typescript twoslash include react-useInfiniteQuery-application
+```typescript twoslash include svelte-createInfiniteQuery-application
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
 let prisma: any
 
@@ -85,47 +85,29 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useInfiniteQuery-eden
+```typescript twoslash include svelte-createInfiniteQuery-eden
 // @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
+export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
 </template>
 
 ```typescript twoslash
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 ```
 
-## Example React Component
+## Example Svelte Component
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$/lib/eden'
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useInfiniteQuery-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
-
-export function MyComponent() {
-  const myQuery = eden.infinitePosts.get.useInfiniteQuery(
+  const myQuery = eden.infinitePosts.get.createInfiniteQuery(
     {
       query: { limit: 10 },
     },
@@ -134,21 +116,24 @@ export function MyComponent() {
       // initialCursor: 1, // <-- optional you can pass an initialCursor
     },
   )
-  // [...]
-}
+
+  $myQuery.data // ...
+</script>
+
+// ...
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useInfiniteQuery-eden
+// @include: svelte-createInfiniteQuery-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 ```
 
 :::
@@ -161,47 +146,37 @@ This helper gets the currently cached data from an existing infinite query
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$lib/eden'
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useInfiniteQuery-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
-
-export function MyComponent() {
   const utils = eden.useUtils()
 
-  const myMutation = eden.infinitePosts.post.useMutation({
+  const myMutation = eden.infinitePosts.post.createMutation({
     async onMutate(opts) {
       await utils.infinitePosts.get.cancel()
 
       const allPosts = utils.infinitePosts.getInfiniteData({
         query: { limit: 10 },
       })
-
-      // [...]
     },
   })
-}
+
+  $myMutation.mutate //...
+</script>
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useInfiniteQuery-eden
+// @include: svelte-createInfiniteQuery-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 ```
 
 :::
@@ -212,23 +187,13 @@ This helper allows you to update a query's cached data
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$lib/eden'
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useInfiniteQuery-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
-
-export function MyComponent() {
   const utils = eden.useUtils()
 
-  const myMutation = eden.infinitePosts.delete.useMutation({
+  const myMutation = eden.infinitePosts.delete.createMutation({
     async onMutate(opts) {
       await utils.infinitePosts.cancel()
 
@@ -250,20 +215,22 @@ export function MyComponent() {
       })
     },
   })
-}
+
+  $myMutation.mutate //...
+</script>
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useInfiniteQuery-eden
+// @include: svelte-createInfiniteQuery-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useInfiniteQuery-application
+// @include: svelte-createInfiniteQuery-application
 ```
 
 :::

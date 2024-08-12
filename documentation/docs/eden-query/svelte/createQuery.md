@@ -1,48 +1,46 @@
 ---
-title: useQuery Eden-React-Query - ElysiaJS
+title: createQuery Eden-Svelte-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
-      content: useQuery Eden-React-Query - ElysiaJS
+      content: createQuery Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - name: 'description'
-      content: useQuery Eden-React-Query - ElysiaJS
+      content: createQuery Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - property: 'og:description'
-      content: useQuery Eden-React-Query - ElysiaJS
+      content: createQuery Eden-Svelte-Query - ElysiaJS
 ---
 
-# useQuery
+# createQuery
 
 :::info
-The hooks provided by `@ap0nia/eden-react-query` are a thin wrapper around @tanstack/react-query.
+The hooks provided by `@ap0nia/eden-svelte-query` are a thin wrapper around @tanstack/svelte-query.
 For in-depth information about options and usage patterns,
 refer to their docs on [queries](https://tanstack.com/query/v5/docs/framework/react/guides/queries).
 :::
 
 ```typescript
-function useQuery(
-  input: TInput,
-  options?: EdenUseQueryOptions;
+function createQuery(
+  input: StoreOrVal<TInput>,
+  options?: UseEdenQueryOptions;
 )
 
-interface EdenUseQueryOptions extends UseQueryOptions {
+interface EdenCreateQueryOptions extends CreateQueryOptions {
   eden: {
-    ssr?: boolean;
     abortOnUnmount?: boolean;
     context?: Record<string, unknown>;
   }
 }
 ```
 
-Since `EdenUseQueryOptions` extends @tanstack/react-query's `QueryUseOptions`,
+Since `EdenCreateQueryOptions` extends @tanstack/svelte-query's `CreateQueryOptions`,
 you can use any of their options here such as `enabled`, `refetchOnWindowFocus`, etc.
 We also have some `eden` specific options that let you opt in or out of certain behaviors on a per-procedure level:
 
-- **`eden.ssr`:** If you have `ssr: true` in your [global config](/../nextjs/setup#ssr-boolean-default-false), you can set this to false to disable ssr for this particular query. _Note that this does not work the other way around, i.e., you can not enable ssr on a procedure if your global config is set to false._
-- **`eden.abortOnUnmount`:** Override the [global config](/../nextjs/setup#config-callback) and opt in or out of aborting queries on unmount.
+- **`eden.abortOnUnmount`:** Override the [global config](/../sveltekit/setup#config-callback) and opt in or out of aborting queries on unmount.
 - **`eden.context`:** Add extra meta data that could be used in [Links](../links).
 
 :::tip
@@ -56,9 +54,9 @@ You'll notice that you get autocompletion on the `input` based on what you have 
 
 <template>
 
-```typescript twoslash include react-useQuery-application
+```typescript twoslash include svelte-createQuery-application
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
 export const app = new Elysia().use(batchPlugin()).get(
   '/hello',
@@ -77,74 +75,54 @@ export const app = new Elysia().use(batchPlugin()).get(
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useQuery-eden
+```typescript twoslash include svelte-createQuery-eden
 // @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
+export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
 </template>
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { eden } from '$/lib/eden'
 
-// @filename: src/server.ts
-// @include: react-useQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useQuery-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { eden } from '../lib/eden'
-
-export function MyComponent() {
-  // input is optional, so we don't have to pass the 'text' property in the query field.
   const helloNoArgs = eden.hello.get.useQuery({ query: { }})
   const helloWithArgs = eden.hello.get.useQuery({ query: { text: 'client' }})
+</script>
 
-  return (
-    <div>
-      <h1>Hello World Example</h1>
-      <ul>
-        <li>
-          <span>helloNoArgs ({helloNoArgs.status}): </span>
-          <pre>{JSON.stringify(helloNoArgs.data, null, 2)}</pre>
-        </li>
-        <li>
-          <span>helloWithArgs ({helloWithArgs.status}): </span>
-          <pre>{JSON.stringify(helloWithArgs.data, null, 2)}</pre>
-        </li>
-      </ul>
-    </div>
-  )
-}
+<div>
+  <h1>Hello World Example</h1>
+
+  <ul>
+    <li>
+      <span>helloNoArgs ({$helloNoArgs.status}): </span>
+      <pre>{JSON.stringify($helloNoArgs.data, null, 2)}</pre>
+    </li>
+
+    <li>
+      <span>helloWithArgs ({$helloWithArgs.status}): </span>
+      <pre>{JSON.stringify($helloWithArgs.data, null, 2)}</pre>
+    </li>
+  </ul>
+</div>
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-useQuery-application
+// @include: svelte-createQuery-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-useQuery-eden
+// @include: svelte-createQuery-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-useQuery-application
+// @include: svelte-createQuery-application
 ```
 
 :::

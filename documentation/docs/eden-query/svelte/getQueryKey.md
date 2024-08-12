@@ -1,26 +1,26 @@
 ---
-title: getQueryKey Eden-React-Query - ElysiaJS
+title: getQueryKey Eden-Svelte-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
-      content: getQueryKey Eden-React-Query - ElysiaJS
+      content: getQueryKey Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - name: 'description'
-      content: getQueryKey Eden-React-Query - ElysiaJS
+      content: getQueryKey Eden-Svelte-Query - ElysiaJS
 
   - - meta
     - property: 'og:description'
-      content: getQueryKey Eden-React-Query - ElysiaJS
+      content: getQueryKey Eden-Svelte-Query - ElysiaJS
 ---
 
 # getQueryKey
 
 <template>
 
-```typescript twoslash include react-getQueryKey-application
+```typescript twoslash include svelte-getQueryKey-application
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
 export const app = new Elysia().use(batchPlugin()).get('/post/list', () => {
   return []
@@ -29,20 +29,12 @@ export const app = new Elysia().use(batchPlugin()).get('/post/list', () => {
 export type App = typeof app
 ```
 
-```typescript twoslash include react-getQueryKey-eden
+```typescript twoslash include svelte-getQueryKey-eden
 // @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
+export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
 </template>
@@ -70,29 +62,19 @@ type QueryType = "query" | "infinite" | "any";
 
 :::info
 
-The query type `any` will match all queries in the cache only if the `react query` method where it's used uses fuzzy matching.
+The query type `any` will match all queries in the cache only if the `svelte query` method where it's used uses fuzzy matching.
 See [TanStack/query#5111 (comment)](https://github.com/TanStack/query/issues/5111#issuecomment-1464864361) for more context.
 
 :::
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-getQueryKey-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { useIsFetching, useQueryClient } from '@tanstack/svelte-query'
+  import { getQueryKey } from '@ap0nia/eden-svelte-query'
+  import { eden } from '$lib/eden'
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-getQueryKey-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-import React from 'react'
-import { useIsFetching, useQueryClient } from '@tanstack/react-query'
-import { getQueryKey } from '@ap0nia/eden-react-query'
-import { eden } from '../lib/eden'
-
-function MyComponent() {
   const queryClient = useQueryClient()
 
   const posts = eden.post.list.get.useQuery()
@@ -105,20 +87,22 @@ function MyComponent() {
   const postKey = getQueryKey(eden.post)
   queryClient.setQueryDefaults(postKey, { staleTime: 30 * 60 * 1000 })
   // ...
-}
+</script>
+
+// ...
 ```
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: react-getQueryKey-application
+// @include: svelte-getQueryKey-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: react-getQueryKey-eden
+// @include: svelte-getQueryKey-eden
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: react-getQueryKey-application
+// @include: svelte-getQueryKey-application
 ```
 
 :::
@@ -131,7 +115,7 @@ the only difference is in semantics.
 
 ```tsx
 export function getMutationKey<TSchema extends RouteSchema>(
-  route: EdenTreatyReactQueryHooksImplementation<TSchema>,
+  route: EdenTreatySvelteQueryHooksImplementation<TSchema>,
   options?: EdenQueryKeyOptions,
 ): EdenMutationKey
 ```
