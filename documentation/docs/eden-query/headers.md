@@ -20,12 +20,29 @@ The headers option can be customized in the config when using the
 `headers` can be both an object or a function.
 If it's a function it will get called dynamically for every HTTP request.
 
+<template>
+
+```typescript twoslash include headers-example
+import { Elysia } from 'elysia'
+import { edenPlugin } from '@ap0nia/eden-react-query'
+
+export const app = new Elysia().use(edenPlugin({ batch: true })).get('/', () => 'Hello, World!')
+
+export type App = typeof app
+```
+
+</template>
+
+::: code-group
 
 ```typescript twoslash title='utils/trpc.ts'
+// @filename: ./src/server.ts
+// @include: headers-example
+// ---cut---
+
 // Import the router type from your server file
-import type { AppRouter } from '@/server/routers/app'
-import { httpBatchLink } from '@trpc/client'
-import { createTRPCNext } from '@trpc/next'
+import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import type { App } from '../server'
 
 let token: string
 
@@ -37,7 +54,7 @@ export function setToken(newToken: string) {
   token = newToken
 }
 
-export const trpc = createTRPCNext<AppRouter>({
+export const eden = createEdenTreatyReactQuery<App>({
   config(opts) {
     return {
       links: [
@@ -58,15 +75,22 @@ export const trpc = createTRPCNext<AppRouter>({
 })
 ```
 
+:::
+
 ### Example with auth login
 
-```ts title='pages/auth.tsx'
-const loginMut = trpc.auth.login.useMutation({
+::: code-group
+
+```typescript [src/pages/auth.tsx]
+const loginMutation = eden.auth.login.post.useMutation({
   onSuccess(opts) {
     token = opts.accessToken
   },
 })
 ```
 
-The `token` can be whatever you want it to be. It's entirely up to you whether that's just a client-side
-variable that you update the value of on success or whether you store the token and pull it from local storage.
+:::
+
+The `token` can be whatever you want it to be.
+It's entirely up to you whether that's just a client-side variable that you update the value of
+on success, or whether you store the token and pull it from local storage.

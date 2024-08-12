@@ -106,15 +106,15 @@ export const client = eden.createClient({
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: ./src/server.ts
-// @include: elysia-posts
+// @include: links-split-basic-example
 
 // @filename: ./src/lib/eden.ts
 // ---cut---
-// @include: elysia-posts-client
+// @include: links-split-eden-client
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: elysia-posts
+// @include: links-split-basic-example
 ```
 
 :::
@@ -139,11 +139,11 @@ or:
 
 ```typescript twoslash [src/component.tsx]
 // @filename: ./src/server.ts
-// @include: elysia-posts
+// @include: links-split-basic-example
 
 // @filename: ./src/lib/eden.ts
 // ---cut---
-// @include: elysia-posts-client
+// @include: links-split-eden-client
 
 // @filename: ./src/component.tsx
 // ---cut---
@@ -187,15 +187,15 @@ export default function Page() {
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: ./src/server.ts
-// @include: elysia-posts
+// @include: links-split-basic-example
 
 // @filename: ./src/lib/eden.ts
 // ---cut---
-// @include: elysia-posts-client
+// @include: links-split-eden-client
 ```
 
 ```typescript twoslash [src/server.ts]
-// @include: elysia-posts
+// @include: links-split-basic-example
 ```
 
 :::

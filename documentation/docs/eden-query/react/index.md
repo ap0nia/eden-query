@@ -59,6 +59,7 @@ export type App = typeof app
 ```
 
 ```typescript twoslash include react-index-eden-client
+// @noErrors
 import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
 import type { App } from '../server'
 
@@ -81,13 +82,13 @@ export const client = eden.createClient({
 // @filename: src/server.ts
 // @include: react-index-basic-application
 
-// @filename: src/utils/eden.ts
+// @filename: src/lib/eden.ts
 // @include: react-index-eden-client
 
 // @filename: src/pages/IndexPage.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../utils/eden'
+import { eden } from '../lib/eden'
 
 export default function IndexPage() {
   const helloQuery = eden.hello.get.useQuery({ query: { name: 'Bob' } })
@@ -102,7 +103,7 @@ export default function IndexPage() {
 }
 ```
 
-```typescript twoslash [src/utils/eden.ts]
+```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
 // @include: react-index-basic-application
 

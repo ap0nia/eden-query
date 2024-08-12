@@ -109,7 +109,7 @@ import { Elysia } from 'elysia'
 
 new Elysia()
   .get('/user/:id', ({ params: { id } }) => id)
-  // ^?
+                      // ^?
   .listen(3000)
 ```
 
@@ -142,7 +142,7 @@ import { Elysia, t } from 'elysia'
 
 new Elysia()
   .get('/user/:id', ({ params: { id } }) => id, {
-    // ^?
+                      // ^?
     params: t.Object({
       id: t.Numeric(),
     }),
@@ -228,7 +228,7 @@ const app = treaty<App>('localhost:3000')
 
 // Get data from /user/617
 const { data } = await app.user({ id: 617 }).get()
-// ^?
+      // ^?
 
 console.log(data)
 ```
