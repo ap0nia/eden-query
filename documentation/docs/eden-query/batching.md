@@ -1,5 +1,5 @@
 ---
-title: Batching with Eden-Query - ElysiaJS
+title: Batching Eden-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'

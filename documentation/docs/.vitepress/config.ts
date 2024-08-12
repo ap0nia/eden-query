@@ -158,6 +158,14 @@ const config = defineConfig({
             link: '/eden-query/transformers.md',
           },
           {
+            text: 'Create Custom Header',
+            link: '/eden-query/headers.md',
+          },
+          {
+            text: 'CORS & Cookies',
+            link: '/eden-query/cors.md',
+          },
+          {
             text: 'Links',
             link: '/eden-query/links/index.md',
             collapsed: false,
@@ -183,24 +191,75 @@ const config = defineConfig({
           {
             text: 'Eden-React-Query',
             collapsed: false,
+            link: '/eden-query/react/index.md',
             items: [
               {
-                text: 'Overview',
-                link: '/eden-query/react/overview',
-                docFooterText: 'Eden React-Query Overview',
+                text: 'Setup',
+                link: '/eden-query/react/setup',
+                docFooterText: 'Setup',
+              },
+              {
+                text: 'Inferring Types',
+                link: '/eden-query/types/inferring-types',
+                docFooterText: 'Inferring Types',
+              },
+              {
+                text: 'useQuery()',
+                link: '/eden-query/types/useQuery',
+                docFooterText: 'useQuery',
+              },
+              {
+                text: 'useMutation()',
+                link: '/eden-query/types/useMutation',
+                docFooterText: 'useMutation',
+              },
+              {
+                text: 'useInfiniteQuery()',
+                link: '/eden-query/types/useInfiniteQuery',
+                docFooterText: 'useInfiniteQuery',
+              },
+              {
+                text: 'useUtils()',
+                link: '/eden-query/types/useUtils',
+                docFooterText: 'useUtils',
+              },
+              {
+                text: 'createUtils()',
+                link: '/eden-query/types/createUtils',
+                docFooterText: 'createUtils',
+              },
+              {
+                text: 'useQueries()',
+                link: '/eden-query/types/infer-types',
+                docFooterText: 'useQueries',
+              },
+              {
+                text: 'Suspense',
+                link: '/eden-query/types/suspense',
+                docFooterText: 'Suspense',
+              },
+              {
+                text: 'getQueryKey()',
+                link: '/eden-query/types/getQueryKey',
+                docFooterText: 'getQueryKey',
+              },
+              {
+                text: 'Aborting Requests',
+                link: '/eden-query/types/abort',
+                docFooterText: 'Aborting Requests',
+              },
+              {
+                text: 'Disabling Queries',
+                link: '/eden-query/types/disabling',
+                docFooterText: 'Disabling Queries',
               },
             ],
           },
           {
             text: 'Eden-Svelte-Query',
             collapsed: false,
-            items: [
-              {
-                text: 'Overview',
-                link: '/eden-query/svelte/overview',
-                docFooterText: 'Eden Svelte-Query Overview',
-              },
-            ],
+            link: '/eden-query/svelte/index.md',
+            items: [],
           },
         ],
       },

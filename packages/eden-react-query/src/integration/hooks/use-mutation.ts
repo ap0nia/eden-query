@@ -54,7 +54,7 @@ export type EdenUseMutation<
 ) => EdenUseMutationResult<TData, TError, TVariables, TContext, TInput>
 
 export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
-  variables: TVariables,
+  variables: {} extends TVariables ? void : unknown extends TVariables ? void : TVariables,
   options: {} extends TInput
     ?
         | void
@@ -64,7 +64,7 @@ export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TCon
 ) => Promise<TContext>
 
 export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
-  variables: TContext,
+  variables: {} extends TVariables ? void : unknown extends TVariables ? void : TVariables,
   options: {} extends TInput
     ?
         | void
