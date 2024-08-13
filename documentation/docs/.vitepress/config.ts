@@ -18,6 +18,7 @@ const config = defineConfig({
   base: ci.GITHUB_ACTIONS ? `/${repositoryName.replace('.git', '')}/` : '',
   ignoreDeadLinks: true,
   lastUpdated: true,
+  buildConcurrency: 32,
   markdown: {
     config: async (md) => {
       md.use(npmToYarn({ sync: true }))
