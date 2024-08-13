@@ -9,7 +9,7 @@
   "dependencies": {
     "@ap0nia/eden-svelte-query": "workspace:^",
     "@tanstack/svelte-query": "^5.51.15",
-    "elysia": "^1.1.4",
+    "elysia": "1.1.6",
     "superjson": "^2.2.1"
   },
   "devDependencies": {
