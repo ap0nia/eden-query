@@ -24,11 +24,15 @@ refer to their docs on [mutations](https://tanstack.com/query/v5/docs/framework/
 
 Works like svelte-query's mutations - [see their docs](https://tanstack.com/query/v5/docs/framework/react/guides/mutations).
 
-### Example
+### Setup
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include svelte-createMutation-application
+This is the Elysia application that will be used for the following examples.
+
+::: code-group
+
+```typescript twoslash include eq-svelte-createMutation-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -52,15 +56,28 @@ export const app = new Elysia().use(batchPlugin()).post(
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-createMutation-eden
-// @noErrors
+:::
+
+#### Eden-Query
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-createMutation-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
+
+### Example
 
 ::: code-group
 
@@ -85,19 +102,6 @@ export const eden = createEdenTreatySvelteQuery<App>()
 
   {$mutation.error && <p>Something went wrong! {$mutation.error.message}</p>}
 </div>
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createMutation-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createMutation-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createMutation-application
 ```
 
 :::

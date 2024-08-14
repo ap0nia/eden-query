@@ -16,9 +16,13 @@ head:
 
 # Disabling
 
-<template>
+### Setup
 
-```typescript twoslash include svelte-disabling-application
+#### Elysia Server Application
+
+::: code-group
+
+```typescript twoslash include eq-svelte-disabling-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -31,15 +35,26 @@ export const app = new Elysia().use(batchPlugin()).get('/user/:name', (context) 
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-disabling-eden
-// @noErrors
+:::
+
+#### Eden-Query HOoks
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-disabling-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
 
 To disable queries, you can pass `skipToken` as the first argument to `useQuery` or `useInfiniteQuery`. This will prevent the query from being executed.
 
@@ -58,19 +73,6 @@ To disable queries, you can pass `skipToken` as the first argument to `useQuery`
 </script>
 
 // ...
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-disabling-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-disabling-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-disabling-application
 ```
 
 :::

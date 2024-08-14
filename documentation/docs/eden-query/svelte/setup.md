@@ -14,9 +14,29 @@ head:
       content: Setup Eden-Svelte-Query - ElysiaJS
 ---
 
-<template>
+# Setup
 
-```typescript twoslash include svelte-setup-application
+### Elysia Server Application
+
+This is the server that will be used for the following examples.
+
+### Eden-Query Client
+
+Make sure that the eden proxy and client are setup.
+
+## Steps
+
+### 1. Install dependencies
+
+```sh npm2yarn
+npm install elysia @ap0nia/eden-svelte-query @tanstack/react-query
+```
+
+### 2. Create Elysia server application
+
+::: code-group
+
+```typescript twoslash include eq-svelte-setup-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { edenPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -63,90 +83,51 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-setup-client
-// @noErrors
-import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
-import type { App } from '../server'
-
-export const eden = createEdenTreatySvelteQuery<App>()
-```
-
-</template>
-
-### 1. Install dependencies
-
-```sh npm2yarn
-npm install elysia @ap0nia/eden-svelte-query @tanstack/react-query
-```
-
-### 2. Create Elysia server application
-
-::: code-group
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-setup-application
-```
-
 :::
 
-### 3. Create eden-treaty hooks
+### 3. Create Eden-Query Hooks
 
 Create a set of strongly-typed React hooks from your `App` type signature with `createEdenTreatyReactQuery`.
 
 ::: code-group
 
 ```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-setup-application
+// @filename: server.ts
+// ---cut---
+// @include: eq-svelte-setup-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: svelte-setup-client
-```
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
+import type { App } from '../../server'
 
-```typescript twoslash [src/server.ts]
-// @include: svelte-setup-application
+export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
 :::
 
-### 4. Add eden providers
+### 4. Initialize QueryClient and Eden Client
 
-Create an Eden client, and wrap your application in the Eden Provider, as below.
-You will also need to set up and connect React-Query,
-which [is documented here in more depth](https://tanstack.com/query/latest/docs/framework/react/quick-start).
+::: tip
+If you are using client-side only Svelte, then you can initialize the `QueryClient` and `EdenClient`
+in `src/routes/+layout.svelte`.
 
-:::tip
-If you already use React Query in your application,
-you **should** re-use the `QueryClient` and `QueryClientProvider` you already have.
+Initializing them in `src/routes/+layout.ts` ensures that each request will receive a clean
+cache, preventing leaks.
 :::
 
 ::: code-group
 
-```html [src/routes/+layout.svelte]
-<script lang="ts">
-  import type { PageData } from './$types'
-
-  /**
-   * This data has both `client` and `queryClient`, which are the only properties that `setContext` reads.
-   * You can specify only those properties instead of passing the entire object.
-   */
-  export let data: PageData
-
-  $: eden.setContext(data)
-</script>
-
-<slot />
-```
-
 ```typescript twoslash [src/routes/+layout.ts]
 // @filename: src/server.ts
-// @include: svelte-setup-application
+// @include: eq-svelte-setup-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @include: svelte-setup-client
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
+import type { App } from '../server'
 
+export const eden = createEdenTreatySvelteQuery<App>()
 // @filename: src/routes/$types.ts'
 // ---cut---
 
@@ -154,16 +135,16 @@ export type PageLoad = any
 
 // @filename: src/routes/+layout.ts
 // ---cut---
-import { QueryClient } from '@tanstack/svelte-query'
 import { httpBatchLink } from '@ap0nia/eden-svelte-query'
+import { QueryClient } from '@tanstack/svelte-query'
+import type { RequestEvent } from '@sveltejs/kit'
 import { eden } from '../lib/eden'
-import type { PageLoad } from './$types'
 
 function getAuthCookie() {
-  return null
+  return undefined
 }
 
-export const load: PageLoad = async (event) => {
+export const load = async (event: RequestEvent) => {
   const queryClient = new QueryClient()
 
   const client = eden.createClient({
@@ -185,17 +166,22 @@ export const load: PageLoad = async (event) => {
 }
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-setup-application
+:::
 
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-setup-client
-```
+### 5. Initialize Eden-Query Providers.
 
-```typescript twoslash [src/server.ts]
-// @include: svelte-setup-application
+::: code-group
+
+```html [src/routes/+layout.svelte]
+<script lang="ts">
+  import type { PageData } from './$types'
+
+  export let data: PageData
+
+  $: eden.setContext(data)
+</script>
+
+<slot />
 ```
 
 :::
@@ -226,19 +212,6 @@ You can now use the eden-treaty React Query integration to call queries and muta
     Create Frodo
   </button>
 </div>
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-setup-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-setup-client
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-setup-application
 ```
 
 :::

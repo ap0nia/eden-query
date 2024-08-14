@@ -3,26 +3,31 @@ title: Batching Eden-Query - ElysiaJS
 head:
   - - meta
     - property: 'og:title'
-      content: Batching with Eden-Query - ElysiaJS
+      content: Batching Eden-Query - ElysiaJS
 
   - - meta
     - name: 'description'
-      content: Experiemental batching implementation for Eden and Tanstack-Query integration.
+      content: >
+        Experiemental batching implementation for Eden and Tanstack-Query integration.
 
   - - meta
     - property: 'og:description'
-      content: Experimental batching implementation for Eden and Tanstack-Query integration.
+      content: >
+        Experimental batching implementation for Eden and Tanstack-Query integration.
 ---
 
 # Batching (experimental)
 
 A custom plugin allows requests from the client to be combined into one single request.
-This is enabled on the server, and the client can opt into batch requests.
+This has to be enabled on the server, and the client application can use it via a batch client.
 
-<!-- Invisible code block that compiles first and can be reused. -->
-<template>
+## Example Usage
 
-```typescript twoslash include batch-simple-example-application
+### Elysia Server Application
+
+::: code-group
+
+```typescript twoslash include eq-batching-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
 
@@ -34,33 +39,15 @@ const app = new Elysia()
 export type App = typeof app
 ```
 
-</template>
+:::
 
-## Example Elysia server application
-
-> All of the apps are equivalent!
-
-```typescript twoslash include elysia-batch
-// @include: batch-simple-example-application
-
-const app1 = new Elysia()
-  .use(edenPlugin({ batch: true }))
-  .get('/a', () => 'A')
-  .get('/b', () => 'B')
-
-const app2 = new Elysia()
-  .use(edenPlugin({ batch: {} }))
-  .get('/a', () => 'A')
-  .get('/b', () => 'B')
-```
-
-## Example Eden-Query client Usage
+### Eden-Query Batch Client
 
 ::: code-group
 
 ```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: batch-simple-example-application
+// @include: eq-batching-application
 
 // @filename: index.ts
 // ---cut---
@@ -70,10 +57,6 @@ import type { App } from './server'
 const eden = createEdenTreatyReactQuery<App>()
 
 const client = eden.createHttpBatchClient()
-```
-
-```typescript twoslash [server.ts]
-// @include: batch-simple-example-application
 ```
 
 :::
@@ -159,7 +142,7 @@ Batch Request (GET):
 
 Batch Request (POST):
 
-```typescript twoslash
+```typescript
 const body = new FormData()
 
 body.append('0.users.firstname', 'a')

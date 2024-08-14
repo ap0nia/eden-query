@@ -23,18 +23,16 @@ as their docs go in to much greater depth on its usage.
 
 :::tip
 If you are using Next.js we recommend using [our integration with that](../nextjs) instead
-
 (WIP)
 :::
 
 ### The Eden React Query Integration
 
-This library enables usage directly within React components
+#### Elysia Server Application
 
-<!-- Invisible code snippets that are compiled first and reused. -->
-<template>
+::: code-group
 
-```typescript twoslash include react-index-basic-application
+```typescript twoslash include eq-react-index-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -58,10 +56,16 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-index-eden-client
+:::
+
+#### Eden-Query Client Setup
+
+::: code-group
+
+```typescript twoslash include eq-react-index-client [eden.ts]
 // @noErrors
 import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>()
 
@@ -74,21 +78,23 @@ export const client = eden.createClient({
 })
 ```
 
-</template>
+:::
+
+This library enables usage directly within React components.
 
 ::: code-group
 
-```typescript twoslash [src/pages/IndexPage.tsx]
-// @filename: src/server.ts
-// @include: react-index-basic-application
+```typescript twoslash [index.tsx]
+// @filename: server.ts
+// @include: eq-react-index-application
 
-// @filename: src/lib/eden.ts
-// @include: react-index-eden-client
+// @filename: eden.ts
+// @include: eq-react-index-client
 
-// @filename: src/pages/IndexPage.tsx
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export default function IndexPage() {
   const helloQuery = eden.hello.get.useQuery({ query: { name: 'Bob' } })
@@ -101,19 +107,6 @@ export default function IndexPage() {
     </div>
   )
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-index-basic-application
-
-// @filename: src/utils/eden.ts
-// ---cut---
-// @include: react-index-eden-client
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-index-basic-application
 ```
 
 :::

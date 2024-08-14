@@ -30,9 +30,11 @@ if there's already a duplicate in-progress.
 This has been discussed within tRPC [here](https://github.com/trpc/trpc/issues/4448).
 :::
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-aborting-application
+::: code-group
+
+```typescript twoslash include eq-react-aborting-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -46,52 +48,41 @@ export const app = new Elysia().use(batchPlugin()).get('/post/:id', (context) =>
 export type App = typeof app
 ```
 
-```typescript twoslash include react-aborting-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
+
+### EdenClient
+
+::: code-group
+
+```typescript twoslash [eden.ts]
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-aborting-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
 ```
-
-</template>
 
 ### Globally
 
 ::: code-group
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-aborting-application
+```typescript twoslash [eden.ts]
+// @filename: server.ts
+// @include: eq-react-aborting-application
 
-// @filename: src/lib/eden.ts
+// @filename: eden.ts
 // ---cut---
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>({
   abortOnUnmount: true,
 })
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-aborting-application
 ```
 
 :::
@@ -102,23 +93,28 @@ You may also override this behaviour at the query level.
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-aborting-application
+```typescript twoslash [index.tsx]
+// @filename: server.ts
+// @include: eq-react-aborting-application
 
-// @filename: src/lib/eden.ts
+// @filename: eden.ts
 // ---cut---
-// @include: react-aborting-eden
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>({
+  abortOnUnmount: true,
+})
 
 // @filename: use-router.d.ts
 // ---cut---
 declare const useRouter: any
 
-// @filename: src/components/MyComponent.tsx
+// @filename: index.tsx
 // ---cut---
 // @noErrors
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 function PostViewPage() {
   const { query } = useRouter()
@@ -132,19 +128,6 @@ function PostViewPage() {
 
   // ...
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-aborting-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-aborting-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-aborting-application
 ```
 
 :::

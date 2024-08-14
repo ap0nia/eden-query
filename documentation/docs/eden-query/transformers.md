@@ -1,5 +1,5 @@
 ---
-title: Transformers Eden-Query - ElysiaJS
+title: Transformers Eden-Query - Elysia.js
 head:
   - - meta
     - property: 'og:title'
@@ -7,24 +7,35 @@ head:
 
   - - meta
     - name: 'description'
-      content: Transformers for Eden and Tanstack-Query integration.
+      content: >
+        Transformers for Eden and Tanstack-Query integration.
 
   - - meta
     - property: 'og:description'
-      content: Transformers for Eden and Tanstack-Query integration.
+      content: >
+        Transformers for Eden and Tanstack-Query integration.
 ---
 
 # Transformers
 
-> Refer to [tRPC's documentation on transformers](https://trpc.io/docs/server/data-transformers)
-> for more in-depth information.
+> Refer to [tRPC's documentation on transformers](https://trpc.io/docs/server/data-transformers) for more in-depth information.
 
-You are able to serialize the response data & input args. The transformers need to be added both to the server and the client.
+You are able to serialize the request body (for POST, PATCH, etc. requests) and response data for all requests.
+The transformers need to be added both to the server and the client.
 
 ## Using [superjson](https://github.com/blitz-js/superjson)
 
-SuperJSON allows us to transparently use, e.g., standard `Date`/`Map`/`Set`s over the wire between the server and client.
-That is, you can return any of these types from your API-resolver and use them in the client without having to recreate the objects from JSON.
+SuperJSON allows us to transparently use primitives such as `Date`/`Map`/`Set`s between the server and client that
+are not normally serializable with `JSON.stringify` and `JSON.parse`.
+
+This means that you can send and receive this data without having to create your own encoding scheme.
+
+::: tip
+All response data can be serialized/deserialized by both the client and server.
+
+Only request bodies can be serialized. This means that you should not send `Date`, `Map`, `Set`, etc.
+within the request `query` or `params`, since these are sent as part of the URL.
+:::
 
 ### Steps
 
@@ -34,20 +45,24 @@ That is, you can return any of these types from your API-resolver and use them i
 yarn add superjson
 ```
 
-#### 2. Add SuperJSON via the `transformPlugin` to your Elysia.js server application
+#### 2. Add the `transformPlugin` to your Elysia server application
 
-```typescript twoslash include transformers-basic-application
+::: code-group
+
+```typescript twoslash include eq-transformers-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { transformPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query'
 import SuperJSON from 'superjson'
 
 const app = new Elysia()
-  .use(transformPlugin(SuperJSON))
+  .use(edenPlugin({ transformer: SuperJSON }))
   .get('/a', () => 'A')
   .get('/b', () => 'B')
 
 export type App = typeof app
 ```
+
+:::
 
 #### 3. Create a client with links, e.g. `httpLink()`, `httpBatchLink()`, etc
 
@@ -57,7 +72,7 @@ export type App = typeof app
 
 ```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: transformers-basic-application
+// @include: eq-transformers-application
 
 // @filename: index.ts
 // ---cut---
@@ -75,10 +90,6 @@ export const client = eden.createClient({
     }),
   ],
 })
-```
-
-```typescript twoslash [server.ts]
-// @include: transformers-basic-application
 ```
 
 :::
@@ -106,7 +117,7 @@ yarn add superjson devalue
 
 ::: code-group
 
-```typescript twoslash include transformers-eden-utils [src/utils/eden.ts]
+```typescript twoslash include eq-transformers-custom-transformer [transformer.ts]
 import { uneval } from 'devalue'
 import SuperJSON from 'superjson'
 import type { DataTransformerOptions } from '@ap0nia/eden-react-query'
@@ -127,24 +138,20 @@ export const transformer: DataTransformerOptions = {
 
 ::: code-group
 
-```typescript twoslash [src/routers/_app.ts]
-// @filename: utils/eden.ts
-// @include: transformers-eden-utils
+```typescript twoslash [index.ts]
+// @filename: transformer.ts
+// @include: eq-transformers-custom-transformer
 
-// @filename: src/routers/_app.ts
+// @filename: index.ts
 // ---cut---
 import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
-import { transformer } from '../../utils/eden'
+import { transformer } from './transformer'
 
 export const eden = createEdenTreatyReactQuery()
 
 export const client = eden.createClient({
   links: [httpLink({ transformer })],
 })
-```
-
-```typescript twoslash [src/utils/eden.ts]
-// @include: transformers-eden-utils
 ```
 
 :::

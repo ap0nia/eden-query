@@ -29,11 +29,13 @@ This hook is an alias for `getContext()`.
 
 :::
 
-## Usage
+### Setup
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include svelte-useUtils-application
+::: code-group
+
+```typescript twoslash include eq-svelte-useUtils-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -71,15 +73,28 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-useUtils-eden
-// @noErrors
+:::
+
+#### Eden-Query Hooks
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-useUtils-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
+
+## Usage
 
 `useUtils` returns an object with all the available queries you have in your routers.
 You use it the same way as your `eden` utils object.
@@ -96,19 +111,6 @@ we'll get access to our query helpers!
 
   const utils = eden.useUtils()
 </script>
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-useUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-useUtils-application
 ```
 
 :::
@@ -203,19 +205,6 @@ on the input passed to it to prevent unnecessary calls to the back end.
 </script>
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-useUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-useUtils-application
-```
-
 :::
 
 ### Invalidating across whole routers
@@ -264,19 +253,6 @@ just one query.
 </script>
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-useUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-useUtils-application
-```
-
 :::
 
 ### Invalidate full cache on every mutation
@@ -289,12 +265,12 @@ We have added a feature to help with this:
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: svelte-useUtils-application
+// ---cut---
+// @include: eq-svelte-useUtils-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
-// @noErrors
-import { createEdenTreatySvelteQuery, httpBatchLink } from '@ap0nia/eden-svelte-query'
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>({
@@ -319,14 +295,6 @@ export const eden = createEdenTreatySvelteQuery<App>({
     },
   },
 })
-
-export const client = eden.createClient({
-  links: [httpBatchLink()],
-})
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-useUtils-application
 ```
 
 :::

@@ -50,11 +50,15 @@ you can pass `undefined` instead.
 
 You'll notice that you get autocompletion on the `input` based on what you have set in your `input` schema on your backend.
 
-### Example
+### Setup
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include svelte-createQuery-application
+This is the Elysia application that will be used for the following examples.
+
+::: code-group
+
+```typescript twoslash include eq-svelte-createQuery-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -75,15 +79,30 @@ export const app = new Elysia().use(batchPlugin()).get(
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-createQuery-eden
-// @noErrors
+:::
+
+#### Eden-Query Hooks
+
+Make sure you setup the eden-query hooks and client based on the [setup instructions](./setup).
+
+::: code-group
+
+```typescript twoslash
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-createQuery-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
+
+### Example
 
 ::: code-group
 
@@ -110,19 +129,6 @@ export const eden = createEdenTreatySvelteQuery<App>()
     </li>
   </ul>
 </div>
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createQuery-application
 ```
 
 :::

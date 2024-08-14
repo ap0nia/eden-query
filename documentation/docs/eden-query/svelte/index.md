@@ -31,9 +31,11 @@ If you are using SvelteKit we recommend using [our integration with that](../sve
 
 This library enables usage directly within Svelte components
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include svelte-index-application
+::: code-group
+
+```typescript twoslash include eq-svelte-index-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -57,15 +59,26 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-index-eden
-// @noErrors
+:::
+
+#### Eden-Query Client
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-index-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
 
 ::: code-group
 
@@ -82,19 +95,6 @@ export const eden = createEdenTreatySvelteQuery<App>()
   <button on:click={() => goodbyeMutation.mutate()}>Say Goodbye</button>
 </div>
 
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-index-application
-
-// @filename: src/utils/eden.ts
-// ---cut---
-// @include: svelte-index-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-index-application
 ```
 
 :::

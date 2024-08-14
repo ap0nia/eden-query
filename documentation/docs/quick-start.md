@@ -1,22 +1,28 @@
 ---
-title: Quick Start - ElysiaJS
+title: Quick Start - Elysia.js
 head:
   - - meta
     - property: 'og:title'
-      content: Quick Start - ElysiaJS
+      content: Quick Start - Elysia.js
 
   - - meta
     - name: 'description'
-      content: Elysia is a library built for Bun and the only prerequisite. To start, bootstrap a new project with "bun create elysia hi-elysia" and start the development server with "bun dev". This is all it needs to do a quick start or get started with ElysiaJS.
+      content: >
+        Elysia.js is a library built for Bun, which is the only prerequisite.
+        To get started, run the "bun create elysia hi-elysia" command to create a new project,
+        then run the "bun dev" command to start a development server.
 
   - - meta
     - property: 'og:description'
-      content: Elysia is a library built for Bun and the only prerequisite. To start, bootstrap a new project with "bun create elysia hi-elysia" and start the development server with "bun dev". This is all it needs to do a quick start or get started with ElysiaJS.
+      content: >
+        Elysia.js is a library built for Bun, which is the only prerequisite.
+        To get started, run the "bun create elysia hi-elysia" command to create a new project,
+        then run the "bun dev" command to start a development server.
 ---
 
 # Quick Start
 
-Elysia is optimized for Bun which is a JavaScript runtime that aims to be a drop-in replacement for Node.js.
+Elysia is optimized for Bun, which is a JavaScript runtime that aims to be a drop-in replacement for Node.js.
 
 You can install Bun with the command below:
 
@@ -30,39 +36,29 @@ Read more about Bun from [their official documentation](https://bun.sh/).
 
 ## Automatic Installation
 
-1. Run the command ,`bun create elysia`, to automatically setup a new application.
+1. Create and bootstrap a new application in a directory named `app`.
 
 ```bash
 bun create elysia app
 ```
 
-2. Once the command is done, you should see the folder `app` in your current directory.
+2. Change your working directory to the new application.
 
 ```bash
 cd app
 ```
 
-3. Start the development server by running the `dev` command.
+3. Start the development server.
 
 ```bash
 bun dev
 ```
 
-4. Navigate to [localhost:3000](http://localhost:3000) and you should be greeted with "Hello Elysia".
-
-::: tip
-Elysia provides the `dev` command to automatically reload your server on file changes.
-:::
+4. Go to [localhost:3000](http://localhost:3000) and you should see a page that says "Hello Elysia".
 
 ## Manual Installation
 
-1. To manually create a new Elysia app, install Elysia as a package:
-
-```bash npm2yarn
-npm install elysia
-```
-
-2. Open your `package.json` file and add the following scripts:
+1. Create a `package.json` and add the following scripts.
 
 ```json
 {
@@ -81,7 +77,13 @@ These scripts refer to the different stages of developing an application:
 - **build** - Build the application for production usage.
 - **start** - Start an Elysia production server.
 
-3. If you are using TypeScript, make sure to create a `tsconfig.json`, and set `compilerOptions.strict` to `true`:
+2. Install packages.
+
+```bash npm2yarn
+npm install elysia
+```
+
+3. If you are using TypeScript, create a `tsconfig.json`, and set `strict` to `true`:
 
 ```json
 {
@@ -95,15 +97,17 @@ These scripts refer to the different stages of developing an application:
 This ensures that you are getting the full benefits of Elysia's robust type safety!
 :::
 
-4. Create the entrypoint source file for your Elysia server application at `src/index.ts`
+4. Create the entrypoint for your Elysia server application.
 
-```ts twoslash
+::: code-group
+
+```typescript [src/index.ts]
 import { Elysia } from 'elysia'
 
-const app = new Elysia().get('/', () => 'Hello, Elysia')
-
-app.listen(3000)
+new Elysia().get('/', () => 'Hello, Elysia').listen(3000)
 ```
+
+:::
 
 5. Start the development server by running the `dev` command.
 
@@ -111,16 +115,16 @@ app.listen(3000)
 bun dev
 ```
 
-6. Navigate to [localhost:3000](http://localhost:3000) and you should be greeted with "Hello Elysia".
+6. Go to [localhost:3000](http://localhost:3000) and you should see a page that says "Hello Elysia".
 
-## Structure
+## Project Structure
 
-Here is a simple project structure for starting out with Elysia development:
+Here is a simple project structure for getting started with development:
 
-```
+```md
 📁 src - Source code for your Elysia server application.
-│   ├── 🇹‌🇸‌ index.ts - Entry point for your application.
-│   ├── 🇹‌🇸‌ setup.ts - Various plugins to be used as a Service Locator.
+│   ├── 🇹🇸 index.ts - Entry point for your application.
+│   ├── 🇹🇸 setup.ts - Various plugins to be used as a Service Locator.
 │   │── 📁 controllers - Elysia instances that encapsulate endpoints.
 │   │── 📁 libs - Utilities.
 │   │── 📁 models - Data Transfer Objects (DTOs) for your application.

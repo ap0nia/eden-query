@@ -106,14 +106,6 @@ button.copy::after {
   border: 0;
 }
 
-/* .VPNavBarTitle > a > span {
-    @apply hidden;
-}
-
-.logo {
-    @apply hidden;
-} */
-
 #embedded-editor {
   @apply my-6 h-[720px] w-full rounded-lg border-0;
 }
@@ -128,7 +120,7 @@ button.copy::after {
 }
 
 #VPSidebarNav > .group:nth-child(3) > .VPSidebarItem > .item > .text::before {
-  background-image: url(/assets/essential.svg);
+  background-image: url(/assets/react-query.svg);
 }
 
 #VPSidebarNav > .group:nth-child(4) > .VPSidebarItem > .item > .text::before {
@@ -215,15 +207,6 @@ button.copy::after {
   }
 }
 
-/* .VPLocalNav {
-    background-color: rgba(255, 255, 255, .7) !important;
-    backdrop-filter: blur(12px);
-
-    & > .container {
-        background-color: transparent;
-    }
-} */
-
 .mockup-browser-toolbar > .input::before {
   width: 12px;
 }
@@ -256,23 +239,6 @@ button.copy::after {
       background: color-mix(in srgb, var(--vp-c-bg) 80%, transparent);
     }
   }
-
-  /* Curtain is removed from VitePress? */
-  /* & > .container > .content {
-        border-bottom: 0;
-
-        & > .curtain::before {
-            backdrop-filter: blur(12px);
-            background: linear-gradient(
-                var(--vp-nav-bg-color),
-                transparent 100%
-            ) !important;
-        }
-
-        & > .content-body {
-            background-color: transparent;
-        }
-    } */
 }
 
 .md-table {
@@ -310,38 +276,3 @@ button.copy::after {
 .vp-doc > * > video {
   @apply rounded-lg shadow-xl;
 }
-
-/* Wait until Vitepress provide support for view transition */
-/* .VPSidebar {
-    page-transition-tag: sidebar;
-}
-
-.VPNav {
-    page-transition-tag: nav;
-}
-
-.VPDoc {
-    page-transition-tag: doc;
-}
-
-::page-transition-incoming-image(root) {
-    animation: 500ms ease-out both document-enter;
-}
-
-@keyframes document-enter {
-    from {
-        opacity: 0;
-        transform: translateY(100px);
-    }
-}
-
-::page-transition-out-going-image(root) {
-    animation: 500ms ease-out both document-leave;
-}
-
-@keyframes document-leave {
-    to {
-        opacity: 0;
-        transform: translateY(-100px);
-    }
-} */

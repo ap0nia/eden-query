@@ -30,9 +30,13 @@ if there's already a duplicate in-progress.
 This has been discussed within tRPC [here](https://github.com/trpc/trpc/issues/4448).
 :::
 
-<template>
+### Setup
 
-```typescript twoslash include svelte-aborting-application
+#### Elysia Server Application
+
+::: code-group
+
+```typescript twoslash include eq-svelte-aborting-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -46,15 +50,26 @@ export const app = new Elysia().use(batchPlugin()).get('/post/:id', (context) =>
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-aborting-eden
-// @noErrors
-import { createEdenTreatySvelteQuery, httpBatchLink } from '@ap0nia/eden-svelte-query'
+:::
+
+#### Eden-Query Hooks
+
+::: code-group
+
+```typescript twoslash
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-aborting-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
 
 ### Globally
 
@@ -62,7 +77,8 @@ export const eden = createEdenTreatySvelteQuery<App>()
 
 ```typescript twoslash [src/lib/eden.ts]
 // @filename: src/server.ts
-// @include: svelte-aborting-application
+// ---cut---
+// @include: eq-svelte-aborting-application
 
 // @filename: src/lib/eden.ts
 // ---cut---
@@ -72,10 +88,6 @@ import type { App } from '../server'
 export const eden = createEdenTreatySvelteQuery<App>({
   abortOnUnmount: true,
 })
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-aborting-application
 ```
 
 :::
@@ -101,19 +113,6 @@ You may also override this behaviour at the query level.
   )
 </script>
 
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-aborting-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-aborting-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-aborting-application
 ```
 
 :::

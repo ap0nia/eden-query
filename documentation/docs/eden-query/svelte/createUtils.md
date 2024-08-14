@@ -39,11 +39,13 @@ Instead, use `useUtils` which is a Svelte hook that implements `getContext` and 
 
 :::
 
-## Usage
+### Setup
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include svelte-createUtils-application
+::: code-group
+
+```typescript twoslash include eq-svelte-createUtils-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -59,15 +61,28 @@ export const app = new Elysia().use(batchPlugin()).get('/post/all', (context) =>
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-createUtils-eden
-// @noErrors
+:::
+
+#### Eden-Query Hooks
+
+::: code-group
+
+```typescript twoslash  [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-createUtils-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
+
+## Usage
 
 `createUtils` returns an object that looks like `useUtils` --
 with all the available queries you have in your routers.
@@ -90,57 +105,6 @@ In addition, we have access to all our query helpers!
 <div>
   {JSON.stringify(data, null, 2)}
 </div>
-```
-
-```typescript twoslash [src/routes/+layout.ts]
-// @filename: src/server.ts
-// @include: svelte-createUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createUtils-eden
-
-// @filename: src/routes/+layout.ts
-// ---cut---
-// @noErrors
-import { QueryClient } from '@tanstack/svelte-query'
-import { httpBatchLink } from '@ap0nia/eden-svelte-query'
-import { eden } from '../lib/eden'
-
-export const load = async (event) => {
-  const queryClient = new QueryClient()
-
-  const client = eden.createClient({
-    links: [
-      httpBatchLink({
-        fetcher: event.fetch,
-      }),
-    ],
-  })
-
-  const utils = eden.createUtils({ queryClient, client })
-
-  const allPostsData = await utils.post.all.get.ensureData() // Fetches data if it doesn't exist in the cache
-
-  return {
-    client,
-    queryClient,
-    allPostsData,
-  }
-}
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createUtils-application
 ```
 
 :::

@@ -1,14 +1,16 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import ci from 'ci-info'
+import { bundledLanguages, createHighlighter } from 'shiki'
 import { defineConfig } from 'vitepress'
 import { repository } from '../../../package.json'
-import { npmToYarn } from './vitepress-plugin-npm-to-yarn'
+import { npmToYarn } from './npm-to-yarn'
+import { magicMove } from './magic-move'
 import { addIncludes, parseIncludeMeta, replaceIncludesInCode } from './twoslash-include'
 
 const repositoryName = repository.url.split('/').pop() ?? ''
 
 const description =
-  'Ergonomic Framework for Humans. TypeScript framework supercharged by Bun with End - to - End Type Safety, unified type system and outstanding developer experience'
+  'Ergonomic Framework for Humans. TypeScript server framework supercharged by Bun with End-to-End Type Safety, unified type system and outstanding developer experience.'
 
 const includes = new Map<string, string>()
 
@@ -18,10 +20,16 @@ const config = defineConfig({
   base: ci.GITHUB_ACTIONS ? `/${repositoryName.replace('.git', '')}/` : '',
   ignoreDeadLinks: true,
   lastUpdated: true,
-  buildConcurrency: 32,
   markdown: {
     config: async (md) => {
       md.use(npmToYarn({ sync: true }))
+
+      const highlighter = await createHighlighter({
+        themes: ['github-light', 'github-dark'],
+        langs: Object.keys(bundledLanguages),
+      })
+
+      md.use(magicMove, highlighter)
     },
     theme: {
       light: 'github-light',
@@ -42,14 +50,6 @@ const config = defineConfig({
       },
       transformerTwoslash(),
     ],
-  },
-  // ![INFO] uncomment for support hot reload on WSL - https://github.com/vitejs/vite/issues/1153#issuecomment-785467271
-  vite: {
-    server: {
-      watch: {
-        usePolling: true,
-      },
-    },
   },
   head: [
     [
@@ -132,8 +132,8 @@ const config = defineConfig({
         text: 'Getting Started',
         items: [
           {
-            text: 'At Glance',
-            link: '/at-glance',
+            text: 'Overview',
+            link: '/overview',
           },
           {
             text: 'Quick Start',
@@ -148,8 +148,11 @@ const config = defineConfig({
       {
         text: 'Eden-Query',
         collapsed: false,
-        link: '/eden-query/index.md',
         items: [
+          {
+            text: 'Overview',
+            link: '/eden-query/index.md',
+          },
           {
             text: 'Batching',
             link: '/eden-query/batching.md',
@@ -338,4 +341,5 @@ const config = defineConfig({
   },
 })
 
+config.markdown?.shikiSetup
 export default config

@@ -24,12 +24,11 @@ to a batch endpoint.
 
 ## Usage
 
-You can import and add the `httpBatchLink` to the `links` array as such:
+### Elysia Server Application
 
-<!-- -->
-<template>
+::: code-group
 
-```typescript twoslash include links-batch-basic-application
+```typescript twoslash include eq-links-batch-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -38,13 +37,15 @@ export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!
 export type App = typeof app
 ```
 
-</template>
+:::
+
+You can import and add the `httpBatchLink` to the `links` array as such:
 
 ::: code-group
 
 ```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: links-batch-basic-application
+// @include: eq-links-batch-application
 
 // @filename: index.ts
 // ---cut---
@@ -55,14 +56,9 @@ const client = new EdenClient<App>({
   links: [
     httpBatchLink({
       domain: 'http://localhost:3000',
-      // transformer,
     }),
   ],
 })
-```
-
-```typescript twoslash [server.ts]
-// @include: links-batch-basic-application
 ```
 
 :::
@@ -70,7 +66,7 @@ const client = new EdenClient<App>({
 After that, you can make use of batching by setting all your procedures in a `Promise.all`.
 The code below will produce exactly **one** HTTP request and on the server exactly **one** database query:
 
-```ts
+```typescript
 const somePosts = await Promise.all([
   client.post.byId.get(1),
   client.post.byId.get(2),
@@ -133,7 +129,7 @@ The `maxURLLength` option will limit the number of requests that can be sent tog
 
 ```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: links-batch-basic-application
+// @include: eq-links-batch-application
 
 // @filename: index.ts
 // ---cut---
@@ -146,14 +142,9 @@ const client = new EdenClient<App>({
       domain: 'http://localhost:3000',
       maxURLLength: 2083,
       method: 'GET',
-      // transformer,
     }),
   ],
 })
-```
-
-```typescript twoslash [server.ts]
-// @include: links-batch-basic-application
 ```
 
 :::
@@ -168,27 +159,16 @@ const client = new EdenClient<App>({
 
 ::: code-group
 
-```typescript twoslash [index.ts]
-// @filename: server.ts
-// @include: links-batch-basic-application
-
-// @filename: index.ts
-// ---cut---
+```typescript [index.ts]
 import { EdenClient, httpLink } from '@ap0nia/eden-react-query'
-import type { App } from './server'
 
-const client = new EdenClient<App>({
+const client = new EdenClient({
   links: [
     httpLink({
       domain: 'http://localhost:3000',
-      // transformer,
     }),
   ],
 })
-```
-
-```typescript twoslash [server.ts]
-// @include: links-batch-basic-application
 ```
 
 :::

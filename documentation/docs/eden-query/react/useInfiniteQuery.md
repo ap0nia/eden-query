@@ -26,13 +26,20 @@ head:
 
 ## Example Procedure
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-useInfiniteQuery-application
+::: code-group
+
+```typescript twoslash include eq-react-useInfiniteQuery-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
 let prisma: any
+
+type Item = {
+  status: string
+  myCursor: any
+}
 
 export const app = new Elysia()
   .use(batchPlugin())
@@ -45,7 +52,7 @@ export const app = new Elysia()
 
       const { cursor } = input
 
-      const items = await prisma.post.findMany({
+      const items: Item[] = await prisma.post.findMany({
         take: limit + 1, // get an extra item at the end which we'll use as next cursor
         where: {
           title: {
@@ -85,44 +92,47 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useInfiniteQuery-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
 
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
-```
-
-</template>
-
-```typescript twoslash
-// @include: react-useInfiniteQuery-application
-```
-
-## Example React Component
+### Eden-Query Client
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash
+// @filename: server.ts
 // ---cut---
-// @include: react-useInfiniteQuery-eden
+// @include: eq-react-useInfiniteQuery-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+```
+
+:::
+
+### React Component
+
+::: code-group
+
+```typescript twoslash [index.tsx]
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-useInfiniteQuery-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export function MyComponent() {
   const myQuery = eden.infinitePosts.get.useInfiniteQuery(
@@ -138,19 +148,6 @@ export function MyComponent() {
 }
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useInfiniteQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useInfiniteQuery-application
-```
-
 :::
 
 ## Helpers
@@ -161,18 +158,22 @@ This helper gets the currently cached data from an existing infinite query
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-useInfiniteQuery-eden
+// @include: eq-react-useInfiniteQuery-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export function MyComponent() {
   const utils = eden.useUtils()
@@ -180,28 +181,13 @@ export function MyComponent() {
   const myMutation = eden.infinitePosts.post.useMutation({
     async onMutate(opts) {
       await utils.infinitePosts.get.cancel()
-
-      const allPosts = utils.infinitePosts.getInfiniteData({
+      const allPosts = utils.infinitePosts.get.getInfiniteData({
         query: { limit: 10 },
       })
-
       // [...]
     },
   })
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useInfiniteQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useInfiniteQuery-application
 ```
 
 :::
@@ -212,25 +198,29 @@ This helper allows you to update a query's cached data
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-useInfiniteQuery-eden
+// @include: eq-react-useInfiniteQuery-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export function MyComponent() {
   const utils = eden.useUtils()
 
   const myMutation = eden.infinitePosts.delete.useMutation({
     async onMutate(opts) {
-      await utils.infinitePosts.cancel()
+      // await utils.infinitePosts.cancel()
 
       utils.infinitePosts.get.setInfiniteData({ query: { limit: 10 } }, (data) => {
         if (!data) {
@@ -251,19 +241,6 @@ export function MyComponent() {
     },
   })
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useInfiniteQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useInfiniteQuery-application
 ```
 
 :::

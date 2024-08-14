@@ -24,11 +24,13 @@ head:
 
 :::
 
-## Example Application
+### Setup
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include svelte-createInfiniteQuery-application
+::: code-group
+
+```typescript twoslash include eq-svelte-createInfiniteQuery-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -85,21 +87,28 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-createInfiniteQuery-eden
-// @noErrors
+:::
+
+#### Eden-Query Hooks
+
+::: code-group
+
+```typescript twoslash
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-createInfiniteQuery-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
 
-```typescript twoslash
-// @include: svelte-createInfiniteQuery-application
-```
-
-## Example Svelte Component
+## Example Application
 
 ::: code-group
 
@@ -121,19 +130,6 @@ export const eden = createEdenTreatySvelteQuery<App>()
 </script>
 
 // ...
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createInfiniteQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createInfiniteQuery-application
 ```
 
 :::
@@ -164,19 +160,6 @@ This helper gets the currently cached data from an existing infinite query
 
   $myMutation.mutate //...
 </script>
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createInfiniteQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createInfiniteQuery-application
 ```
 
 :::
@@ -218,19 +201,6 @@ This helper allows you to update a query's cached data
 
   $myMutation.mutate //...
 </script>
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createInfiniteQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createInfiniteQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createInfiniteQuery-application
-```
 
 :::
+```

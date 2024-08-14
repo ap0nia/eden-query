@@ -42,9 +42,11 @@ Additionally, if the underlying procedure is using something like Prisma's `find
 & do exactly 1 database query as well.
 :::
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-useQueries-application
+::: code-group
+
+```typescript twoslash include eq-react-useQueries-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -73,39 +75,45 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useQueries-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
-
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
-```
-
-</template>
+:::
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useQueries-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [eden.ts]
+// @filename: server.ts
 // ---cut---
-// @include: react-useQueries-eden
+// @include: eq-react-useQueries-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
 // ---cut---
-// @noErrors
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+```
+
+:::
+
+### React Component
+
+::: code-group
+
+```typescript twoslash [index.tsx]
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-useQueries-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
+// ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export type MyProps = {
   postIds: string[]
@@ -113,24 +121,11 @@ export type MyProps = {
 
 export function MyComponent(props: MyProps) {
   const postQueries = eden.useQueries((e) => {
-    return props.postIds.map((id) => e.post[':id'].get({ id }))
+    return props.postIds.map((id) => e.post[':id'].get({ params: { id } }))
   })
 
   return /* [...] */
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useQueries-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useQueries-application
 ```
 
 :::
@@ -141,19 +136,22 @@ You can also pass in any normal query options to the second parameter of any of 
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useQueries-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-useQueries-eden
+// @include: eq-react-useQueries-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
 // ---cut---
-// @noErrors
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
+// ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export type MyProps = {
   postIds: string[]
@@ -172,24 +170,11 @@ export function MyComponent(props: MyProps) {
   return (
     <div>
       <h1>{post.data && post.data.title}</h1>
-      <p>{greeting.data.message}</p>
+      <p>{greeting.data?.message}</p>
       <button onClick={onButtonClick}>Click to fetch</button>
     </div>
   )
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useQueries-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useQueries-application
 ```
 
 :::
@@ -198,27 +183,18 @@ export function MyComponent(props: MyProps) {
 
 You can also pass in an optional React Query context to override the default.
 
+::: warning
+This is actually false, I'm not sure why this is on the documentation...
+:::
+
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useQueries-eden
-
-// @filename: src/components/MyComponent.tsx
-// ---cut---
-// @noErrors
-import React from 'react'
-import { eden } from '../lib/eden'
+```typescript [index.tsx]
+import { eden } from './eden'
 
 export type MyProps = {
   postIds: string[]
 }
-
-let myCustomContext: any
 
 export function MyComponent(props: MyProps) {
   const [post, greeting] = eden.useQueries(
@@ -229,19 +205,6 @@ export function MyComponent(props: MyProps) {
     myCustomContext,
   )
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useQueries-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useQueries-application
 ```
 
 :::

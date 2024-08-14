@@ -14,9 +14,19 @@ head:
       content: Setup Eden-React-Query - ElysiaJS
 ---
 
-<template>
+# Setup
 
-```typescript twoslash include react-setup-basic-example
+### 1. Install dependencies
+
+```sh npm2yarn
+npm install elysia @ap0nia/eden-react-query @tanstack/react-query
+```
+
+### 2. Create Elysia server application
+
+::: code-group
+
+```typescript twoslash include eq-react-setup-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { edenPlugin } from '@ap0nia/eden-react-query'
 
@@ -63,30 +73,6 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-setup-client
-// @noErrors
-import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
-
-export const eden = createEdenTreatyReactQuery<App>()
-```
-
-</template>
-
-### 1. Install dependencies
-
-```sh npm2yarn
-npm install elysia @ap0nia/eden-react-query @tanstack/react-query
-```
-
-### 2. Create Elysia server application
-
-::: code-group
-
-```typescript twoslash [src/server.ts]
-// @include: react-setup-basic-example
-```
-
 :::
 
 ### 3. Create eden-treaty hooks
@@ -95,17 +81,17 @@ Create a set of strongly-typed React hooks from your `App` type signature with `
 
 ::: code-group
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-setup-basic-example
-
-// @filename: src/lib/eden.ts
+```typescript twoslash include eq-react-setup-client [eden.ts]
+// @filename: server.ts
 // ---cut---
-// @include: react-setup-client
-```
+// @include: eq-react-setup-application
 
-```typescript twoslash [src/server.ts]
-// @include: react-setup-basic-example
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
 ```
 
 :::
@@ -123,23 +109,27 @@ you **should** re-use the `QueryClient` and `QueryClientProvider` you already ha
 
 ::: code-group
 
-```typescript twoslash [src/App.tsx]
-// @filename: src/server.ts
-// @include: react-setup-basic-example
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-setup-client
+// @include: eq-react-setup-application
 
-// @filename: src/App.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink } from '@ap0nia/eden-react-query'
 import React, { useState } from 'react'
-import { eden } from './lib/eden'
+import { eden } from './eden'
 
 function getAuthCookie() {
-  return null
+  return undefined
 }
 
 export function App() {
@@ -168,19 +158,6 @@ export function App() {
     </eden.Provider>
   )
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-setup-basic-example
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-setup-client
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-setup-basic-example
 ```
 
 :::
@@ -197,17 +174,22 @@ You can now use the eden-treaty React Query integration to call queries and muta
 
 ::: code-group
 
-```typescript twoslash [src/pages/IndexPage.tsx]
-// @filename: src/server.ts
-// @include: react-setup-basic-example
-
-// @filename: src/lib/eden.ts
+```typescript twoslash[page.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-setup-client
+// @include: eq-react-setup-application
 
-// @filename: src/pages/App.tsx
+// @filename: eden.ts
 // ---cut---
-import { eden } from '../lib/eden'
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: page.tsx
+// ---cut---
+import React from 'react'
+import { eden } from './eden'
 
 export default function IndexPage() {
   const userQuery = eden.user.get.useQuery({ query: { id: 'id_bilbo' }})
@@ -221,66 +203,6 @@ export default function IndexPage() {
     </div>
   )
 }
-```
-
-```typescript twoslash [src/App.tsx]
-// @filename: src/server.ts
-// @include: react-setup-basic-example
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-setup-client
-
-// @filename: src/App.tsx
-// ---cut---
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { httpBatchLink } from '@ap0nia/eden-react-query'
-import React, { useState } from 'react'
-import { eden } from './lib/eden'
-
-function getAuthCookie() {
-  return null
-}
-
-export function App() {
-  const [queryClient] = useState(() => new QueryClient())
-
-  const [edenClient] = useState(() =>
-    eden.createClient({
-      links: [
-        httpBatchLink({
-          domain: 'http://localhost:3000/eden',
-
-          // You can pass any HTTP headers you wish here
-          async headers() {
-            return {
-              authorization: getAuthCookie(),
-            }
-          },
-        }),
-      ],
-    }),
-  )
-
-  return (
-    <eden.Provider client={edenClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{/* Your app here */}</QueryClientProvider>
-    </eden.Provider>
-  )
-}
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-setup-basic-example
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-setup-client
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-setup-basic-example
 ```
 
 :::

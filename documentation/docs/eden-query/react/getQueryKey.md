@@ -16,9 +16,11 @@ head:
 
 # getQueryKey
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-getQueryKey-application
+::: code-group
+
+```typescript twoslash include eq-react-getQueryKey-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -29,23 +31,26 @@ export const app = new Elysia().use(batchPlugin()).get('/post/list', () => {
 export type App = typeof app
 ```
 
-```typescript twoslash include react-getQueryKey-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
+
+### Eden-Query Client
+
+::: code-group
+
+```typescript twoslash [eden.ts]
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-getQueryKey-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
 ```
 
-</template>
+:::
 
 We provide a getQueryKey helper that accepts a `router` or `procedure` so that you can easily provide the native function the correct query key.
 
@@ -77,20 +82,24 @@ See [TanStack/query#5111 (comment)](https://github.com/TanStack/query/issues/511
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-getQueryKey-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.ts]
+// @filename: server.ts
 // ---cut---
-// @include: react-getQueryKey-eden
+// @include: eq-react-getQueryKey-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
 import { useIsFetching, useQueryClient } from '@tanstack/react-query'
 import { getQueryKey } from '@ap0nia/eden-react-query'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 function MyComponent() {
   const queryClient = useQueryClient()
@@ -99,26 +108,12 @@ function MyComponent() {
 
   // See if a query is fetching
   const postListKey = getQueryKey(eden.post.list, undefined, 'query')
-  const isFetching = useIsFetching(postListKey)
+  const isFetching = useIsFetching({ queryKey: postListKey })
 
   // Set some query defaults for an entire router
   const postKey = getQueryKey(eden.post)
   queryClient.setQueryDefaults(postKey, { staleTime: 30 * 60 * 1000 })
-  // ...
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-getQueryKey-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-getQueryKey-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-getQueryKey-application
 ```
 
 :::

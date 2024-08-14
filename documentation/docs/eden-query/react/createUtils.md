@@ -39,9 +39,11 @@ Instead, use `useUtils` which is a React hook that implements `useCallback` and 
 
 ## Usage
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-createUtils-application
+::: code-group
+
+```typescript twoslash include eq-react-createUtils-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -57,23 +59,30 @@ export const app = new Elysia().use(batchPlugin()).get('/post/all', (context) =>
 export type App = typeof app
 ```
 
-```typescript twoslash include react-createUtils-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
+
+### Eden-Query Client
+
+::: code-group
+
+```typescript twoslash
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-createUtils-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>()
 
 export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
+  links: [httpLink()],
 })
 ```
 
-</template>
+:::
 
 `createUtils` returns an object that looks like `useUtils` --
 with all the available queries you have in your routers.
@@ -86,20 +95,28 @@ In addition, we have access to all our query helpers!
 
 ::: code-group
 
-```typescript twoslash [src/pages/MyPage.tsx]
-// @filename: src/server.ts
-// @include: react-createUtils-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-createUtils-eden
+// @include: eq-react-createUtils-application
 
-// @filename: src/pages/MyPage.tsx
+// @filename: eden.ts
 // ---cut---
-// @noErrors
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+export const client = eden.createClient({
+  links: [httpLink()],
+})
+
+// @filename: index.tsx
+// ---cut---
 import React from 'react'
+import { QueryClient } from '@tanstack/react-query'
 import { useLoaderData } from 'react-router-dom'
-import { eden, client } from '../lib/eden'
+import { eden, client } from './eden'
 
 const queryClient = new QueryClient()
 
@@ -117,31 +134,18 @@ export async function loader() {
 export function Component() {
   const loaderData = useLoaderData() as Awaited<ReturnType<typeof loader>>
 
-  const allPostQuery = trpc.post.all.useQuery({
+  const allPostQuery = eden.post.all.get.useQuery(undefined, {
     initialData: loaderData.allPostsData, // Uses the data from the loader
   })
 
   return (
     <div>
-      {allPostQuery.data.posts.map((post) => (
+      {allPostQuery.data?.posts.map((post) => (
         <div key={post.id}>{post.title}</div>
       ))}
     </div>
   )
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-createUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-createUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-createUtils-application
 ```
 
 :::

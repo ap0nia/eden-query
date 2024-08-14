@@ -7,12 +7,23 @@ import daisyui from 'daisyui'
  */
 const config = {
   preflight: false,
-  content: ['components/**/*.vue', 'docs/**/*.md', 'docs/.vitepress/theme/*.vue'],
+  content: ['src/**/*.vue', 'docs/**/*.md', 'docs/.vitepress/theme/*.vue'],
   darkMode: 'class',
-  theme: {
-    extend: {},
-  },
   plugins: [daisyui],
+  /**
+   * @type {import('daisyui').Config}
+   */
+  daisyui: {
+    themes: [
+      {
+        elysia: {
+          primary: 'rgb(59 130 246)',
+          secondary: 'rgb(192 132 252)',
+          accent: 'rgb(240, 98, 146)',
+        },
+      },
+    ],
+  },
 }
 
 export default config

@@ -1,5 +1,5 @@
 // https://vitepress.dev/guide/custom-theme
-import { h } from 'vue'
+
 import DefaultTheme from 'vitepress/theme'
 
 import Layout from './layout.vue'
@@ -12,10 +12,12 @@ import './custom.css'
 import type { EnhanceAppContext } from 'vitepress'
 import type { Theme } from 'vitepress'
 
-export default {
+const theme: Theme = {
   extends: DefaultTheme,
   Layout,
   enhanceApp({ app }: EnhanceAppContext) {
     app.use(TwoslashFloatingVue)
   },
-} satisfies Theme
+}
+
+export default theme

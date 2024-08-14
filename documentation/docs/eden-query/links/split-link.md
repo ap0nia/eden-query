@@ -46,7 +46,7 @@ Let's say you're using `httpBatchLink` as the terminating link in your tRPC clie
 
 ::: code-group
 
-```typescript twoslash include links-split-basic-example [src/server.ts]
+```typescript twoslash include eq-links-split-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -66,17 +66,22 @@ export type App = typeof app
 
 #### 2. Configure eden client
 
-<template>
+::: code-group
 
-```typescript twoslash include links-split-eden-client
-// @noErrors
+```typescript twoslash include eden.ts [eden.ts]
+// @filename: server.ts
+// ---cut---
+// @include: eq-links-split-application
+
+// @filename: eden.ts
+// ---cut---
 import {
   createEdenTreatyReactQuery,
   httpBatchLink,
   httpLink,
   splitLink,
 } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+import type { App } from './server'
 
 const domain = 'http://localhost:3000'
 
@@ -100,23 +105,6 @@ export const client = eden.createClient({
 })
 ```
 
-  </template>
-
-::: code-group
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: ./src/server.ts
-// @include: links-split-basic-example
-
-// @filename: ./src/lib/eden.ts
-// ---cut---
-// @include: links-split-eden-client
-```
-
-```typescript twoslash [src/server.ts]
-// @include: links-split-basic-example
-```
-
 :::
 
 #### 3. Perform request without batching
@@ -137,20 +125,47 @@ or:
 
 ::: code-group
 
-```typescript twoslash [src/component.tsx]
-// @filename: ./src/server.ts
-// @include: links-split-basic-example
+```typescript twoslash [index.tsx]
+// @filename: server.ts
+// @include: eq-links-split-application
 
-// @filename: ./src/lib/eden.ts
+// @filename: eden.ts
 // ---cut---
-// @include: links-split-eden-client
+import {
+  createEdenTreatyReactQuery,
+  httpBatchLink,
+  httpLink,
+  splitLink,
+} from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
-// @filename: ./src/component.tsx
+const domain = 'http://localhost:3000'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+export const client = eden.createClient({
+  links: [
+    splitLink({
+      condition(operation) {
+        // Check for context property `skipBatch`.
+        return Boolean(operation.context.skipBatch)
+      },
+
+      // When condition is true, use normal request.
+      true: httpLink({ domain }),
+
+      // When condition is false, use batching.
+      false: httpBatchLink({ domain }),
+    }),
+  ],
+})
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink, httpLink, splitLink } from '@ap0nia/eden-react-query'
-import { client, eden } from './lib/eden'
+import { client, eden } from './eden'
 
 const queryClient = new QueryClient()
 
@@ -185,19 +200,6 @@ export default function Page() {
 }
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: ./src/server.ts
-// @include: links-split-basic-example
-
-// @filename: ./src/lib/eden.ts
-// ---cut---
-// @include: links-split-eden-client
-```
-
-```typescript twoslash [src/server.ts]
-// @include: links-split-basic-example
-```
-
 :::
 
 ## `splitLink` Options
@@ -226,4 +228,5 @@ function splitLink<TElysia extends AnyElysia = AnyElysia>(options: {
 
 ## Reference
 
-You can check out the source code for this link on [GitHub](https://github.com/ap0nia/eden-query/blob/main/packages/eden/src/links/split-link.ts).
+You can check out the source code for this link on
+[GitHub](https://github.com/ap0nia/eden-query/blob/main/packages/eden/src/links/split-link.ts).

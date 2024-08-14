@@ -43,9 +43,13 @@ Additionally, if the underlying procedure is using something like Prisma's `find
 & do exactly 1 database query as well.
 :::
 
-<template>
+### Setup
 
-```typescript twoslash include svelte-createQueries-application
+#### Elysia Server Application
+
+::: code-group
+
+```typescript twoslash include eq-svelte-createQueries-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -74,15 +78,28 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-createQueries-eden
-// @noErrors
+:::
+
+#### Eden-Query Hooks
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-createQueries-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
 import type { App } from '../server'
 
 export const eden = createEdenTreatySvelteQuery<App>()
 ```
 
-</template>
+:::
+
+### Svelte
 
 ::: code-group
 
@@ -98,19 +115,6 @@ export const eden = createEdenTreatySvelteQuery<App>()
 </script>
 
 // ...
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createQueries-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createQueries-application
 ```
 
 :::
@@ -148,19 +152,6 @@ see the [tanstack useQuery](https://tanstack.com/query/v5/docs/framework/react/r
 </div>
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createQueries-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createQueries-application
-```
-
 :::
 
 ### Context
@@ -183,19 +174,6 @@ You can also pass in an optional Svelte Query context to override the default.
 </script>
 
 // ...
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-createQueries-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-createQueries-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-createQueries-application
 ```
 
 :::

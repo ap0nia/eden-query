@@ -23,9 +23,13 @@ To create queries that are reactive to an external source, wrap your input in a 
 To get the type of input for the route, use the [inference helpers](./inferring-types)
 :::
 
-<template>
+### Setup
 
-```typescript twoslash include svelte-reactive-application
+#### Elysia Server Application
+
+::: code-group
+
+```typescript twoslash include eq-svelte-reactive-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -39,8 +43,19 @@ export const app = new Elysia().use(batchPlugin()).get('/post/:id', (context) =>
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-reactive-eden
-// @noErrors
+:::
+
+#### Eden-Query Hooks
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-reactive-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import {
   createEdenTreatySvelteQuery,
   type InferTreatyQueryInput,
@@ -55,7 +70,9 @@ export type InferInput = InferTreatyQueryInput<App>
 export type InferOutput = InferTreatyQueryOutput<App>
 ```
 
-</template>
+:::
+
+### Svelte
 
 ::: code-group
 
@@ -71,15 +88,4 @@ export type InferOutput = InferTreatyQueryOutput<App>
 <input bind:value={$input.params.id}>
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-reactive-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-reactive-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-reactive-application
-```
+:::

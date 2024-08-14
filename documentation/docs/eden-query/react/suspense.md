@@ -33,9 +33,11 @@ to make it easy to directly use your data and renaming the variable to something
 
 :::
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-suspense-application
+::: code-group
+
+```typescript twoslash include eq-react-suspense-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -75,40 +77,47 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-suspense-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
+
+### Eden-Query Client
+
+::: code-group
+
+```typescript twoslash [eden.ts]
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-suspense-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
 ```
 
-</template>
+:::
 
 ### `useSuspenseQuery()`
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-suspense-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-suspense-eden
+// @include: eq-react-suspense-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 function PostView() {
   const [post, postQuery] = eden.post[':id'].get.useSuspenseQuery({ params: { id: '1' }})
@@ -118,37 +127,28 @@ function PostView() {
 }
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-suspense-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-suspense-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-suspense-application
-```
-
 :::
 
 ### `useSuspenseInfiniteQuery()`
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-suspense-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.ts]
+// @filename: server.ts
 // ---cut---
-// @include: react-suspense-eden
+// @include: eq-react-suspense-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 function PostView() {
   const [{ pages }, allPostsQuery] = eden.post.all.get.useSuspenseInfiniteQuery(
@@ -167,19 +167,6 @@ function PostView() {
 }
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-suspense-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-suspense-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-suspense-application
-```
-
 :::
 
 ### `useSuspenseQueries()`
@@ -188,42 +175,33 @@ Suspense equivalent of [`useQueries()`](./useQueries.md).
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-suspense-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-suspense-eden
+// @include: eq-react-suspense-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export type PostViewProps = {
   postIds: string[]
 }
 
 function PostView(props: PostViewProps) {
-  const [posts, postQueries] = eden.useSuspenseQueries((e) =>
-    props.postIds.map((id) => e.post[':id'].get({ params: { id } })),
-  )
+  const [posts, postQueries] = eden.useSuspenseQueries((e) => {
+    return props.postIds.map((id) => e.post[':id'].get({ params: { id } }))
+  })
   return /* */
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-suspense-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-suspense-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-suspense-application
 ```
 
 :::

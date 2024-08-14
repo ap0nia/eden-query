@@ -54,9 +54,11 @@ You'll notice that you get autocompletion on the `input` based on what you have 
 
 ### Example
 
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include react-useQuery-application
+::: code-group
+
+```typescript twoslash include eq-react-useQuery-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -77,39 +79,44 @@ export const app = new Elysia().use(batchPlugin()).get(
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useQuery-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
 
-export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
-```
-
-</template>
+#### Eden-Query Client
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
+```typescript twoslash include eq-react-useQuery-client [eden.ts]
+// @filename: server.ts
+// @include: eq-react-useQuery-application
 
-// @filename: src/server.ts
-// @include: react-useQuery-application
-
-// @filename: src/lib/eden.ts
+// @filename: eden.ts
 // ---cut---
-// @include: react-useQuery-eden
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
-// @filename: src/components/MyComponent.tsx
+export const eden = createEdenTreatyReactQuery<App>()
+```
+
+:::
+
+::: code-group
+
+```typescript twoslash [index.tsx]
+
+// @filename: server.ts
+// @include: eq-react-useQuery-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export function MyComponent() {
   // input is optional, so we don't have to pass the 'text' property in the query field.
@@ -132,19 +139,6 @@ export function MyComponent() {
     </div>
   )
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useQuery-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useQuery-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useQuery-application
 ```
 
 :::

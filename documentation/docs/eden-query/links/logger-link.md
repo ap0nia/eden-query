@@ -20,11 +20,11 @@ head:
 
 ## Usage
 
-You can import and add the `loggerLink` to the `links` array as such:
+### Elysia Server Application
 
-<template>
+::: code-group
 
-```typescript twoslash include links-logger-basic-application
+```typescript twoslash include eq-links-logger-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -33,13 +33,17 @@ export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!
 export type App = typeof app
 ```
 
-</template>
+:::
+
+### Client
+
+You can import and add the `loggerLink` to the `links` array as such:
 
 ::: code-group
 
 ```typescript twoslash [index.ts]
 // @filename: ./server.ts
-// @include: links-logger-basic-application
+// @include: eq-links-logger-application
 
 // @filename: ./index.ts
 // ---cut---
@@ -72,10 +76,6 @@ const client = new EdenClient<App>({
     }),
   ],
 })
-```
-
-```typescript twoslash [server.ts]
-// @include: links-logger-basic-application
 ```
 
 :::

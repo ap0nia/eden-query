@@ -1,15 +1,14 @@
 // @ts-check
-
-import postcssImport from 'postcss-import'
-import nesting from '@tailwindcss/nesting'
 import tailwindcss from 'tailwindcss'
+import postcssNesting from 'postcss-nesting'
+import tailwindcssNesting from '@tailwindcss/nesting'
 import autoprefixer from 'autoprefixer'
 
 /**
- * @type {import('postcss-load-config').Config}
+ * @type{import('postcss-load-config').Config}
  */
 const config = {
-  plugins: [postcssImport(), nesting(), tailwindcss(), autoprefixer()],
+  plugins: [tailwindcss(), postcssNesting(), tailwindcssNesting(), autoprefixer()],
 }
 
 export default config

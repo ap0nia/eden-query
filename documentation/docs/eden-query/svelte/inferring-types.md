@@ -16,9 +16,11 @@ head:
 
 # Inferring Types
 
-<template>
+1. Create Elysia application
 
-```typescript twoslash include svelte-infer-application
+::: code-group
+
+```typescript twoslash include eq-svelte-infer-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
@@ -32,8 +34,27 @@ export const app = new Elysia().use(batchPlugin()).get('/post/:id', (context) =>
 export type App = typeof app
 ```
 
-```typescript twoslash include svelte-infer-eden
+:::
+
+2. Initialize Eden-Query Hooks and Types
+
+::: tip
+`InferRouteOptions`: gets the `query` and `params` required for the route.
+
+`InferRouteBody`: gets the `body` required for the route, e.g. POST, PATCH, etc. endpoints.
+:::
+
+::: code-group
+
+```typescript twoslash [src/lib/eden.ts]
 // @noErrors
+
+// @filename: src/server.ts
+// ---cut---
+// @include: eq-svelte-infer-application
+
+// @filename: src/lib/eden.ts
+// ---cut---
 import {
   createEdenTreatySvelteQuery,
   type InferTreatyQueryInput,
@@ -46,32 +67,6 @@ export const eden = createEdenTreatySvelteQuery<App>()
 export type InferInput = InferTreatyQueryInput<App>
 
 export type InferOutput = InferTreatyQueryOutput<App>
-```
-
-</template>
-
-1. Create Elysia application
-
-::: code-group
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-infer-application
-```
-
-:::
-
-2. Create Eden hooks
-
-::: code-group
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-infer-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-infer-eden
-// @noErrors
 
 type A = InferInput['post']['
                           // ^|
@@ -90,9 +85,7 @@ type InputQuery = PrettifiedInput['query']
 type InputParams = PrettifiedInput['params']
 ```
 
-```typescript twoslash [src/server.ts]
-// @include: svelte-infer-application
-```
+:::
 
 3. Use inference helpers
 
@@ -110,15 +103,4 @@ type InputParams = PrettifiedInput['params']
 <input bind:value={$input.params.id}>
 ```
 
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: svelte-infer-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: svelte-infer-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: svelte-infer-application
-```
+:::

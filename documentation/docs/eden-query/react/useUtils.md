@@ -30,9 +30,11 @@ This hook is an alias for `useContext()`.
 
 ## Usage
 
-<template>
+### Elysia Server Application
 
-```typescript twoslash include react-useUtils-application
+::: code-group
+
+```typescript twoslash include eq-react-useUtils-application [server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -70,23 +72,26 @@ export const app = new Elysia()
 export type App = typeof app
 ```
 
-```typescript twoslash include react-useUtils-eden
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+:::
+
+### Eden-Query Client
+
+::: code-group
+
+```typescript twoslash [eden.ts]
+// @filename: server.ts
+// ---cut---
+// @include: eq-react-useUtils-application
+
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>()
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
 ```
 
-</template>
+:::
 
 `useUtils` returns an object with all the available queries you have in your routers.
 You use it the same way as your `eden` "utils" object.
@@ -97,19 +102,23 @@ we'll get access to our query helpers!
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-useUtils-eden
+// @include: eq-react-useUtils-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 // @noErrors
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export function MyComponent() {
   const utils = eden.useUtils()
@@ -117,19 +126,6 @@ export function MyComponent() {
   //                  ^|
   // [...]
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
 ```
 
 :::
@@ -211,18 +207,22 @@ on the input passed to it to prevent unnecessary calls to the back end.
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-useUtils-eden
+// @include: eq-react-useUtils-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 function MyComponent() {
   const utils = eden.useUtils()
@@ -230,25 +230,12 @@ function MyComponent() {
   const mutation = eden.post.edit.post.useMutation({
     onSuccess(input) {
       utils.post.all.invalidate()
-      utils.post[':id'].invalidate({ params: { id: input.id } }) // Will not invalidate queries for other id's 👍
+      utils.post[':id'].get.invalidate({ params: { id: input.post.id + ''} }) // Will not invalidate queries for other id's 👍
     },
   })
 
   // [...]
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
 ```
 
 :::
@@ -260,20 +247,26 @@ just one query.
 
 ::: code-group
 
-```typescript twoslash [src/components/MyComponent.tsx]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
+```typescript twoslash [index.tsx]
+// @filename: server.ts
 // ---cut---
-// @include: react-useUtils-eden
+// @include: eq-react-useUtils-application
 
-// @filename: src/components/MyComponent.tsx
+// @filename: eden.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+export const eden = createEdenTreatyReactQuery<App>()
+
+// @filename: index.tsx
 // ---cut---
 import React from 'react'
-import { eden } from '../lib/eden'
+import { eden } from './eden'
 
 export function MyComponent() {
+  const utils = eden.useUtils()
+
   const invalidateAllQueriesAcrossAllRouters = () => {
     // 1️⃣
     // All queries on all routers will be invalidated 🔥
@@ -289,28 +282,15 @@ export function MyComponent() {
   const invalidatePostById = () => {
     // 3️⃣
     // All queries in the post router with input {id:1} invalidated 📭
-    utils.post[':id'].invalidate({ id: 1 })
+    utils.post[':id'].get.invalidate({ params: { id: '1' } })
   }
 
   // Example queries
   eden.user.all.get.useQuery() // Would only be validated by 1️⃣ only.
   eden.post.all.get.useQuery() // Would be invalidated by 1️⃣ & 2️⃣
-  eden.post[':id'].useQuery({ params: { id: 1 } }) // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
-  eden.post[':id'].useQuery({ params: { id: 2 } }) // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
+  eden.post[':id'].get.useQuery({ params: { id: '1' } }) // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
+  eden.post[':id'].get.useQuery({ params: { id: '2' } }) // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
 }
-```
-
-```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
-// ---cut---
-// @include: react-useUtils-eden
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
 ```
 
 :::
@@ -324,15 +304,14 @@ We have added a feature to help with this:
 ::: code-group
 
 ```typescript twoslash [src/lib/eden.ts]
-// @filename: src/server.ts
-// @include: react-useUtils-application
-
-// @filename: src/lib/eden.ts
+// @filename: server.ts
 // ---cut---
+// @include: eq-react-useUtils-application
 
-// @noErrors
-import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+// @filename: index.tsx
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
 
 export const eden = createEdenTreatyReactQuery<App>({
   overrides: {
@@ -356,18 +335,6 @@ export const eden = createEdenTreatyReactQuery<App>({
     },
   },
 })
-
-export const client = eden.createClient({
-  links: [
-    httpBatchLink({
-      domain: 'http://localhost:3000',
-    }),
-  ],
-})
-```
-
-```typescript twoslash [src/server.ts]
-// @include: react-useUtils-application
 ```
 
 :::

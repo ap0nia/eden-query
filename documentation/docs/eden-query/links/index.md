@@ -72,10 +72,11 @@ A link is a function that follows the `EdenLink` type. Each link is composed of 
 
 ### Example
 
-<!-- -->
-<template>
+#### Elysia Server Application
 
-```typescript twoslash include links-basic-application
+::: code-group
+
+```typescript twoslash include eq-links-application [server.ts]
 import { Elysia, t } from 'elysia'
 
 export const app = new Elysia().get('/', () => 'Hello, World!')
@@ -83,13 +84,15 @@ export const app = new Elysia().get('/', () => 'Hello, World!')
 export type App = typeof app
 ```
 
-</template>
+:::
+
+#### Custom Link
 
 ::: code-group
 
 ```typescript twoslash [index.ts]
 // @filename: server.ts
-// @include: links-basic-application
+// @include: eq-links-application
 
 // @filename: index.ts
 // ---cut---
@@ -123,10 +126,6 @@ export const customLink: EdenLink<App> = () => {
     })
   }
 }
-```
-
-```typescript twoslash [server.ts]
-// @include: links-basic-application
 ```
 
 :::

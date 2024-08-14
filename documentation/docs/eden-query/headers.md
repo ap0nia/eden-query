@@ -7,11 +7,13 @@ head:
 
   - - meta
     - name: 'description'
-      content: Headers Eden-Query is a type-safe Elysia.js client with the powerful asynchronous state management of tanstack-query.
+      content: >
+        Set custom request headers with Eden-Query.
 
   - - meta
     - property: 'og:description'
-      content: Headers Eden-Query is a type-safe Elysia.js client with the powerful asynchronous state management of tanstack-query.
+      content: >
+        Set custom request headers with Eden-Query.
 ---
 
 The headers option can be customized in the config when using the
@@ -20,29 +22,41 @@ The headers option can be customized in the config when using the
 `headers` can be both an object or a function.
 If it's a function it will get called dynamically for every HTTP request.
 
-<template>
+## Example
 
-```typescript twoslash include headers-example
+### Elysia Server Application
+
+::: code-group
+
+```typescript twoslash include eq-headers-application [server.ts]
 import { Elysia } from 'elysia'
 import { edenPlugin } from '@ap0nia/eden-react-query'
 
-export const app = new Elysia().use(edenPlugin({ batch: true })).get('/', () => 'Hello, World!')
+export const app = new Elysia()
+  .use(edenPlugin({ batch: true }))
+  .get('/', () => 'Hello, World!')
+  .post('/auth/login', () => {
+    return { token: 'new access token' }
+  })
 
 export type App = typeof app
 ```
 
-</template>
+:::
+
+### Client Usage (With Auth Example)
 
 ::: code-group
 
-```typescript twoslash title='utils/trpc.ts'
-// @filename: ./src/server.ts
-// @include: headers-example
-// ---cut---
+```typescript twoslash [index.ts]
+// @filename: server.ts
+// @include: eq-headers-application
 
+// @filename: index.ts
+// ---cut---
 // Import the router type from your server file
 import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
-import type { App } from '../server'
+import type { App } from './server'
 
 let token: string
 
@@ -54,37 +68,29 @@ export function setToken(newToken: string) {
   token = newToken
 }
 
-export const eden = createEdenTreatyReactQuery<App>({
-  config(opts) {
-    return {
-      links: [
-        httpBatchLink({
-          url: 'http://localhost:3000/api/trpc',
-          /**
-           * Headers will be called on each request.
-           */
-          headers() {
-            return {
-              Authorization: token,
-            }
-          },
-        }),
-      ],
-    }
-  },
+export const eden = createEdenTreatyReactQuery<App>()
+
+const client = eden.createClient({
+  links: [
+    httpBatchLink({
+      domain: 'http://localhost:3000/api/eden',
+
+      /**
+       * Headers will be called on each request.
+       */
+      headers() {
+        return {
+          Authorization: token,
+        }
+      },
+    }),
+  ],
 })
-```
 
-:::
-
-### Example with auth login
-
-::: code-group
-
-```typescript [src/pages/auth.tsx]
+// With Auth Login
 const loginMutation = eden.auth.login.post.useMutation({
   onSuccess(opts) {
-    token = opts.accessToken
+    setToken(opts.token)
   },
 })
 ```

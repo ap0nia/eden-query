@@ -24,7 +24,7 @@ The arguments provided to the fetch function used by Eden can be modified as fol
 
 ::: code-group
 
-```typescript twoslash [app.ts]
+```typescript [index.ts]
 import { EdenClient, httpLink } from '@ap0nia/eden-react-query'
 
 const client = new EdenClient({
