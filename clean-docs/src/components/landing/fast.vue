@@ -25,11 +25,22 @@ import { frameworksByPerformance } from '../../frameworks'
       </header>
 
       <p class="text-xl text-gray-400 w-full max-w-lg mb-4">
-        Supercharged by Bun runtime, Static Code Analysis, and Dynamic Code Injection
+        <span>Supercharged by the Bun runtime and built-in optimizations such as </span>
+        <span
+          class="font-semibold bg-clip-text text-transparent bg-gradient-to-br from-lime-300 to-cyan-300"
+          >Static Code Analysis</span
+        >
+        <span>, and </span>
+        <span
+          class="font-semibold bg-clip-text text-transparent bg-gradient-to-br from-lime-300 to-cyan-300"
+        >
+          Dynamic Code Injection</span
+        >.
       </p>
 
       <p class="text-xl text-gray-400 w-full max-w-lg">
-        Being one of the top-performing TypeScript frameworks. Comparable to Go and Rust.
+        Elysia.js one of the most performant TypeScript frameworks, even comparable to solutions
+        written in Go and Rust.
       </p>
     </section>
 
@@ -93,9 +104,8 @@ import { frameworksByPerformance } from '../../frameworks'
           target="_blank"
           class="link-hover text-green-500 font-semibold"
         >
-          TechEmpower Benchmark
-        </a>
-        <span>Round 22 (2023-10-17) in PlainText.</span>
+          TechEmpower Benchmark</a
+        ><span>, Round 22 (2023-10-17) in PlainText.</span>
       </span>
     </section>
   </article>

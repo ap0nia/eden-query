@@ -20,7 +20,7 @@ head:
 
 ::: code-group
 
-```typescript twoslash include eq-react-getQueryKey-application [server.ts]
+```typescript twoslash include eq-react-getQueryKey-application [src/server.ts]
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
@@ -37,15 +37,15 @@ export type App = typeof app
 
 ::: code-group
 
-```typescript twoslash [eden.ts]
-// @filename: server.ts
+```typescript twoslash [src/lib/eden.ts]
+// @filename: src/server.ts
 // ---cut---
 // @include: eq-react-getQueryKey-application
 
-// @filename: eden.ts
+// @filename: src/lib/eden.ts
 // ---cut---
 import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
-import type { App } from './server'
+import type { App } from '../server'
 
 export const eden = createEdenTreatyReactQuery<App>()
 ```
@@ -82,38 +82,27 @@ See [TanStack/query#5111 (comment)](https://github.com/TanStack/query/issues/511
 
 ::: code-group
 
-```typescript twoslash [index.ts]
-// @filename: server.ts
-// ---cut---
-// @include: eq-react-getQueryKey-application
+```svelte [src/routes/+page.svelte]
+<script lang="ts">
+  import { useIsFetching, useQueryClient } from '@tanstack/svelte-query'
+  import { getQueryKey } from '@ap0nia/eden-svelte-query'
+  import { eden } from '$lib/eden'
 
-// @filename: eden.ts
-// ---cut---
-import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
-import type { App } from './server'
-
-export const eden = createEdenTreatyReactQuery<App>()
-
-// @filename: index.tsx
-// ---cut---
-import React from 'react'
-import { useIsFetching, useQueryClient } from '@tanstack/react-query'
-import { getQueryKey } from '@ap0nia/eden-react-query'
-import { eden } from './eden'
-
-function MyComponent() {
   const queryClient = useQueryClient()
 
   const posts = eden.post.list.get.useQuery()
 
   // See if a query is fetching
   const postListKey = getQueryKey(eden.post.list, undefined, 'query')
-  const isFetching = useIsFetching({ queryKey: postListKey })
+  const isFetching = useIsFetching(postListKey)
 
   // Set some query defaults for an entire router
   const postKey = getQueryKey(eden.post)
   queryClient.setQueryDefaults(postKey, { staleTime: 30 * 60 * 1000 })
-}
+  // ...
+</script>
+
+// ...
 ```
 
 :::

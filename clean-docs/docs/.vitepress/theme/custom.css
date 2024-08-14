@@ -120,7 +120,7 @@ button.copy::after {
 }
 
 #VPSidebarNav > .group:nth-child(3) > .VPSidebarItem > .item > .text::before {
-  background-image: url(/assets/essential.svg);
+  background-image: url(/assets/react-query.svg);
 }
 
 #VPSidebarNav > .group:nth-child(4) > .VPSidebarItem > .item > .text::before {
