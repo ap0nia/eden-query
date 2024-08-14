@@ -53,7 +53,10 @@ export type EdenResultMessage<T> =
 
 export type EdenSuccessResponse<T> = { data: T; type?: 'data' }
 
-export type EdenLink<T extends AnyElysia = any> = (opts: EdenClientRuntime) => OperationLink<T>
+export type EdenLink<T extends AnyElysia = any, TMeta = {}> = ((
+  opts: EdenClientRuntime,
+) => OperationLink<T>) &
+  TMeta
 
 export type EdenClientRuntime = {}
 

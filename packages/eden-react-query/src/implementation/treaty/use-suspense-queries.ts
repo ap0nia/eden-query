@@ -1,5 +1,5 @@
 import type { EdenClient, InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
-import type { SuspenseQueriesOptions, SuspenseQueriesResults } from '@tanstack/react-query'
+import type { SuspenseQueriesOptions, UseSuspenseQueryResult } from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
 import type { UseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
@@ -7,12 +7,10 @@ import { createTreatyUseQueriesProxy } from './use-queries'
 
 export type EdenTreatyUseSuspenseQueries<T extends AnyElysia> = <
   TData extends any[],
-  TCombinedResult = SuspenseQueriesResults<TData>,
+  TQueriesOptions extends SuspenseQueriesOptions<TData>,
 >(
-  queriesCallback: (
-    t: EdenTreatyUseSuspenseQueriesProxy<T>,
-  ) => readonly [...SuspenseQueriesOptions<TData>],
-) => TCombinedResult
+  queriesCallback: (t: EdenTreatyUseSuspenseQueriesProxy<T>) => readonly [...TQueriesOptions],
+) => UseSuspenseQueriesResult<TQueriesOptions>
 
 /**
  * A proxy object that returns {@link CreateQueryOptions} (instead of an actual create query result).
@@ -43,9 +41,9 @@ export type UseSuspenseQueriesHook<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  input: TInput,
-  opts?: UseQueryOptionsForUseSuspenseQueries<TOutput, TInput, TError>,
-) => UseQueryOptionsForUseSuspenseQueries<TOutput, TInput, TError>
+  input: {} extends TInput ? void | TInput : TInput,
+  opts?: UseQueryOptionsForUseSuspenseQueries<TOutput, TError>,
+) => UseQueryOptionsForUseSuspenseQueries<TOutput, TError>
 
 export function createTreatyUseSuspenseQueriesProxy<T extends AnyElysia = AnyElysia>(
   client: EdenClient<T>,
@@ -53,3 +51,30 @@ export function createTreatyUseSuspenseQueriesProxy<T extends AnyElysia = AnyEly
 ): EdenTreatyUseSuspenseQueriesProxy<T> {
   return createTreatyUseQueriesProxy(client, paths) as any
 }
+
+export type UseSuspenseQueriesResult<
+  TQueriesOptions extends UseQueryOptionsForUseSuspenseQueries<any, any, any, any>[],
+> = [
+  {
+    [TKey in keyof TQueriesOptions]: TQueriesOptions[TKey] extends UseQueryOptionsForUseSuspenseQueries<
+      infer TQueryFnData,
+      any,
+      infer TData,
+      any
+    >
+      ? unknown extends TData
+        ? TQueryFnData
+        : TData
+      : never
+  },
+  {
+    [TKey in keyof TQueriesOptions]: TQueriesOptions[TKey] extends UseQueryOptionsForUseSuspenseQueries<
+      infer TQueryFnData,
+      infer TError,
+      infer TData,
+      any
+    >
+      ? UseSuspenseQueryResult<unknown extends TData ? TQueryFnData : TData, TError>
+      : never
+  },
+]

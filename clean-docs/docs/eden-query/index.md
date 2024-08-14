@@ -19,16 +19,15 @@ head:
     import Deck from '../../src/components/nearl/card-deck.vue'
 </script>
 
-# Introduction
+# Eden-Query Introduction
 
-The goal of eden + tanstack-query is to provide a similar interface to
-[tRPC's react-query integration](https://trpc.io/docs/client/react),
-while supporting all the functionality provided by the
-[official Eden implementation](https://elysiajs.com/eden/overview.html).
+Eden-Query combines the official type-safe [Eden client for Elysia.js](https://elysiajs.com/eden/overview.html)
+with powerful asynchronous state management from [tanstack-query](https://tanstack.com/query/latest).
 
-## Features
+Eden-Query has the same features as [tRPC's react-query integration](https://trpc.io/docs/client/react),
+while supporting great defaults for getting started quickly.
 
-> Interesting, core features this library supports!
+## Core Features
 
 <Deck>
     <Card title="Batching" href="/eden-query/batching">
@@ -47,18 +46,36 @@ while supporting all the functionality provided by the
 Eden-Query offers two implementations, [fetch](#fetch) and [treaty](#treaty),
 just like the official eden library.
 
+::: code-group
+
+```typescript [treaty]
+eden.greeting[':name'].get.createQuery({ params: { name: 'Elysia' } })
+```
+
+```typescript [fetch]
+eden.createQuery('/greeting/:name', { method: 'GET', params: { name: 'Elysia' } })
+```
+
+:::
+
 ### Fetch (WIP)
 
-None of the integrations have implemented this yet...
+- Tanstack-query hooks are exposed at the root of the proxy.
+- The full path to the route is provided as the first argument.
+- Input to the route, such as query and route parameters, are provided after the path.
+
+:::warning
+This has not been implemented for any framework yet...
+:::
 
 ### Treaty
 
-Based on the [official example of eden treaty](/eden/treaty/overview),
-this is how the react-query hooks have been integrated with eden.
+- API routes are split by their path segments, and represented as a nested object.
+- `/api/a/b` -> `eden.api.a.b`.
+- The method and hook are provided as the last two property accesses.
+- `eden.api.a.b.get.createQuery` -> `createQuery` for `GET` request to `/api/a/b`.
 
 #### Example Application
-
-Here is an example Elysia.js application.
 
 ::: code-group
 
@@ -66,14 +83,21 @@ Here is an example Elysia.js application.
 import { Elysia, t } from 'elysia'
 
 const app = new Elysia()
-  .get('/', 'hi')
-  .get('/nendoroid/:id/name', () => 'Skadi')
-  .put('/nendoroid/:id', ({ body }) => body, {
-    body: t.Object({
-      name: t.String(),
-      from: t.String(),
-    }),
+  .get('/nendoroid/:id/name', () => {
+    return 'Skadi'
   })
+  .put(
+    '/nendoroid/:id',
+    (context) => {
+      return { status: 'OK', received: context.body }
+    },
+    {
+      body: t.Object({
+        name: t.String(),
+        from: t.String(),
+      }),
+    },
+  )
   .listen(3000)
 
 export type App = typeof app
@@ -81,9 +105,9 @@ export type App = typeof app
 
 :::
 
-#### Example Client Usage
+#### Example React-Query Usage
 
-This is how a React application can interact with the application using react-query hooks.
+A React client application cna use the hooks from Eden-Query to manage asynchronous state from the Elysia server application.
 
 ::: code-group
 
@@ -96,20 +120,43 @@ This is how a React application can interact with the application using react-qu
 import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
 import type { App } from './server'
 
+/**
+ * The domain is usually needed if the client application
+ * is not part of a full stack framework.
+ *
+ * For example, a React single-page-application would need to specify
+ * the server domain, while a Next.js application would not.
+ *
+ * Follow the steps provided in the specific framework integration.
+ */
+const domain = 'localhost:3000'
+
 export const app = createEdenTreatyReactQuery<App>({
   domain: 'localhost:3000',
 })
 
-// useQuery + [GET] at '/'
-const { data } = await app.index.get.useQuery()
+// useQuery for [GET] request to '/nendoroid/:id/name'
+const { data } = await app.nendoroid[':id'].name.get.useQuery({
+  params: { id: 'skadi' },
+})
 
-// useMutation + [PUT] at '/nendoroid/:id'
-const { data: nendoroid, error, mutate } = app.nendoroid[':id'].put.useMutation()
+// useMutation for [PUT] request to '/nendoroid/:id'
+const { data: nendoroid, error, mutateAsync } = app.nendoroid[':id'].put.useMutation()
 
 // Peform the mutation...
-mutate({ name: 'Skadi', from: 'Arknights' }, { params: { id: '1895' } })
+mutateAsync({ name: 'Skadi', from: 'Arknights' }, { params: { id: '1895' } }).then((result) => {
+  result
+  // ^?
+})
 ```
 
+:::
+
+::: tip
+`useMutation` does not actually perform the request.
+The result of `useMutation` has `mutate` and `mutateAsync` methods that receive the input to make the request.
+
+[Read more about mutations here](https://tanstack.com/query/latest/docs/framework/react/reference/useMutation#usemutation).
 :::
 
 ## Comparison with Eden-Treaty
@@ -137,11 +184,10 @@ utils.nendoroid[':id'].name.get.fetch({ params: { id: '1895' } })
 
 #### Reasoning
 
-It is challenging to implement it the same way as the official one because Svelte has
-unique constraints and I am not fully confident in the heuristics used to determine
-if a function call is for a path param vs. the actual request.
+- Svelte (4) has unique constraints for handling reactivity in svelte-query properly.
+- I'm not fully confident in the heuristics used to distinguish between function calls for path parameters vs. hooks.
 
-Read the implementation notes [here](/eden-query/overview#implementing-treaty-params).
+It may be possible, and you can read my implementation notes [here](/eden-query/overview#implementing-treaty-params).
 
 ## Comparison with tRPC
 
@@ -149,15 +195,14 @@ Read the implementation notes [here](/eden-query/overview#implementing-treaty-pa
 
 This library supports the same type of [links that tRPC has](https://trpc.io/docs/client/links).
 
-Opting into this API adds complexity to the initialization of the eden client,
-so helper methods are provided to make it simpler.
+The official eden library only resolves requests, so Eden-Query provides helper methods to
+quickly initialize a client that does the same.
 
-Read more about this libary's links [here](./links).
+Read more about Eden-Query links [here](./links).
 
 #### eden.createHttpClient
 
-Creates the most basic eden client, which resolves requests in the same way as the official eden implementation.
-This is a good default option to use.
+This creates a basic eden client that resolves requests in the same way as the official eden implementation.
 
 ```typescript twoslash
 import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
@@ -175,12 +220,17 @@ const clientOne = eden.createClient({
 const clientTwo = eden.createHttpClient({ domain })
 ```
 
+::: tip
+Using this helper method means you don't have to initialize an `httpLink` from scratch,
+and you can provide `HTTPLinkOptions` directly to the method to create the client.
+:::
+
 #### eden.createHttpBatchClient
 
-Creates a client similar to the basic one, but combines multiple requests into a single batch request.
+Creates a client that can combine multiple requests into a single batch request.
 
 :::warning
-In order to use this client successfully, the elysia server application must use the `batchPlugin`
+In order for this client to work properly, the Elysia server application must use the `batchPlugin`
 or `edenPlugin` with the `batch` property defined.
 :::
 
@@ -190,33 +240,9 @@ or `edenPlugin` with the `batch` property defined.
 
 ```typescript twoslash include eq-index-batch-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query'
 
-/**
- * Batch options are optional...
-
- * @remarks Note the custom endpoint!.
- */
-const batchOptions = { endpoint: '/api/batch' }
-
-const app = new Elysia()
-  /**
-   * Option 1:
-   * Use `batchPlugin` directly and provide options if needed.
-   */
-  .use(batchPlugin(batchOptions))
-
-  /**
-   * Option 2:
-   * Use `edenPlugin` and pass `batchOptions` as the `batch` property.
-   */
-  .use(edenPlugin({ batch: batchOptions }))
-
-  /**
-   * Option 3:
-   * Enable batching without setting any options with `true`.
-   */
-  .use(edenPlugin({ batch: true }))
+const app = new Elysia().use(edenPlugin({ batch: true }))
 
 export type App = typeof app
 ```
@@ -256,11 +282,11 @@ const clientTwo = eden.createHttpBatchClient({ domain })
 This library supports the [same transformer API as tRPC](https://trpc.io/docs/server/data-transformers).
 
 :::info
-The transformers only modify `request.body`.
-i.e. NOT GET, OPTIONS, or HEAD requests; only POST, PUT, PATCH, etc.
+The transformers will only modify `request.body`.
+So this will **NOT** affect GET, OPTIONS, or HEAD requests; only POST, PUT, PATCH, etc.
 :::
 
-Read more about this libary's transformers [here](./transformers).
+Read more about this Eden-Query transformers [here](./transformers).
 
 ## Notes
 
@@ -274,7 +300,7 @@ However, this means that a heuristic has to be applied to every function call in
 to determine if it's a valid `eden-treaty-svelte-query` hook, and the accummulation of
 both readable and static params must be parsed and reduced into a single object...difficult!
 
-```ts twoslash
+```typescript twoslash
 // @filename: server.ts
 import { Elysia, t } from 'elysia'
 

@@ -48,5 +48,5 @@ export type EdenUseSuspenseInfiniteQuery<
   TError = InferRouteError<TRoute>,
 > = (
   input: {} extends TInput ? void | TInput : TInput,
-  options: EdenUseSuspenseInfiniteQueryOptions<TOutput, TOutput, TError>,
+  options?: EdenUseSuspenseInfiniteQueryOptions<TOutput, TOutput, TError>,
 ) => EdenUseSuspenseInfiniteQueryResult<TOutput, TError, TInput>

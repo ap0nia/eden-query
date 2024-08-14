@@ -35,15 +35,7 @@ const config = defineConfig({
 
           if (include) addIncludes(includes, include, code)
 
-          let codeWithIncludes = replaceIncludesInCode(includes, code)
-
-          let currentCode: string
-
-          // Handle recursive replacements, up to a maximum depth of 5.
-          for (let i = 0; i < 5; ++i) {
-            currentCode = replaceIncludesInCode(includes, codeWithIncludes)
-            if (currentCode === codeWithIncludes) break
-          }
+          const codeWithIncludes = replaceIncludesInCode(includes, code)
 
           return codeWithIncludes
         },
@@ -122,10 +114,6 @@ const config = defineConfig({
     },
     logo: '/assets/elysia.svg',
     nav: [
-      {
-        text: 'Blog',
-        link: '/blog',
-      },
       {
         text: 'Eden-Query',
         link: '/eden-query',

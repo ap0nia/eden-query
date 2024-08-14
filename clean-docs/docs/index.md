@@ -29,14 +29,12 @@ head:
 <Landing>
   <template v-slot:justreturn>
 
-```typescript twoslash
+```typescript
 import { Elysia } from 'elysia'
 
 new Elysia()
   .get('/', 'Hello World')
-  .get('/json', {
-    hello: 'world',
-  })
+  .get('/json', () => ({ hello: 'world' }))
   .get('/id/:id', ({ params: { id } }) => id)
   .listen(3000)
 ```
@@ -66,16 +64,7 @@ new Elysia()
 
   <template v-slot:openapi>
 
-```ts twoslash
-// @filename: controllers.ts
-import { Elysia } from 'elysia'
-
-export const users = new Elysia().get('/users', 'Dreamy Euphony')
-
-export const feed = new Elysia().get('/feed', ['Hoshino', 'Griseo', 'Astro'])
-
-// @filename: server.ts
-// ---cut---
+```typescript
 import { Elysia, t } from 'elysia'
 import { swagger } from '@elysiajs/swagger'
 import { users, feed } from './controllers'
@@ -91,10 +80,11 @@ new Elysia()
 
 <template v-slot:server>
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash include index-application [server.ts]
 // @filename: server.ts
 // ---cut---
-// server.ts
 import { Elysia, t } from 'elysia'
 
 const app = new Elysia()
@@ -119,39 +109,22 @@ const app = new Elysia()
 export type App = typeof app
 ```
 
+:::
+
+
   </template>
 
   <template v-slot:client>
 
-```typescript twoslash
+::: code-group
+
+```typescript twoslash [client.ts]
 // @errors: 2322 1003
 // @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-const app = new Elysia()
-  .patch(
-    '/user/profile',
-    ({ body, error }) => {
-      if (body.age < 18) return error(400, 'Oh no')
-
-      if (body.name === 'Nagisa') return error(418)
-
-      return body
-    },
-    {
-      body: t.Object({
-        name: t.String(),
-        age: t.Number(),
-      }),
-    },
-  )
-  .listen(80)
-
-export type App = typeof app
+// @include: index-application
 
 // @filename: client.ts
 // ---cut---
-// client.ts
 import { treaty } from '@elysiajs/eden'
 import type { App } from './server'
 
@@ -176,6 +149,8 @@ if (error)
 data
 // ^?
 ```
+
+:::
 
   </template>
 

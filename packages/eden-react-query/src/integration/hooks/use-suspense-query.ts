@@ -26,5 +26,5 @@ export type EdenUseSuspenseQuery<
   TError = InferRouteError<TRoute>,
 > = (
   input: {} extends TInput ? void | TInput : TInput,
-  options: EdenUseSuspenseQueryOptions<TOutput, TOutput, TError>,
+  options?: EdenUseSuspenseQueryOptions<TOutput, TOutput, TError>,
 ) => EdenUseSuspenseQueryResult<TOutput, TError>

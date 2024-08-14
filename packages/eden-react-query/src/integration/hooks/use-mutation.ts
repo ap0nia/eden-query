@@ -50,7 +50,7 @@ export type EdenUseMutation<
   TData = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = <TContext = unknown>(
-  options?: EdenUseMutationOptions<TVariables, TData, TError, TContext>,
+  options?: EdenUseMutationOptions<TVariables, TError, TData, TContext>,
 ) => EdenUseMutationResult<TData, TError, TVariables, TContext, TInput>
 
 export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
@@ -61,7 +61,7 @@ export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TCon
         | (TInput &
             MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>)
     : TInput & MutateOptions<TData, TError, EdenUseMutationVariables<TVariables, TInput>, TContext>,
-) => Promise<TContext>
+) => Promise<TData>
 
 export type EdenMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
   variables: {} extends TVariables ? void : unknown extends TVariables ? void : TVariables,
