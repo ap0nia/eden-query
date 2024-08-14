@@ -20,6 +20,10 @@
     "@types/react": "^18.3.3",
     "typescript": "^5.5.4"
   },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.51.16",
+    "elysia": "1.1.6"
+  },
   "publishConfig": {
     "access": "public"
   }

@@ -19,6 +19,10 @@
     "tsup": "^8.2.3",
     "typescript": "^5.5.4"
   },
+  "peerDependencies": {
+    "@tanstack/svelte-query": "^5.51.15",
+    "elysia": "1.1.6"
+  },
   "publishConfig": {
     "access": "public"
   }
