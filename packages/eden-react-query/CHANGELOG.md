@@ -1,5 +1,16 @@
 # @ap0nia/eden-react-query
 
+## 0.1.0
+
+### Minor Changes
+
+- 21448fd: feat: public release
+
+### Patch Changes
+
+- Updated dependencies [21448fd]
+  - @ap0nia/eden@0.1.0
+
 ## 0.0.3
 
 ### Patch Changes
