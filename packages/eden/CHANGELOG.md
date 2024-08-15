@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 0.1.1
+
+### Patch Changes
+
+- ac6a1cb: fix: type definitions
+
 ## 0.1.0
 
 ### Minor Changes

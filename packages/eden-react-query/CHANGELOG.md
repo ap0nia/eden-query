@@ -1,5 +1,13 @@
 # @ap0nia/eden-react-query
 
+## 0.1.1
+
+### Patch Changes
+
+- ac6a1cb: fix: type definitions
+- Updated dependencies [ac6a1cb]
+  - @ap0nia/eden@0.1.1
+
 ## 0.1.0
 
 ### Minor Changes
