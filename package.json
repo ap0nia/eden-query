@@ -1,6 +1,7 @@
 {
   "name": "elysiajs-eden",
   "version": "0.0.0",
+  "private": true,
   "description": "monorepo for eden, a fully type-safe Elysia.js client",
   "contributors": [
     {
