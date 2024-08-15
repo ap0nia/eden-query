@@ -30,13 +30,13 @@ while supporting great defaults for getting started quickly.
 ## Core Features
 
 <Deck>
-    <Card title="Batching" href="/eden-query/batching">
+    <Card title="Batching" href="./batching">
         Batching by the client and server
     </Card>
-    <Card title="Transformers" href="/eden-query/transformers">
+    <Card title="Transformers" href="./transformers">
         Transformers to extend JSON data
     </Card>
-    <Card title="Links" href="/eden-query/links">
+    <Card title="Links" href="./links">
         Links to control the request flow
     </Card>
 </Deck>

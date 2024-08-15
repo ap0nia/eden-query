@@ -1,10 +1,10 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import ci from 'ci-info'
-import { bundledLanguages, createHighlighter } from 'shiki'
+// import { bundledLanguages, createHighlighter } from 'shiki'
 import { defineConfig } from 'vitepress'
 import { repository } from '../../../package.json'
 import { npmToYarn } from './npm-to-yarn'
-import { magicMove } from './magic-move'
+// import { magicMove } from './magic-move'
 import { addIncludes, parseIncludeMeta, replaceIncludesInCode } from './twoslash-include'
 
 const repositoryName = repository.url.split('/').pop() ?? ''
@@ -24,12 +24,12 @@ const config = defineConfig({
     config: async (md) => {
       md.use(npmToYarn({ sync: true }))
 
-      const highlighter = await createHighlighter({
-        themes: ['github-light', 'github-dark'],
-        langs: Object.keys(bundledLanguages),
-      })
+      // const highlighter = await createHighlighter({
+      //   themes: ['github-light', 'github-dark'],
+      //   langs: Object.keys(bundledLanguages),
+      // })
 
-      md.use(magicMove, highlighter)
+      // md.use(magicMove, highlighter)
     },
     theme: {
       light: 'github-light',

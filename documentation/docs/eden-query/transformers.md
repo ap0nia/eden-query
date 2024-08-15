@@ -23,6 +23,13 @@ head:
 You are able to serialize the request body (for POST, PATCH, etc. requests) and response data for all requests.
 The transformers need to be added both to the server and the client.
 
+::: tip
+Since only request.body will be serialized by the client during POST, PATCH, etc. requests,
+the server will only de-serialize the body on those requests.
+
+TODO: Add a custom query parameter for transformed json. Read [implementation notes here](#
+:::
+
 ## Using [superjson](https://github.com/blitz-js/superjson)
 
 SuperJSON allows us to transparently use primitives such as `Date`/`Map`/`Set`s between the server and client that
@@ -197,3 +204,78 @@ export interface CombinedDataTransformer {
   output: OutputDataTransformer
 }
 ```
+
+## Transforming Query for GET Requests
+
+> This does not exist yet!
+
+::: info
+Right now, query values are basically restricted to only `string` GET requests.
+Applying this new strategy would enable transformed query input to be provided to GET requests.
+:::
+
+**Example**: original query is `a=valueA&b=valueB`
+
+Maybe we can use a custom, special query key like `transformed_query` which accepts
+encoded JSON. Then when the `transformPlugin` or `edenPlugin` receive a request with that
+parameter, it will de-serialize the JSON input and merge it into the request query params.
+
+::: code-group [client.ts]
+
+```typescript
+const query = { a: 'valueA', b: 'valueB' }
+
+const base = 'https://localhost.com:3000'
+
+const regularUrl = `${base}?${new URLSearchParams(query)}`
+
+const transformedUrl = `${base}?transformed_query=${encodeURIComponent(JSON.stringify(query))}`
+```
+
+:::
+
+::: code-group [server.ts]
+
+```typescript
+import { getDataTransformer, type DataTransformerOptions } from '@ap0nia/eden-react-query'
+import { Elysia } from 'elysia'
+import SuperJSON from 'superjson'
+
+const defaultTransformQueryKey = 'transformed_query'
+
+export type TransformQueryOptions = {
+  transformer: DataTransformerOptions
+  queryKey?: 'string'
+}
+
+function edenQueryTransformQueryPlugin(options: TransformQueryOptions) {
+  const transformer = getDataTransformer(options.transformer)
+
+  const queryKey = options.queryKey ?? defaultTransformQueryKey
+
+  const plugin = (app: AnyElysia) => {
+    app.onParse(async (context) => {
+      if (typeof context.query[queryKey] === 'string') {
+        try {
+          const rawJsonQuery = JSON.parse(context.query[queryKey])
+          const deserializedQuery = transformer.input.deserialize(rawJsonQuery)
+          Object.assign(context.query, deserializedQuery)
+        } catch {
+          // noop
+        }
+      }
+
+      // Do other stuff, i.e. transform the request body if it exists.
+
+      if (context.contentType !== 'application/json') return
+
+      const json = await context.request.json()
+
+      return await resolvedTransformer.input.deserialize(json)
+    })
+  }
+  return plugin
+}
+```
+
+:::

@@ -31,8 +31,29 @@ This has to be enabled on the server, and the client application can use it via 
 import { Elysia, t } from 'elysia'
 import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
 
+/**
+ * Option 1: Use the eden plugin and opt into batching.
+ * This is the recommended way because eden plugin will apply all desired plugins,
+ * e.g. batch and transform, in the correct order and in a single plugin call.
+ */
 const app = new Elysia()
+  .use(edenPlugin({ batch: true }))
+  .get('/a', () => 'A')
+  .get('/b', () => 'B')
+
+/**
+ * Option 2: Use the batchPlugin directly.
+ */
+const app1 = new Elysia()
   .use(batchPlugin())
+  .get('/a', () => 'A')
+  .get('/b', () => 'B')
+
+/**
+ * Both plugins also accept an object with options for batching.
+ */
+const app2 = new Elysia()
+  .use(edenPlugin({ batch: { endpoint: '/api/batch' } }))
   .get('/a', () => 'A')
   .get('/b', () => 'B')
 
@@ -121,14 +142,19 @@ indicates a `POST` method, the batch handler will make a `POST` batch request.
 
 #### Query
 
-Queries for the particular request will be denoted with the following syntax:
-`0.query.queryKey=queryValue`. Where the first segment represents the index of the request
-that the query corresponds to, `query` indicates that the following segments are part of a query for that request,
+If using the `GET` method for batch requests, queries for the particular request will be
+denoted with the following syntax: `0.query.queryKey=queryValue` in the request URL.
+
+The first segment represents the index of the request that the query corresponds to,
+`query` indicates that the following segments are part of a query for that request,
 and `queryKey` and `queryValue` are the original query key and value.
+
+If using the `POST` method for batch requests, it will be included in the `FormData` `body`,
+e.g. `body.append('0.query.queryKey', 'queryValue')`.
 
 **_Basic Example_**
 
-> This only shows the `query` property encoded in the batch request, not the other properties.
+> These examples only show the `query` property being encoded in the batch request, not necessarily the other properties.
 
 Request 1: `http://localhost:3000/users?firstname=a`
 
@@ -145,8 +171,10 @@ Batch Request (POST):
 ```typescript
 const body = new FormData()
 
-body.append('0.users.firstname', 'a')
-body.append('1.users.lastname', 'b')
+body.append('0.path', 'users')
+body.append('0.query.firstname', 'a')
+body.append('1.path', 'users')
+body.append('1.query.lastname', 'b')
 
 const request = new Request('http://localhost:3000/batch', { body })
 ```
