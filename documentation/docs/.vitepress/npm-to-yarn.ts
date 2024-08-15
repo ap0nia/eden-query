@@ -123,6 +123,8 @@ export function npmToYarn(options?: NpmToYarnOptions) {
           ? currentToken.content
           : convert(currentToken.content, 'npm')
 
+      currentToken.info += ' active'
+
       const codeGroupBlocks = converters
         .map((converter) => {
           const translatedCommand =
