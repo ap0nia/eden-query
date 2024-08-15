@@ -27,7 +27,8 @@ The transformers need to be added both to the server and the client.
 Since only request.body will be serialized by the client during POST, PATCH, etc. requests,
 the server will only de-serialize the body on those requests.
 
-TODO: Add a custom query parameter for transformed json. Read [implementation notes here](#
+Possible TODO: Add a custom query parameter for transformed json.
+Read [implementation notes here](#transforming-query-for-get-requests).
 :::
 
 ## Using [superjson](https://github.com/blitz-js/superjson)
@@ -207,7 +208,16 @@ export interface CombinedDataTransformer {
 
 ## Transforming Query for GET Requests
 
-> This does not exist yet!
+::: warning
+This does not exist yet!
+
+If you use a plugin like this, it is possible that your REST API is not "compliant" based on typical standards.
+It is probably best to use a string transformer in your schema, or other processor
+on the string values, instead of expecting special input.
+
+A big appeal of Elysia to me was that everything was REST and very easily documented and
+accessible by others.
+:::
 
 ::: info
 Right now, query values are basically restricted to only `string` GET requests.

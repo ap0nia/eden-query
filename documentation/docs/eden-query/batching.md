@@ -164,7 +164,7 @@ Request 2: `http://localhost:3000/users?lastname=b`
 
 Batch Request (GET):
 
-`http://localhost:3000/batch?0.users.firstname=a&1.users.lastname=b`
+`http://localhost:3000/batch?0.query.users.firstname=a&1.query.users.lastname=b`
 
 Batch Request (POST):
 
