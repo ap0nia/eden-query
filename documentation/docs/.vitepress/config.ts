@@ -1,10 +1,10 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import ci from 'ci-info'
-// import { bundledLanguages, createHighlighter } from 'shiki'
+import { bundledLanguages, createHighlighter } from 'shiki'
 import { defineConfig } from 'vitepress'
 import { repository } from '../../../package.json'
 import { npmToYarn } from './npm-to-yarn'
-// import { magicMove } from './magic-move'
+import { magicMove } from './magic-move'
 import { addIncludes, parseIncludeMeta, replaceIncludesInCode } from './twoslash-include'
 
 const repositoryName = repository.url.split('/').pop() ?? ''
@@ -12,24 +12,26 @@ const repositoryName = repository.url.split('/').pop() ?? ''
 const description =
   'Ergonomic Framework for Humans. TypeScript server framework supercharged by Bun with End-to-End Type Safety, unified type system and outstanding developer experience.'
 
+const base = ci.GITHUB_ACTIONS ? `/${repositoryName.replace('.git', '')}/` : ''
+
 const includes = new Map<string, string>()
 
 const config = defineConfig({
   lang: 'en-US',
   title: 'ElysiaJS',
-  base: ci.GITHUB_ACTIONS ? `/${repositoryName.replace('.git', '')}/` : '',
+  base,
   ignoreDeadLinks: true,
   lastUpdated: true,
   markdown: {
     config: async (md) => {
       md.use(npmToYarn({ sync: true }))
 
-      // const highlighter = await createHighlighter({
-      //   themes: ['github-light', 'github-dark'],
-      //   langs: Object.keys(bundledLanguages),
-      // })
+      const highlighter = await createHighlighter({
+        themes: ['github-light', 'github-dark'],
+        langs: Object.keys(bundledLanguages),
+      })
 
-      // md.use(magicMove, highlighter)
+      md.use(magicMove, highlighter)
     },
     theme: {
       light: 'github-light',
@@ -63,7 +65,7 @@ const config = defineConfig({
       'link',
       {
         rel: 'icon',
-        href: '/assets/elysia.png',
+        href: `${base}/assets/elysia.png`,
       },
     ],
     [
