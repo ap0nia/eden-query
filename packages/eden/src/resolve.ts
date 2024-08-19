@@ -139,7 +139,7 @@ function buildQueryString(query?: any) {
     } else if (typeof value === 'object') {
       const stringifiedValue = JSON.stringify(value)
       q += (q ? '&' : '?') + `${encodeURIComponent(key)}=${encodeURIComponent(stringifiedValue)}`
-    } else {
+    } else if (value != null) {
       q += (q ? '&' : '?') + `${encodeURIComponent(key)}=${encodeURIComponent(`${value}`)}`
     }
   }
