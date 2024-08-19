@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 0.1.2
+
+### Patch Changes
+
+- 042b276: fix: do not add null query params to the url
+- Updated dependencies [042b276]
+  - @ap0nia/eden@0.1.2
+
 ## 0.1.1
 
 ### Patch Changes

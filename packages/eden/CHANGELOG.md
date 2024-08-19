@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 0.1.2
+
+### Patch Changes
+
+- 042b276: fix: do not add null query params to the url
+
 ## 0.1.1
 
 ### Patch Changes
