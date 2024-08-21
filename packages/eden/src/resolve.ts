@@ -263,7 +263,15 @@ export async function resolveEdenRequest<
   T extends AnyElysia = AnyElysia,
   TRaw extends boolean = false,
 >(params: EdenRequestParams<T, TRaw>): Promise<EdenResponse<TRaw> | EdenWS> {
-  const path = params.path ?? ''
+  let path = params.path ?? ''
+
+  if (params.options?.params != null) {
+    Object.entries(params.options.params).forEach(([key, value]) => {
+      if (value != null) {
+        path = path.replace(`:${key}`, String(value))
+      }
+    })
+  }
 
   const isGetOrHead = isGetOrHeadMethod(params.method)
 
