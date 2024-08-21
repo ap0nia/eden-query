@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 0.1.3
+
+### Patch Changes
+
+- c1a2ccf: fix: resolve route params
+- Updated dependencies [c1a2ccf]
+  - @ap0nia/eden@0.1.3
+
 ## 0.1.2
 
 ### Patch Changes
