@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 0.1.3
+
+### Patch Changes
+
+- c1a2ccf: fix: resolve route params
+
 ## 0.1.2
 
 ### Patch Changes
