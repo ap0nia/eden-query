@@ -5,7 +5,9 @@ const config = defineConfig({
   outDir: 'dist',
   dts: true,
   format: ['esm'],
-  noExternal: [/.*/],
+  external: ['react'],
+  noExternal: ['@ap0nia/eden-react-query', '@ap0nia/eden'],
+  clean: true,
 })
 
 export default config

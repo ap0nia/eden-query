@@ -1,0 +1,25 @@
+{
+  "name": "eden-next-query-basic",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ap0nia/eden-next-query": "workspace:^",
+    "@ap0nia/eden-react-query": "workspace:^",
+    "@tanstack/react-query": "^5.51.16",
+    "next": "14.2.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}
