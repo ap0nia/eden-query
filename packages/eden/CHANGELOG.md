@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 0.1.4
+
+### Patch Changes
+
+- 125e0b3: feat: eden-next-query and fixed type exports
+
 ## 0.1.3
 
 ### Patch Changes
