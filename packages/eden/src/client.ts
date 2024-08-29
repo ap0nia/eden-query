@@ -3,7 +3,9 @@ import type { AnyElysia } from 'elysia'
 import { createChain } from './links/internal/create-chain'
 import { promisifyObservable, type Unsubscribable } from './links/internal/observable'
 import type {
-  EdenLink,
+  EdenClientError,
+  EdenClientOptions,
+  EdenClientRuntime,
   OperationContext,
   OperationLink,
   OperationType,
@@ -20,20 +22,9 @@ export type EdenSubscriptionObserver<TValue, TError> = {
   onComplete: () => void
 }
 
-export type EdenClientOptions<T extends AnyElysia> = {
-  links: EdenLink<T>[]
-}
-
 export type EdenCreateClient<T extends AnyElysia = AnyElysia> = (
   options: EdenClientOptions<T>,
 ) => EdenClient<T>
-
-/**
- * TODO: placeholder for TRPCClientError<TInferrable>.
- */
-export type EdenClientError<_T extends AnyElysia> = any
-
-export type EdenClientRuntime = {}
 
 /**
  * The request options that are passed

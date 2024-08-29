@@ -1,0 +1,36 @@
+{
+  "name": "@ap0nia/eden-next-query",
+  "version": "0.1.3",
+  "description": "elysia.js eden and Next.js/react-query integration",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ap0nia/eden-query",
+    "directory": "packages/eden-next-query"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "dependencies": {
+    "@ap0nia/eden": "workspace:^",
+    "@ap0nia/eden-react-query": "workspace:^",
+    "@tanstack/react-query": "^5.51.16",
+    "elysia": "1.1.6",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "tsup": "^8.2.3",
+    "typescript": "^5.5.4"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.51.16",
+    "elysia": "1.1.6"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
