@@ -30,6 +30,7 @@ import {
   getMutationKey as internalGetMutationKey,
   getQueryKey as internalGetQueryKey,
 } from '../../integration/internal/query-key'
+import { getPathParam } from '../../utils/path-param'
 import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
@@ -201,6 +202,12 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
        */
       if (hook === '_defs') {
         return pathsCopy
+      }
+
+      const pathParam = getPathParam(args)
+
+      if (pathParam != null) {
+        return createEdenTreatyReactQueryProxy(rootHooks, config, [...paths, pathParam])
       }
 
       return (rootHooks as any)[hook](pathsCopy, ...args)
