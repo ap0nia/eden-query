@@ -9,6 +9,7 @@ import type {
   HttpSubscriptionMethod,
   InferRouteOptions,
 } from '@ap0nia/eden'
+import type { StoreOrVal } from '@tanstack/svelte-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 import type { Prettify } from 'elysia/types'
 
@@ -28,6 +29,7 @@ import {
   getMutationKey as internalGetMutationKey,
   getQueryKey as internalGetQueryKey,
 } from '../../integration/internal/query-key'
+import { getPathParam, mutateArgs } from '../../utils/path-param'
 import type { EdenTreatyCreateQueries } from './create-queries'
 import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
@@ -84,11 +86,29 @@ export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {
 export type EdenTreatySvelteQueryHooksImplementation<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = {
-  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
     ? EdenTreatySvelteQueryRouteHooks<TSchema[K], K, TPath>
     : EdenTreatySvelteQueryHooksImplementation<TSchema[K], [...TPath, K]>
+} & ({} extends TRouteParams
+  ? {}
+  : (
+      params: StoreOrVal<ExtractEdenTreatyRouteParamsInput<TRouteParams>>,
+    ) => EdenTreatySvelteQueryHooksImplementation<
+      TSchema[Extract<keyof TRouteParams, keyof TSchema>],
+      TPath
+    >)
+
+export type ExtractEdenTreatyRouteParams<T> = {
+  [K in keyof T as K extends `:${string}` ? K : never]: T[K]
 }
+
+export type ExtractEdenTreatyRouteParamsInput<T> = {
+  [K in keyof T as K extends `:${infer TParam}` ? TParam : never]: string | number
+}
+
+export type ExtractRouteParam<T> = T extends `:${infer TParam}` ? TParam : T
 
 /**
  * Maps a {@link RouteSchema} to an object with hooks.
@@ -171,18 +191,29 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
   rootHooks: EdenTreatyQueryRootHooks<T>,
   config?: EdenQueryConfig<T>,
   paths: string[] = [],
+  pathParams: StoreOrVal<Record<string, any>>[] = [],
 ) {
   const edenTreatyQueryProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createEdenTreatySvelteQueryProxy(rootHooks, config, nextPaths)
+      return createEdenTreatySvelteQueryProxy(rootHooks, config, nextPaths, pathParams)
     },
     apply: (_target, _thisArg, args) => {
       const pathsCopy = [...paths]
 
       const hook = pathsCopy.pop() ?? ''
 
-      return (rootHooks as any)[hook](pathsCopy, ...args)
+      const pathParam = getPathParam(args)
+
+      if (pathParam?.key != null) {
+        const allPathParams = [...pathParams, pathParam.param]
+        const pathsWithParams = [...paths, `:${pathParam.key}`]
+        return createEdenTreatySvelteQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
+      }
+
+      const modifiedArgs = mutateArgs(hook, args, pathParams)
+
+      return (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)
     },
   })
 

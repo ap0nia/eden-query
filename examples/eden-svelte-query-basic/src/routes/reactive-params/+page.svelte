@@ -5,12 +5,9 @@
 
   const input = writable<InferInput['api']['names']['get']['query']>({})
 
-  const names = eden.api.names.get.createQuery(input, {
-    /**
-     * This prevents the data from disappearing briefly when loading up the next query.
-     */
-    placeholderData: keepPreviousData,
-  })
+  const id = writable({ id: 1 })
+
+  const names = eden.api.todos(id).get.createQuery(input, { placeholderData: keepPreviousData })
 </script>
 
 <main>
@@ -29,5 +26,6 @@
   <label>
     <p>Search for a name by typing into the box</p>
     <input type="text" bind:value={$input.search} placeholder="Enter name here..." />
+    <input type="number" bind:value={$id.id} placeholder="Enter ID" />
   </label>
 </main>

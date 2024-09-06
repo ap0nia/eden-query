@@ -93,6 +93,7 @@ const rootController = new Elysia()
       body: t.String(),
     },
   )
+  .get('/todos/:id', (context) => context.params.id)
 
 export const app = new Elysia({ prefix: '/api' })
   .use(transformPlugin(SuperJSON))

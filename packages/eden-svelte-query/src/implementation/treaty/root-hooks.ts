@@ -6,6 +6,7 @@ import {
   type HttpBatchLinkOptions,
   httpLink,
   type HTTPLinkOptions,
+  type InferRouteOptions,
 } from '@ap0nia/eden'
 import {
   createInfiniteQuery as __createInfiniteQuery,
@@ -121,7 +122,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const createQuery = (
     originalPaths: readonly string[],
-    input: StoreOrVal<any>,
+    input: StoreOrVal<InferRouteOptions>,
     options?: StoreOrVal<EdenCreateQueryOptions<unknown, unknown, TError>>,
   ): EdenCreateQueryResult<unknown, TError> => {
     const context = getRawContext()
@@ -175,7 +176,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const createInfiniteQuery = (
     originalPaths: readonly string[],
-    input: StoreOrVal<any>,
+    input: StoreOrVal<InferRouteOptions>,
     options: StoreOrVal<EdenCreateInfiniteQueryOptions<unknown, unknown, TError>>,
   ): EdenCreateInfiniteQueryResult<unknown, TError, unknown> => {
     const context = getRawContext()
@@ -268,6 +269,7 @@ export function createEdenTreatyQueryRootHooks<
   }
 }
 
-export type EdenTreatyQueryRootHooks<TElysia extends AnyElysia, TSSRContext = unknown> = ReturnType<
-  typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>
->
+export type EdenTreatyQueryRootHooks<
+  TElysia extends AnyElysia = AnyElysia,
+  TSSRContext = unknown,
+> = ReturnType<typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>>
