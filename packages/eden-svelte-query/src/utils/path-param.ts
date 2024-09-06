@@ -103,8 +103,6 @@ export function mutateArgs(
     }
   }
 
-  console.log({ paramsStores, staticParams })
-
   const paramsStore = derived(paramsStores, ($paramsStores) => {
     const resolvedParams: Record<string, any> = {}
 
@@ -118,7 +116,6 @@ export function mutateArgs(
   })
 
   const inputStore = derived([queryStore, paramsStore], ([query, params]) => {
-    console.log({ params, query })
     for (const key in staticParams) {
       params[key] = staticParams[key]
     }
