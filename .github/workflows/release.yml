@@ -45,7 +45,7 @@ jobs:
         uses: changesets/action@v1
         id: changesets
         with:
-          publish: pnpm changeset publish && pnpm publish -r
+          publish: pnpm changeset publish
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
         env:
