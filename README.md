@@ -49,7 +49,7 @@ yarn add elysia @ap0nia/eden-react-query
 pnpm add elysia @ap0nia/eden-react-query
 ```
 
-### Usage
+### Usage (React)
 
 ```tsx
 import { eden } from './eden'
@@ -112,14 +112,15 @@ export type App = typeof app
 More documentation for framework-specific packages can be found in their respective project
 directories as well as the documentation.
 
-- [React](./packages/svelte)
-- [Svelte](./packages/svelte)
+- [React](./packages/eden-react-query)
+- [Svelte](./packages/eden-svelte-query)
 
 ### General Purpose Integrations
 
+- [Eden](./packages/eden)
+
 A custom implementation of the `eden` client is maintained here with the same core functionality
 as the [officially documented one](https://elysiajs.com/eden/overview.html).
-Read more about it [here](./packages/eden).
 
 ## 📖 Learn More
 
