@@ -119,8 +119,7 @@ directories as well as the documentation.
 
 A custom implementation of the `eden` client is maintained here with the same core functionality
 as the [officially documented one](https://elysiajs.com/eden/overview.html).
-
-Read more about it [here](./packages/eden)
+Read more about it [here](./packages/eden).
 
 ## 📖 Learn More
 
