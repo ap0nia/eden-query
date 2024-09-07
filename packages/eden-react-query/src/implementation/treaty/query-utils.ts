@@ -322,7 +322,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
       const queryType = getQueryType(hook)
 
       // The rest of the args are passed directly to the function.
-      const query = argsCopy.shift()
+      const firstArg = argsCopy.shift()
 
       const params: Record<string, any> = {}
 
@@ -332,7 +332,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
         }
       }
 
-      const input = { query, params }
+      const input = { query: firstArg, params }
 
       const queryKey = getQueryKey(paths, input, queryType)
 
@@ -394,7 +394,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
         }
 
         case 'setMutationDefaults': {
-          return context.setMutationDefaults(getMutationKey(paths), input)
+          return context.setMutationDefaults(getMutationKey(paths), firstArg)
         }
 
         case 'getMutationDefaults': {

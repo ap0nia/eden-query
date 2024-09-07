@@ -46,6 +46,11 @@ import type {
 } from '../../integration/internal/infinite-query'
 import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
 import {
+  type ExtractEdenTreatyRouteParams,
+  type ExtractEdenTreatyRouteParamsInput,
+  getPathParam,
+} from '../../integration/internal/path-params'
+import {
   type EdenQueryKey,
   getMutationKey,
   getQueryKey,
@@ -67,20 +72,25 @@ export type EdenTreatyQueryContextProps<
 export type EdenTreatyQueryUtilsProxy<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = EdenTreatyQueryUtilsUniversalUtils & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? EdenTreatyQueryUtilsMapping<TSchema[K], TPath, K>
     : EdenTreatyQueryUtilsProxy<TSchema[K], [...TPath, K]>
-}
+} & ({} extends TRouteParams
+    ? {}
+    : (
+        params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+      ) => EdenTreatyQueryUtilsProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>)
 
 type EdenTreatyQueryUtilsMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TMethod = '',
-  TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
 > = TMethod extends HttpQueryMethod
   ? EdenTreatyQueryUtilsQueryUtils<TRoute, TPath> &
-      (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
+      (InfiniteCursorKey extends keyof TInput
         ? EdenTreatyQueryUtilsInfiniteUtils<TRoute, TPath>
         : {})
   : TMethod extends HttpMutationMethod
@@ -90,7 +100,7 @@ type EdenTreatyQueryUtilsMapping<
 export type EdenTreatyQueryUtilsQueryUtils<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
@@ -287,6 +297,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
   context: EdenContextState<TRouter, TSSRContext>,
   config?: EdenQueryConfig<TRouter>,
   originalPaths: string[] = [],
+  pathParams: Record<string, any>[] = [],
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   const queryClient = context.queryClient ?? new QueryClient()
 
@@ -305,10 +316,18 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
-      return createEdenTreatyQueryUtilsProxy(context, config, nextPaths)
+      return createEdenTreatyQueryUtilsProxy(context, config, nextPaths, pathParams)
     },
-    apply: (_target, _thisArg, argArray) => {
-      const argsCopy = [...argArray]
+    apply: (_target, _thisArg, args) => {
+      const pathParam = getPathParam(args)
+
+      if (pathParam?.key != null) {
+        const allPathParams = [...pathParams, pathParam.param]
+        const pathsWithParams = [...originalPaths, `:${pathParam.key}`]
+        return createEdenTreatyQueryUtilsProxy(context, config, pathsWithParams, allPathParams)
+      }
+
+      const argsCopy = [...args]
 
       const pathsCopy = [...originalPaths]
 
