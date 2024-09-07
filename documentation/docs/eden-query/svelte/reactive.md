@@ -80,12 +80,12 @@ export type InferOutput = InferTreatyQueryOutput<App>
 <script lang="ts">
   import { eden, type InferInput } from '$lib/eden'
 
-  const input = writable<InferInput['post'][':id']['get']>({ params: { id: '' }})
+  const id = writable({ id: '' })
 
-  const post = eden.post[':id'].get.createQuery(input)
+  const post = eden.post(id).get.createQuery(input)
 </script>
 
-<input bind:value={$input.params.id}>
+<input bind:value={$id.id}>
 ```
 
 :::

@@ -120,8 +120,8 @@ import { eden } from './eden'
 
 export function MyComponent() {
   // input is optional, so we don't have to pass the 'text' property in the query field.
-  const helloNoArgs = eden.hello.get.useQuery({ query: { }})
-  const helloWithArgs = eden.hello.get.useQuery({ query: { text: 'client' }})
+  const helloNoArgs = eden.hello.get.useQuery()
+  const helloWithArgs = eden.hello.get.useQuery({ text: 'client' })
 
   return (
     <div>

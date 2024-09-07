@@ -24,11 +24,19 @@ head:
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-react-query'
 
-export const app = new Elysia().use(batchPlugin()).get('/user/:name', (context) => {
-  return {
-    name: context.params.name,
-  }
-})
+export const app = new Elysia().use(batchPlugin()).get(
+  '/user',
+  (context) => {
+    return {
+      name: context.query.name,
+    }
+  },
+  {
+    query: t.Object({
+      name: t.String(),
+    }),
+  },
+)
 
 export type App = typeof app
 ```
@@ -80,10 +88,10 @@ import { eden } from './eden'
 export function MyComponent() {
   const [name, setName] = useState<string | undefined>()
 
-  const result = eden.user[':name'].get.useQuery(name ? { params: { name } } : skipToken)
+  const result = eden.user.get.useQuery(name ? { name } : skipToken)
 
   result
-  // ^?
+  //  ^?
 }
 ```
 

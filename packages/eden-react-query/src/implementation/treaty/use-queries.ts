@@ -16,6 +16,7 @@ import type { AnyElysia, RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../../config'
 import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
+import { getPathParam } from '../../integration/internal/path-params'
 import type { EdenQueryBaseOptions } from '../../integration/internal/query-base-options'
 import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
 import type { UseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
@@ -59,7 +60,7 @@ export type EdenTreatyUseQueriesProxyMapping<
 export type EdenTreatyUseQueriesHook<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
@@ -74,14 +75,33 @@ export function createTreatyUseQueriesProxy<T extends AnyElysia = AnyElysia>(
   client: EdenClient<T>,
   originalPaths: string[] = [],
   config?: EdenQueryConfig<T>,
+  pathParams: Record<string, any>[] = [],
 ): EdenTreatyUseQueriesProxy<T> {
   const useQueriesProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
-      return createTreatyUseQueriesProxy(client, nextPaths)
+      return createTreatyUseQueriesProxy(client, nextPaths, config, pathParams)
     },
     apply: (_target, _thisArg, args: UseQueriesProxyArgs) => {
-      const options = args[0]
+      const pathParam = getPathParam(args)
+
+      if (pathParam?.key != null) {
+        const allPathParams = [...pathParams, pathParam.param]
+        const pathsWithParams = [...originalPaths, `:${pathParam.key}`]
+        return createTreatyUseQueriesProxy(client, pathsWithParams, config, allPathParams)
+      }
+
+      const query = args[0]
+
+      const params: Record<string, any> = {}
+
+      for (const param of pathParams) {
+        for (const key in param) {
+          params[key] = param[key]
+        }
+      }
+
+      const options = { query, params }
 
       const { eden, ...queryOptionsOverrides } = args[1] ?? {}
 

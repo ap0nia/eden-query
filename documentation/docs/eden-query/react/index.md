@@ -97,7 +97,7 @@ import React from 'react'
 import { eden } from './eden'
 
 export default function IndexPage() {
-  const helloQuery = eden.hello.get.useQuery({ query: { name: 'Bob' } })
+  const helloQuery = eden.hello.get.useQuery({ name: 'Bob' })
   const goodbyeMutation = eden.goodbye.post.useMutation()
 
   return (

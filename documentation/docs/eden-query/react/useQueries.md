@@ -121,7 +121,7 @@ export type MyProps = {
 
 export function MyComponent(props: MyProps) {
   const postQueries = eden.useQueries((e) => {
-    return props.postIds.map((id) => e.post[':id'].get({ params: { id } }))
+    return props.postIds.map((id) => e.post({ id }).get())
   })
 
   return /* [...] */
@@ -159,8 +159,8 @@ export type MyProps = {
 
 export function MyComponent(props: MyProps) {
   const [post, greeting] = eden.useQueries((e) => [
-    e.post[':id'].get({ params: { id: '1' } }, { enabled: false }),
-    e.greeting.get({ query: { text: 'world' }}),
+    e.post({ id: 1 }).get(undefined, { enabled: false }),
+    e.greeting.get({ text: 'world' }),
   ])
 
   const onButtonClick = () => {
@@ -199,8 +199,8 @@ export type MyProps = {
 export function MyComponent(props: MyProps) {
   const [post, greeting] = eden.useQueries(
     (e) => [
-      e.post[':id'].get({ params: { id: '1' } }),
-      e.greeting.get({ query: { text: 'world' } }),
+      e.post({ id: 1 }).get(),
+      e.greeting.get({ text: 'world' }),
     ],
     myCustomContext,
   )

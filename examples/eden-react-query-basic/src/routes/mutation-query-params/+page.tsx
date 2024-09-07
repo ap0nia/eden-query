@@ -19,6 +19,10 @@ export default function Page() {
     withParamQuery.mutateAsync({ from: '', name: '' }, { query: { location: '' } })
   }
 
+  // const bruh = eden.useUtils()
+
+  // eden.api.nendoroid({ id: 1 })
+
   return (
     <main>
       <button onClick={handleParamMutation}>Params only</button>

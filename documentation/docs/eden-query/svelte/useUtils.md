@@ -199,7 +199,7 @@ on the input passed to it to prevent unnecessary calls to the back end.
   const mutation = eden.post.edit.post.createMutation({
     onSuccess(input) {
       utils.post.all.invalidate()
-      utils.post[':id'].invalidate({ params: { id: input.id } }) // Will not invalidate queries for other id's 👍
+      utils.post({ id: input.id }).invalidate() // Will not invalidate queries for other id's 👍
     },
   })
 </script>
@@ -223,7 +223,7 @@ just one query.
   const mutation = eden.post.edit.post.createMutation({
     onSuccess(input) {
       utils.post.all.invalidate()
-      utils.post[':id'].invalidate({ params: { id: input.id } }) // Will not invalidate queries for other id's 👍
+      utils.post({ id: input.id }).invalidate() // Will not invalidate queries for other id's 👍
     },
   })
 
@@ -242,14 +242,14 @@ just one query.
   const invalidatePostById = () => {
     // 3️⃣
     // All queries in the post router with input {id:1} invalidated 📭
-    utils.post[':id'].invalidate({ id: 1 })
+    utils.post({ id: 1 }).invalidate()
   }
 
   // Example queries
   eden.user.all.get.createQuery() // Would only be validated by 1️⃣ only.
   eden.post.all.get.createQuery() // Would be invalidated by 1️⃣ & 2️⃣
-  eden.post[':id'].createQuery({ params: { id: 1 } }) // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
-  eden.post[':id'].createQuery({ params: { id: 2 } }) // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
+  eden.post({ id: 1 }).createQuery() // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
+  eden.post({ id: 2 }).createQuery() // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
 </script>
 ```
 

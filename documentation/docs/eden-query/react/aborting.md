@@ -119,10 +119,8 @@ import { eden } from './eden'
 function PostViewPage() {
   const { query } = useRouter()
 
-  const postQuery = eden.post[':id'].get.useQuery(
-    {
-      query: { id: query.id },
-    },
+  const postQuery = eden.post({ id: query.id }).get.useQuery(
+    undefined,
     { eden: { abortOnUnmount: true } },
   )
 

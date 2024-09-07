@@ -86,7 +86,7 @@ export const eden = createEdenTreatySvelteQuery<App>()
 <script lang="ts">
   import { eden } from '../lib/eden'
 
-  const helloQuery = eden.hello.get.createQuery({ query: { name: 'Bob' } })
+  const helloQuery = eden.hello.get.createQuery({ name: 'Bob' })
   const goodbyeMutation = eden.goodbye.post.createMutation()
 </script>
 

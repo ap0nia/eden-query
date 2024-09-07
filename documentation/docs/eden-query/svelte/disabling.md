@@ -26,11 +26,19 @@ head:
 import { Elysia, t } from 'elysia'
 import { batchPlugin } from '@ap0nia/eden-svelte-query'
 
-export const app = new Elysia().use(batchPlugin()).get('/user/:name', (context) => {
-  return {
-    name: context.params.name,
-  }
-})
+export const app = new Elysia().use(batchPlugin()).get(
+  '/user',
+  (context) => {
+    return {
+      name: context.query.name,
+    }
+  },
+  {
+    query: t.Object({
+      name: t.String(),
+    }),
+  },
+)
 
 export type App = typeof app
 ```
@@ -69,7 +77,7 @@ To disable queries, you can pass `skipToken` as the first argument to `useQuery`
 
   let name = ''
 
-  const result = eden.user[':name'].get.useQuery(name ? { params: { name } } : skipToken)
+  const result = eden.user.get.useQuery(name ? { name } : skipToken)
 </script>
 
 // ...
