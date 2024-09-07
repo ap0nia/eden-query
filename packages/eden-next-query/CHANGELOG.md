@@ -1,5 +1,14 @@
 # @ap0nia/eden-next-query
 
+## 1.0.5
+
+### Patch Changes
+
+- fe4b6e1: fix: github actions release workflow
+- Updated dependencies [fe4b6e1]
+  - @ap0nia/eden@1.0.5
+  - @ap0nia/eden-react-query@1.0.5
+
 ## 1.0.4
 
 ### Patch Changes
