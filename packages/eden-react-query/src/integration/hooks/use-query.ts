@@ -55,7 +55,8 @@ export type EdenDefinedUseQueryResult<TData, TError> = WithEdenQueryExtension<
 export interface EdenUseQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
+  // The publicly exposed `useQuery` hook only accepts the `query` object.
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > {
@@ -102,7 +103,8 @@ export function isServerQuery(
 export function edenUseQueryOptions(
   parsedPathAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
-  input?: any,
+  // The internal helper to `useQueryOptions` receives the entire input object, including `query` and `params`.
+  input?: InferRouteOptions | SkipToken,
   options?: EdenUseQueryOptions<unknown, unknown, any>,
   config?: EdenQueryConfig,
 ): UseQueryOptions {
@@ -110,11 +112,11 @@ export function edenUseQueryOptions(
 
   const { paths, path, method } = parsedPathAndMethod
 
-  const queryKey = getQueryKey(paths, input, 'query')
+  const isInputSkipToken = input === skipToken && typeof input !== 'object'
+
+  const queryKey = getQueryKey(paths, isInputSkipToken ? undefined : input, 'query')
 
   const defaultOptions = queryClient.getQueryDefaults(queryKey)
-
-  const isInputSkipToken = input === skipToken
 
   if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
     void prefetchQuery(queryKey, options)

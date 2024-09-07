@@ -110,7 +110,7 @@ export const eden = createEdenTreatySvelteQuery<App>()
   export let postIds: string[] = []
 
   const postQueries = eden.createQueries((e) => {
-    return props.postIds.map((id) => e.post[':id'].get({ id }))
+    return props.postIds.map((id) => e.post({ id }).get())
   })
 </script>
 
@@ -136,8 +136,8 @@ see the [tanstack useQuery](https://tanstack.com/query/v5/docs/framework/react/r
   export let postIds: string[] = []
 
   const [post, greeting] = eden.createQueries((e) => [
-    e.post[':id'].get({ params: { id: '1' } }, { enabled: false }),
-    e.greeting.get({ query: { text: 'world' }}),
+    e.post({ id: 1 }).get(undefined, { enabled: false }),
+    e.greeting.get({ text: 'world' }),
   ])
 
   const onButtonClick = () => {
@@ -166,8 +166,8 @@ You can also pass in an optional Svelte Query context to override the default.
 
   const [post, greeting] = eden.createQueries(
     (e) => [
-      e.post[':id'].get({ params: { id: '1' } }),
-      e.greeting.get({ query: { text: 'world' } }),
+      e.post({ id: 1 }).get(),
+      e.greeting.get({ text: 'world' }),
     ],
     myCustomContext,
   )

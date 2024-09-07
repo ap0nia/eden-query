@@ -11,7 +11,9 @@ import BatchPage from './routes/batch/+page'
 import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
 import InfinitePage from './routes/infinite/+page'
 import MutationPage from './routes/mutation/+page'
+import MutationQueryParamPage from './routes/mutation-query-params/+page'
 import ReactiveInputPage from './routes/reactive-input/+page'
+import ReactiveParamsPage from './routes/reactive-params/+page'
 import UseQueriesPage from './routes/use-queries/+page'
 
 export function App() {
@@ -76,6 +78,14 @@ export function App() {
                     <Link to="/reactive-input">reactive input box</Link>
                   </li>
                   <li>
+                    <Link to="/reactive-params">reactive params</Link>
+                  </li>
+                  <li>
+                    <Link to="/mutation-query-params">
+                      mutation with query and path parameter input
+                    </Link>
+                  </li>
+                  <li>
                     <Link to="/abort">abort</Link>
                   </li>
                   <li>
@@ -110,12 +120,20 @@ export function App() {
             element: <MutationPage />,
           },
           {
+            path: '/mutation-query-params',
+            element: <MutationQueryParamPage />,
+          },
+          {
             path: '/abort',
             element: <AbortPage />,
           },
           {
             path: '/reactive-input',
             element: <ReactiveInputPage />,
+          },
+          {
+            path: '/reactive-params',
+            element: <ReactiveParamsPage />,
           },
           {
             path: '/infinite',

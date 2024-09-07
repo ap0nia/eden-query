@@ -230,7 +230,7 @@ function MyComponent() {
   const mutation = eden.post.edit.post.useMutation({
     onSuccess(input) {
       utils.post.all.invalidate()
-      utils.post[':id'].get.invalidate({ params: { id: input.post.id + ''} }) // Will not invalidate queries for other id's 👍
+      utils.post[':id'].get.invalidate({ params: { id: input.post.id + '' } }) // Will not invalidate queries for other id's 👍
     },
   })
 
@@ -281,15 +281,15 @@ export function MyComponent() {
 
   const invalidatePostById = () => {
     // 3️⃣
-    // All queries in the post router with input {id:1} invalidated 📭
-    utils.post[':id'].get.invalidate({ params: { id: '1' } })
+    // All queries in the post router with path params { id: 1 } invalidated 📭
+    utils.post({ id: 1 }).get.invalidate()
   }
 
   // Example queries
   eden.user.all.get.useQuery() // Would only be validated by 1️⃣ only.
   eden.post.all.get.useQuery() // Would be invalidated by 1️⃣ & 2️⃣
-  eden.post[':id'].get.useQuery({ params: { id: '1' } }) // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
-  eden.post[':id'].get.useQuery({ params: { id: '2' } }) // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
+  eden.post({ id: 1 }).get.useQuery() // Would be invalidated by 1️⃣, 2️⃣ and 3️⃣
+  eden.post({ id: 2 }).get.useQuery() // would be invalidated by 1️⃣ and 2️⃣ but NOT 3️⃣!
 }
 ```
 

@@ -6,8 +6,10 @@ import {
   type HttpBatchLinkOptions,
   httpLink,
   type HTTPLinkOptions,
+  type InferRouteOptions,
 } from '@ap0nia/eden'
 import {
+  type SkipToken,
   useInfiniteQuery as __useInfiniteQuery,
   useQueries as __useQueries,
   useQuery as __useQuery,
@@ -152,19 +154,14 @@ export function createEdenTreatyQueryRootHooks<
 
   const useQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input?: InferRouteOptions | SkipToken,
     options?: EdenUseQueryOptions<unknown, unknown, TError>,
   ): EdenUseQueryResult<unknown, TError> => {
     const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseQueryResult<any, TError>
 
@@ -181,19 +178,14 @@ export function createEdenTreatyQueryRootHooks<
 
   const useSuspenseQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input: InferRouteOptions,
     options?: EdenUseSuspenseQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseQueryResult<unknown, TError> => {
     const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseQueryResult<any, TError>
 
@@ -210,19 +202,14 @@ export function createEdenTreatyQueryRootHooks<
 
   const useInfiniteQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input?: InferRouteOptions | SkipToken,
     options?: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
@@ -239,19 +226,14 @@ export function createEdenTreatyQueryRootHooks<
 
   const useSuspenseInfiniteQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input: InferRouteOptions,
     options?: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
@@ -307,13 +289,14 @@ export function createEdenTreatyQueryRootHooks<
 
   const useMutation = (
     originalPaths: readonly string[],
+    input?: InferRouteOptions,
     options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
   ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
     const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    const mutationOptions = getEdenUseMutationOptions(parsed, context, options, config)
+    const mutationOptions = getEdenUseMutationOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseMutationResult<any, any, any, any, any>
 
@@ -358,6 +341,7 @@ export function createEdenTreatyQueryRootHooks<
   }
 }
 
-export type EdenTreatyQueryRootHooks<TElysia extends AnyElysia, TSSRContext = unknown> = ReturnType<
-  typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>
->
+export type EdenTreatyQueryRootHooks<
+  TElysia extends AnyElysia = AnyElysia,
+  TSSRContext = unknown,
+> = ReturnType<typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>>

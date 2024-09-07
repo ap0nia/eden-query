@@ -192,7 +192,7 @@ import React from 'react'
 import { eden } from './eden'
 
 export default function IndexPage() {
-  const userQuery = eden.user.get.useQuery({ query: { id: 'id_bilbo' }})
+  const userQuery = eden.user.get.useQuery({ id: 'id_bilbo' })
   const userCreator = eden.user.post.useMutation()
 
   return (

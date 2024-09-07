@@ -202,7 +202,7 @@ You can now use the eden-treaty React Query integration to call queries and muta
 <script lang="ts">
   import { eden } from '$lib/eden'
 
-  const userQuery = eden.user.get.useQuery({ query: { id: 'id_bilbo' }})
+  const userQuery = eden.user.get.useQuery({ id: 'id_bilbo' })
   const userCreator = eden.user.post.useMutation()
 </script>
 

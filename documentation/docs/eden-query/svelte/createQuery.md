@@ -110,8 +110,8 @@ export const eden = createEdenTreatySvelteQuery<App>()
 <script lang="ts">
   import { eden } from '$/lib/eden'
 
-  const helloNoArgs = eden.hello.get.useQuery({ query: { }})
-  const helloWithArgs = eden.hello.get.useQuery({ query: { text: 'client' }})
+  const helloNoArgs = eden.hello.get.useQuery()
+  const helloWithArgs = eden.hello.get.useQuery({ text: 'client' })
 </script>
 
 <div>

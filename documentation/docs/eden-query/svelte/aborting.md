@@ -105,10 +105,8 @@ You may also override this behaviour at the query level.
 
   export let data: PageData
 
-  const postQuery = eden.post[':id'].get.useQuery(
-    {
-      query: { id: data.id },
-    },
+  const postQuery = eden.post({ id: data.id }).get.useQuery(
+    undefined,
     { eden: { abortOnUnmount: true } },
   )
 </script>

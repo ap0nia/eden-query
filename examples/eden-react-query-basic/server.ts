@@ -112,6 +112,37 @@ const rootController = new Elysia()
       }),
     },
   )
+  .get('/products/:id', (context) => context.params.id)
+  .get('/nendoroid/:id/name', () => {
+    return 'Skadi'
+  })
+  .put(
+    '/nendoroid/:id',
+    (context) => {
+      return { status: 'OK', received: context.body }
+    },
+    {
+      body: t.Object({
+        name: t.String(),
+        from: t.String(),
+      }),
+    },
+  )
+  .patch(
+    '/nendoroid/:id',
+    (context) => {
+      return { status: 'OK', received: context.body }
+    },
+    {
+      query: t.Object({
+        location: t.String(),
+      }),
+      body: t.Object({
+        name: t.String(),
+        from: t.String(),
+      }),
+    },
+  )
 
 export const app = new Elysia({ prefix: '/api' })
   .use(cors())

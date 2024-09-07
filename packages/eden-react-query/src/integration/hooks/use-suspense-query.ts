@@ -21,7 +21,7 @@ export type EdenUseSuspenseQueryResult<TData, TError> = [
 export type EdenUseSuspenseQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (

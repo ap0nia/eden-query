@@ -90,7 +90,7 @@ See [TanStack/query#5111 (comment)](https://github.com/TanStack/query/issues/511
 
   const queryClient = useQueryClient()
 
-  const posts = eden.post.list.get.useQuery()
+  const posts = eden.post.list.get.createQuery()
 
   // See if a query is fetching
   const postListKey = getQueryKey(eden.post.list, undefined, 'query')

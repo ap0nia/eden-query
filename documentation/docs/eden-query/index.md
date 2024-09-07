@@ -49,7 +49,7 @@ just like the official eden library.
 ::: code-group
 
 ```typescript [treaty]
-eden.greeting[':name'].get.createQuery({ params: { name: 'Elysia' } })
+eden.greeting({ name: 'Elysia' }).get.createQuery()
 ```
 
 ```typescript [fetch]
@@ -131,20 +131,16 @@ import type { App } from './server'
  */
 const domain = 'localhost:3000'
 
-export const app = createEdenTreatyReactQuery<App>({
-  domain: 'localhost:3000',
-})
+export const app = createEdenTreatyReactQuery<App>({ domain })
 
 // useQuery for [GET] request to '/nendoroid/:id/name'
-const { data } = await app.nendoroid[':id'].name.get.useQuery({
-  params: { id: 'skadi' },
-})
+const { data } = await app.nendoroid({ id: 'skadi' }).name.get.useQuery()
 
 // useMutation for [PUT] request to '/nendoroid/:id'
-const { data: nendoroid, error, mutateAsync } = app.nendoroid[':id'].put.useMutation()
+const { data: nendoroid, error, mutateAsync } = app.nendoroid({ id: 1895 }).put.useMutation()
 
 // Peform the mutation...
-mutateAsync({ name: 'Skadi', from: 'Arknights' }, { params: { id: '1895' } }).then((result) => {
+mutateAsync({ name: 'Skadi', from: 'Arknights' }).then((result) => {
   result
   // ^?
 })
@@ -158,36 +154,6 @@ The result of `useMutation` has `mutate` and `mutateAsync` methods that receive 
 
 [Read more about mutations here](https://tanstack.com/query/latest/docs/framework/react/reference/useMutation#usemutation).
 :::
-
-## Comparison with Eden-Treaty
-
-### Params
-
-Passing in dynamic path params is different between this implementation of Treaty and the official one.
-
-The official implementation treats the path param as a function call
-[dynamic path params](https://elysiajs.com/eden/treaty/overview.html#dynamic-path).
-
-This implementation accepts a `params` property in one of the arguments of the final function call.
-
-❌ Official implementation
-
-```typescript
-utils.nendoroid({ id: '1895' }).name.get.fetch()
-```
-
-✅ This implementation
-
-```typescript
-utils.nendoroid[':id'].name.get.fetch({ params: { id: '1895' } })
-```
-
-#### Reasoning
-
-- Svelte (4) has unique constraints for handling reactivity in svelte-query properly.
-- I'm not fully confident in the heuristics used to distinguish between function calls for path parameters vs. hooks.
-
-It may be possible, and you can read my implementation notes [here](/eden-query/overview#implementing-treaty-params).
 
 ## Comparison with tRPC
 
@@ -287,181 +253,3 @@ So this will **NOT** affect GET, OPTIONS, or HEAD requests; only POST, PUT, PATC
 :::
 
 Read more about this Eden-Query transformers [here](./transformers).
-
-## Notes
-
-### Implementing Treaty Params
-
-In Svelte (4), all reactivity needs to be encapsulated via readable, writable, etc. interfaces
-in order for features like [placeholder data](https://tanstack.com/query/latest/docs/framework/react/guides/paginated-queries#better-paginated-queries-with-placeholderdata)
-to function properly.
-
-However, this means that a heuristic has to be applied to every function call in order
-to determine if it's a valid `eden-treaty-svelte-query` hook, and the accummulation of
-both readable and static params must be parsed and reduced into a single object...difficult!
-
-```typescript twoslash
-// @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-const app = new Elysia()
-  .get(
-    '/nendoroid/:id/:name',
-    () => {
-      return 'Skadi'
-    },
-    {
-      query: t.Object({
-        filter: t.String(),
-      }),
-    },
-  )
-  .listen(3000)
-
-export type App = typeof app
-
-// @filename: index.ts
-// ---cut---
-import { derived, readable, writable, type Readable } from 'svelte/store'
-import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
-import { createQuery, type StoreOrVal } from '@tanstack/svelte-query'
-import type { App } from './server'
-
-export const eden = createEdenTreatySvelteQuery<App>({ domain: 'localhost:3000' })
-
-/**
- * Dynamic and reactive path param.
- */
-const id = writable({ id: '1895' })
-
-/**
- * Static path param.
- */
-const name = { name: '' }
-
-/**
- * Reactive query input.
- */
-const query = writable({ query: { filter: '' } })
-
-// The implementation needs to support both reactive and static inputs at all points in the chain...
-
-const example = (eden as any).nendoroid(id)(name).get.createQuery(query)
-
-function isStore<T>(value: StoreOrVal<T>): value is Readable<T> {
-  return value != null && typeof value === 'object' && 'subscribe' in value
-}
-
-/**
- * Proxy implementation (Svelte 4).
- *
- * Would be similar but simpler for React since the original reference to inputs doesn't need to be
- * preserved; the entire component probably re-renders anyways.
- */
-function createQueryProxy(paths: string[] = [], params: any[] = []) {
-  return new Proxy(() => {}, {
-    get: (_target, path: string, _receiver): any => {
-      const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createQueryProxy(nextPaths, params)
-    },
-    apply: (_target, _thisArg, args) => {
-      const pathsCopy = [...paths]
-
-      const hook = pathsCopy.pop() ?? ''
-
-      const [options] = args
-
-      // Do something if it's a valid hook...
-      if (hook === 'createQuery') {
-        // Filter through all params that were parsed...
-
-        const readableParams: Readable<any>[] = []
-
-        /**
-         * Non-readable params can be used to calculate the intial params.
-         */
-        const staticParams: any = {}
-
-        for (const p of params) {
-          if (isStore(p)) {
-            readableParams.push(p)
-            continue
-          }
-
-          const first = Object.entries(p)[0]
-
-          // Null check, but params should always be one key -> one value
-          if (first?.[0] == null || first?.[1] == null) continue
-
-          staticParams[first[0]] = first[1]
-        }
-
-        const paramsStore = derived(readableParams, ($paramsArray) => {
-          /**
-           * Using a shallow copy of the staticly calculated params as a based,
-           * set all params that were readable and may have updated.
-           */
-          const result = $paramsArray.reduce(
-            (previous, current) => {
-              const firstPair = Object.entries(current)[0]
-
-              if (firstPair == null) return previous
-
-              const [paramKey, paramValue] = firstPair
-
-              if (paramKey && paramValue) {
-                previous[paramKey] = paramValue
-              }
-
-              return previous
-            },
-            { ...staticParams },
-          )
-
-          return result
-        })
-
-        /**
-         * GET options like `query` and `headers`. Does NOT include `params`.
-         * Just convert to a store so it's easy to include in the `derived` function call.
-         */
-        const optionsStore = isStore(options) ? options : readable(options)
-
-        /**
-         * Final input store should have `query` and `params` in one readable,
-         * along with any other options specified, like `headers`.
-         */
-        const inputStore = derived([paramsStore, optionsStore], ([$params, $options]) => {
-          return {
-            params: $params,
-            ...$options,
-          }
-        })
-
-        /**
-         * Using the input store, derive the query options...
-         */
-        const queryOptions = derived(inputStore, ($input) => {
-          return {
-            queryKey: [],
-          }
-        })
-
-        return createQuery(queryOptions)
-      }
-
-      /**
-       * If the first argument is a param, pass it into the params array for processing later in the proxy.
-       *
-       * @todo Better heuristic for determining if it's a path param...
-       */
-      if (options != null || isStore(options)) {
-        return createQueryProxy(paths, [...params, options])
-      }
-
-      // Other edge cases...
-      return
-    },
-  })
-}
-```

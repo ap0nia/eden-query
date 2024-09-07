@@ -120,7 +120,7 @@ import React from 'react'
 import { eden } from './eden'
 
 function PostView() {
-  const [post, postQuery] = eden.post[':id'].get.useSuspenseQuery({ params: { id: '1' }})
+  const [post, postQuery] = eden.post({ id: 1 }).get.useSuspenseQuery()
   //      ^?
 
   return <>{/* ... */}</>
@@ -153,7 +153,7 @@ import { eden } from './eden'
 function PostView() {
   const [{ pages }, allPostsQuery] = eden.post.all.get.useSuspenseInfiniteQuery(
     //      ^?
-    { query: {} },
+    undefined,
     {
       getNextPageParam(lastPage) {
         return lastPage.nextCursor
@@ -198,7 +198,7 @@ export type PostViewProps = {
 
 function PostView(props: PostViewProps) {
   const [posts, postQueries] = eden.useSuspenseQueries((e) => {
-    return props.postIds.map((id) => e.post[':id'].get({ params: { id } }))
+    return props.postIds.map((id) => e.post({ id }).get())
   })
   return /* */
 }

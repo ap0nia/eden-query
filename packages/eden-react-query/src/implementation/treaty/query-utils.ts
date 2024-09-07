@@ -43,6 +43,11 @@ import type {
 } from '../../integration/internal/infinite-query'
 import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
 import {
+  type ExtractEdenTreatyRouteParams,
+  type ExtractEdenTreatyRouteParamsInput,
+  getPathParam,
+} from '../../integration/internal/path-params'
+import {
   type EdenQueryKey,
   getMutationKey,
   getQueryKey,
@@ -64,11 +69,16 @@ export type EdenTreatyQueryContextProps<
 export type EdenTreatyQueryUtilsProxy<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = EdenTreatyQueryUtilsUniversalUtils & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
     ? EdenTreatyQueryUtilsMapping<TSchema[K], TPath, K>
     : EdenTreatyQueryUtilsProxy<TSchema[K], [...TPath, K]>
-}
+} & ({} extends TRouteParams
+    ? {}
+    : (
+        params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+      ) => EdenTreatyQueryUtilsProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>)
 
 type EdenTreatyQueryUtilsMapping<
   TRoute extends RouteSchema,
@@ -82,12 +92,12 @@ type EdenTreatyQueryUtilsMapping<
         : {})
   : TMethod extends HttpMutationMethod
     ? EdenQueryUtilsMutationUtils<TRoute, TPath>
-    : never
+    : `Unknown HTTP Method: ${TMethod & string}`
 
 export type EdenTreatyQueryUtilsQueryUtils<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
@@ -155,7 +165,7 @@ export type EdenTreatyQueryUtilsQueryUtils<
 export type EdenTreatyQueryUtilsInfiniteUtils<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
+  TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
@@ -262,14 +272,23 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
   context: EdenContextState<TRouter, TSSRContext>,
   config?: EdenQueryConfig<TRouter>,
   originalPaths: string[] = [],
+  pathParams: Record<string, any>[] = [],
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
-      return createEdenTreatyQueryUtilsProxy(context, config, nextPaths)
+      return createEdenTreatyQueryUtilsProxy(context, config, nextPaths, pathParams)
     },
-    apply: (_target, _thisArg, argArray) => {
-      const argsCopy = [...argArray]
+    apply: (_target, _thisArg, args) => {
+      const pathParam = getPathParam(args)
+
+      if (pathParam?.key != null) {
+        const allPathParams = [...pathParams, pathParam.param]
+        const pathsWithParams = [...originalPaths, `:${pathParam.key}`]
+        return createEdenTreatyQueryUtilsProxy(context, config, pathsWithParams, allPathParams)
+      }
+
+      const argsCopy = [...args]
 
       /**
        * @example ['api', 'hello', 'get', 'invalidate']
@@ -302,7 +321,18 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
 
       const queryType = getQueryType(hook)
 
-      const input = argsCopy.shift() // args can now be spread when input removed
+      // The rest of the args are passed directly to the function.
+      const firstArg = argsCopy.shift()
+
+      const params: Record<string, any> = {}
+
+      for (const param of pathParams) {
+        for (const key in param) {
+          params[key] = param[key]
+        }
+      }
+
+      const input = { query: firstArg, params }
 
       const queryKey = getQueryKey(paths, input, queryType)
 
@@ -364,7 +394,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
         }
 
         case 'setMutationDefaults': {
-          return context.setMutationDefaults(getMutationKey(paths), input)
+          return context.setMutationDefaults(getMutationKey(paths), firstArg)
         }
 
         case 'getMutationDefaults': {

@@ -1,3 +1,6 @@
+import type { EdenTreatyQueryRootHooks } from '../implementation/treaty'
+import type { LiteralUnion } from './literal-union'
+
 /**
  *
  * An eden-treaty proxy may look like these examples:
@@ -13,8 +16,8 @@
  *
  * Heuristic: A path parameter function call needs exactly one object with exactly one key passed as an argument.
  */
-export function getPathParam(...args: unknown[]) {
-  if (args.length === 0) {
+export function getPathParam(args: unknown[]) {
+  if (args.length !== 1) {
     return
   }
 
@@ -24,13 +27,66 @@ export function getPathParam(...args: unknown[]) {
     return
   }
 
-  const argumentValues = Object.values(argument)
+  const argumentKeys = Object.keys(argument)
 
-  const pathParam = argumentValues[0]
+  const pathParam = argumentKeys[0]
 
-  if (argumentValues.length !== 1 || pathParam == null) {
+  if (argumentKeys.length !== 1 || pathParam == null) {
     return
   }
 
-  return pathParam
+  // At this point, assume that it's either a StoreOrVal with a valid object representing route params.
+
+  return { param: argument as any, key: argumentKeys[0] }
+}
+
+/**
+ * Some hooks have `input` provided as the first argument to the root hook.
+ * If this is the case, then {@link mutateArgs} needs to ensure that any
+ * accummulated path parameters are included.
+ */
+const hooksWithInput: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] = [
+  'useQuery',
+  'useInfiniteQuery',
+  'useSuspenseQuery',
+  'useSuspenseInfiniteQuery',
+  'useMutation',
+]
+
+/**
+ * Directly mutate the arguments passed to the root hooks.
+ *
+ * Make sure that the interpretation of args matches up with the implementation of root hooks.
+ */
+export function mutateArgs(
+  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string>,
+  args: unknown[],
+  params: Record<string, any>[],
+) {
+  if (!hooksWithInput.includes(hook)) {
+    return args
+  }
+
+  const query = args[0]
+
+  if (query == null && params.length === 0) {
+    return args
+  }
+
+  const resolvedParams: Record<string, any> = {}
+
+  for (const param of params) {
+    for (const key in param) {
+      resolvedParams[key] = param[key]
+    }
+  }
+
+  const resolvedInput = {
+    params: resolvedParams,
+    query,
+  }
+
+  args[0] = resolvedInput
+
+  return args
 }

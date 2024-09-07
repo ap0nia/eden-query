@@ -136,9 +136,7 @@ import { eden } from './eden'
 
 export function MyComponent() {
   const myQuery = eden.infinitePosts.get.useInfiniteQuery(
-    {
-      query: { limit: 10 },
-    },
+    { limit: 10 },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
       // initialCursor: 1, // <-- optional you can pass an initialCursor

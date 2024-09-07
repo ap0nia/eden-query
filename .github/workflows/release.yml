@@ -23,25 +23,26 @@ jobs:
       RAW_COMMIT_MESSAGE: 'chore: release package(s)'
 
     steps:
-      - name: Checkout repository
+      - name: ⏬ Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js and pnpm
+      - name: 🕺 Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
-      - name: Install dependencies
+      - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
+      - name: 🔨 Build
         run: pnpm --filter \!@elysiajs/documentation build
 
-      - name: Generate commit message
+      - name: ✏️ Generate commit message
         id: devmoji
         run: |
           MESSAGE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(env.RAW_COMMIT_MESSAGE) }})
           echo "MESSAGE=$MESSAGE" >> $GITHUB_OUTPUT
 
-      - name: Create release pull request or publish to npm
+      - name: 🚀 Create pull request or publish to npm
+        id: changesets
         uses: changesets/action@v1
         with:
           publish: pnpm publish -r
@@ -50,3 +51,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: 👀 Get package.json version
+        id: package-json-version
+        if: steps.changesets.outputs.published
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+
+      - name: 🎁 Create Release
+        id: create-release
+        if: steps.changesets.outputs.published
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package-json-version.outputs.current-version }}
+          release_name: ${{ github.event.pull_request.title }}

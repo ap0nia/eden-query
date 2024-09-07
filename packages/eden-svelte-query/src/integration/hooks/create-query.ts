@@ -59,7 +59,8 @@ export type EdenDefinedCreateQueryResult<TData, TError> = WithEdenQueryExtension
 export interface EdenCreateQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
+  // The publicly exposed `createQuery` hook only accepts the `query` object.
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > {
@@ -77,7 +78,8 @@ export interface EdenCreateQuery<
 export function edenCreateQueryOptions(
   parsedPathsAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
-  input?: any,
+  // The internal helper to `createQueryOptions` receives the entire input object, including `query` and `params`.
+  input?: InferRouteOptions | SkipToken,
   options?: EdenCreateQueryOptions<unknown, unknown, any>,
   config?: EdenQueryConfig,
 ): CreateQueryOptions {
@@ -85,7 +87,9 @@ export function edenCreateQueryOptions(
 
   const { paths, path, method } = parsedPathsAndMethod
 
-  const queryKey = getQueryKey(paths, input, 'query')
+  const isInputSkipToken = input === skipToken && typeof input !== 'object'
+
+  const queryKey = getQueryKey(paths, isInputSkipToken ? undefined : input, 'query')
 
   const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
@@ -95,7 +99,7 @@ export function edenCreateQueryOptions(
 
   const resolvedQueryOptions = { ...queryOptions, queryKey }
 
-  if (input === skipToken) {
+  if (isInputSkipToken) {
     resolvedQueryOptions.queryFn = input
     return resolvedQueryOptions
   }
