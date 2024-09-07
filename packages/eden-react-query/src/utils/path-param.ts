@@ -1,3 +1,6 @@
+import type { EdenTreatyQueryRootHooks } from '../implementation/treaty'
+import type { LiteralUnion } from './literal-union'
+
 /**
  *
  * An eden-treaty proxy may look like these examples:
@@ -13,7 +16,7 @@
  *
  * Heuristic: A path parameter function call needs exactly one object with exactly one key passed as an argument.
  */
-export function getPathParam(...args: unknown[]) {
+export function getPathParam(args: unknown[]) {
   if (args.length === 0) {
     return
   }
@@ -24,13 +27,67 @@ export function getPathParam(...args: unknown[]) {
     return
   }
 
-  const argumentValues = Object.values(argument)
+  const argumentKeys = Object.keys(argument)
 
-  const pathParam = argumentValues[0]
+  const pathParam = argumentKeys[0]
 
-  if (argumentValues.length !== 1 || pathParam == null) {
+  if (argumentKeys.length !== 1 || pathParam == null) {
     return
   }
 
-  return pathParam
+  // At this point, assume that it's either a StoreOrVal with a valid object representing route params.
+
+  return { param: argument as any, key: argumentKeys[0] }
+}
+
+/**
+ * The positional index of the `input` provided to root query hooks.
+ *
+ * `undefined` if the function does not receive `input`.
+ */
+const inputPositions: Partial<
+  Record<keyof EdenTreatyQueryRootHooks | LiteralUnion<string>, number>
+> = {
+  createQuery: 0,
+  createInfiniteQuery: 0,
+}
+
+/**
+ * Directly mutate the arguments passed to the root hooks.
+ *
+ * Make sure that the interpretation of args matches up with the implementation of root hooks.
+ */
+export function mutateArgs(
+  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string>,
+  args: unknown[],
+  params: Record<string, any>[],
+) {
+  const inputPosition = inputPositions[hook]
+
+  if (inputPosition == null) {
+    return args
+  }
+
+  const query = args[inputPosition]
+
+  if (query == null && params.length === 0) {
+    return args
+  }
+
+  const resolvedParams: Record<string, any> = {}
+
+  for (const param of params) {
+    for (const key in param) {
+      resolvedParams[key] = param[key]
+    }
+  }
+
+  const resolvedInput = {
+    params: resolvedParams,
+    query,
+  }
+
+  args[inputPosition] = resolvedInput
+
+  return args
 }

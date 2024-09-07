@@ -61,7 +61,7 @@ export type EdenCreateInfiniteQuery<
   TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  TInfiniteInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
+  TInfiniteInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>['query'],
 > = (
   input: StoreOrVal<
     ({} extends TInfiniteInput ? void | TInfiniteInput : TInfiniteInput) | SkipToken

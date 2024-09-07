@@ -30,7 +30,7 @@ import {
   getMutationKey as internalGetMutationKey,
   getQueryKey as internalGetQueryKey,
 } from '../../integration/internal/query-key'
-import { getPathParam } from '../../utils/path-param'
+import { getPathParam, mutateArgs } from '../../utils/path-param'
 import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
@@ -97,11 +97,29 @@ export type EdenTreatyReactQueryHooks<T extends AnyElysia> = T extends {
 export type EdenTreatyReactQueryHooksImplementation<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = {
-  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
     ? EdenTreatyReactQueryRouteHooks<TSchema[K], K, TPath>
     : EdenTreatyReactQueryHooksImplementation<TSchema[K], [...TPath, K]>
+} & ({} extends TRouteParams
+  ? {}
+  : (
+      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+    ) => EdenTreatyReactQueryHooksImplementation<
+      TSchema[Extract<keyof TRouteParams, keyof TSchema>],
+      TPath
+    >)
+
+export type ExtractEdenTreatyRouteParams<T> = {
+  [K in keyof T as K extends `:${string}` ? K : never]: T[K]
 }
+
+export type ExtractEdenTreatyRouteParamsInput<T> = {
+  [K in keyof T as K extends `:${infer TParam}` ? TParam : never]: string | number
+}
+
+export type ExtractRouteParam<T> = T extends `:${infer TParam}` ? TParam : T
 
 /**
  * Maps a {@link RouteSchema} to an object with hooks.
@@ -186,6 +204,7 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
   rootHooks: EdenTreatyQueryRootHooks<T>,
   config?: EdenQueryConfig<T>,
   paths: string[] = [],
+  pathParams: Record<string, any>[] = [],
 ) {
   const edenTreatyQueryProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
@@ -206,11 +225,15 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
 
       const pathParam = getPathParam(args)
 
-      if (pathParam != null) {
-        return createEdenTreatyReactQueryProxy(rootHooks, config, [...paths, pathParam])
+      if (pathParam?.key != null) {
+        const allPathParams = [...pathParams, pathParam.param]
+        const pathsWithParams = [...paths, `:${pathParam.key}`]
+        return createEdenTreatyReactQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
       }
 
-      return (rootHooks as any)[hook](pathsCopy, ...args)
+      const modifiedArgs = mutateArgs(hook, args, pathParams)
+
+      return (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)
     },
   })
 

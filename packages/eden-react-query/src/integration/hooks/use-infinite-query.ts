@@ -41,10 +41,11 @@ export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = WithEdenQ
 export type EdenUseInfiniteQuery<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute>,
+  // The exposed public type for `useInfiniteQuery` only needs the `query` from the input options.
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
-  TInfiniteInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
+  TInfiniteInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>['query'],
 > = (
   input: TInfiniteInput | SkipToken,
   options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
@@ -53,7 +54,8 @@ export type EdenUseInfiniteQuery<
 export function edenUseInfiniteQueryOptions(
   parsedPathAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
-  input?: any,
+  // The helper `useInfiniteQueryOptions` receives the entire options object.
+  input?: InferRouteOptions | SkipToken,
   options?: EdenUseInfiniteQueryOptions<unknown, unknown, any>,
   config?: any,
 ): UseInfiniteQueryOptions {
@@ -61,13 +63,13 @@ export function edenUseInfiniteQueryOptions(
 
   const { paths, path, method } = parsedPathAndMethod
 
-  const queryKey = getQueryKey(paths, input, 'infinite')
+  const isInputSkipToken = input === skipToken && typeof input !== 'object'
+
+  const queryKey = getQueryKey(paths, isInputSkipToken ? undefined : input, 'infinite')
 
   const defaultOptions = queryClient.getQueryDefaults(queryKey)
 
   const initialQueryOptions = { ...defaultOptions, ...options }
-
-  const isInputSkipToken = input === skipToken
 
   if (isServerQuery(ssrState, options, defaultOptions, isInputSkipToken, queryClient, queryKey)) {
     void prefetchInfiniteQuery(queryKey, initialQueryOptions as any)

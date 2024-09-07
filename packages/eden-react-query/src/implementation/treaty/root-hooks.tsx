@@ -358,6 +358,7 @@ export function createEdenTreatyQueryRootHooks<
   }
 }
 
-export type EdenTreatyQueryRootHooks<TElysia extends AnyElysia, TSSRContext = unknown> = ReturnType<
-  typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>
->
+export type EdenTreatyQueryRootHooks<
+  TElysia extends AnyElysia = AnyElysia,
+  TSSRContext = unknown,
+> = ReturnType<typeof createEdenTreatyQueryRootHooks<TElysia, TSSRContext>>
