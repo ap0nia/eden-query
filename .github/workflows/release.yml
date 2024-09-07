@@ -74,4 +74,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.package-json-version.outputs.current-version }}
-          release_name: ${{ github.event.pull_request.title }}
+          release_name: ${{ github.sha }}
