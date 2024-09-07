@@ -3,5 +3,5 @@
 > elysia.js-eden + tanstack-query integrations
 
 <div>
-![NPM Downloads](https://img.shields.io/npm/dw/%40ap0nia%2Feden-svelte-query)
+  <img alt="NPM Downloads" src="https://img.shields.io/npm/dw/%40ap0nia%2Feden-svelte-query">
 </div>
