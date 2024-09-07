@@ -1,5 +1,14 @@
 # @ap0nia/eden-next-query
 
+## 1.0.3
+
+### Patch Changes
+
+- 8e21adc: chore: version bump to test changeset github actions
+- Updated dependencies [8e21adc]
+  - @ap0nia/eden@1.0.3
+  - @ap0nia/eden-react-query@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes
