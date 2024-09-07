@@ -146,6 +146,12 @@ _*Tanstack-Query*_
 A full featured asynchronous state management solution.
 Learn more about it from [the offical documentation](https://tanstack.com/query/latest).
 
+## Contributing
+
+Please read the [contributing guidelines](CONTRIBUTING.md) before opening an issue or pull request
+to begin developing. The guide will provide an overview of steps to initialize the local
+development environment, as well as architecture of the project.
+
 ## ⭐Star History
 
 <a href="https://star-history.com/#ap0nia/eden-query&Date">
