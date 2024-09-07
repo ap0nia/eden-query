@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.6
+
+### Patch Changes
+
+- 9740961: chore: version bump
+- Updated dependencies [9740961]
+  - @ap0nia/eden@1.0.6
+
 ## 1.0.5
 
 ### Patch Changes
