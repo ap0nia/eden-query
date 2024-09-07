@@ -23,6 +23,7 @@
     "tanstack-query"
   ],
   "workspaces": [
+    "documentation",
     "examples/*",
     "packages/*"
   ],
