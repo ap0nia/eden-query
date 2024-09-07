@@ -209,7 +209,7 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
   const edenTreatyQueryProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
-      return createEdenTreatyReactQueryProxy(rootHooks, config, nextPaths)
+      return createEdenTreatyReactQueryProxy(rootHooks, config, nextPaths, pathParams)
     },
     apply: (_target, _thisArg, args) => {
       const pathsCopy = [...paths]

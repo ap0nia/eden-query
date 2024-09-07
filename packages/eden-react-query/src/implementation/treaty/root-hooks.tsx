@@ -159,12 +159,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseQueryResult<any, TError>
 
@@ -188,12 +183,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseQueryResult<any, TError>
 
@@ -217,12 +207,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 
@@ -246,12 +231,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    /**
-     * The outer proxy will include all the path parameters, so this input is only the query.
-     */
-    const query = { query: input }
-
-    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, query, options, config)
+    const queryOptions = edenUseInfiniteQueryOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseInfiniteQueryResult<unknown, TError, unknown>
 

@@ -11,7 +11,7 @@ import type { RouteSchema } from 'elysia'
 
 import { type EdenContextState, useSSRQueryOptionsIfNeeded } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
-import type { ExtractCursorType, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
+import type { ExtractQueryCursor, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
 import type { ParsedPathAndMethod } from '../internal/parse-paths-and-method'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
@@ -20,20 +20,23 @@ import { isServerQuery } from './use-query'
 
 export interface EdenUseInfiniteQueryOptions<TInput, TOutput, TError>
   extends DistributiveOmit<
-      UseInfiniteQueryOptions<TOutput, TError, TOutput, TOutput, any, ExtractCursorType<TInput>>,
+      UseInfiniteQueryOptions<TOutput, TError, TOutput, TOutput, any, ExtractQueryCursor<TInput>>,
       'queryKey' | 'initialPageParam'
     >,
     EdenQueryBaseOptions {
-  initialCursor?: ExtractCursorType<TInput>
+  initialCursor?: ExtractQueryCursor<TInput>
 }
 
 export type EdenUseInfiniteQueryResult<TData, TError, TInput> = WithEdenQueryExtension<
-  UseInfiniteQueryResult<InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>, TError>
+  UseInfiniteQueryResult<
+    InfiniteData<TData, NonNullable<ExtractQueryCursor<TInput>> | null>,
+    TError
+  >
 >
 
 export type EdenUseInfiniteQuerySuccessResult<TData, TError, TInput> = WithEdenQueryExtension<
   InfiniteQueryObserverSuccessResult<
-    InfiniteData<TData, NonNullable<ExtractCursorType<TInput>> | null>,
+    InfiniteData<TData, NonNullable<ExtractQueryCursor<TInput>> | null>,
     TError
   >
 >
@@ -47,7 +50,7 @@ export type EdenUseInfiniteQuery<
   TError = InferRouteError<TRoute>,
   TInfiniteInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>['query'],
 > = (
-  input: TInfiniteInput | SkipToken,
+  input: {} extends TInfiniteInput ? void | TInfiniteInput : SkipToken,
   options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
 ) => EdenUseInfiniteQueryResult<TOutput, TError, TInput>
 

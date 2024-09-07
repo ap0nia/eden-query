@@ -12,6 +12,7 @@ import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-pre
 import InfinitePage from './routes/infinite/+page'
 import MutationPage from './routes/mutation/+page'
 import ReactiveInputPage from './routes/reactive-input/+page'
+import ReactiveParamsPage from './routes/reactive-params/+page'
 import UseQueriesPage from './routes/use-queries/+page'
 
 export function App() {
@@ -116,6 +117,10 @@ export function App() {
           {
             path: '/reactive-input',
             element: <ReactiveInputPage />,
+          },
+          {
+            path: '/reactive-params',
+            element: <ReactiveParamsPage />,
           },
           {
             path: '/infinite',

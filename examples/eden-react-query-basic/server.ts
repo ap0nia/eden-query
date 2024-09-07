@@ -112,6 +112,7 @@ const rootController = new Elysia()
       }),
     },
   )
+  .get('/products/:id', (context) => context.params.id)
 
 export const app = new Elysia({ prefix: '/api' })
   .use(cors())

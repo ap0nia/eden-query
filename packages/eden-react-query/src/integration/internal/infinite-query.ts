@@ -15,3 +15,5 @@ export type ReservedInfiniteQueryKeys = InfiniteCursorKey | 'direction'
  */
 export type ExtractCursorType<T> =
   T extends Record<string, any> ? (T['params'] & T['query'])['cursor'] : unknown
+
+export type ExtractQueryCursor<T> = T extends Record<string, any> ? T['cursor'] : unknown

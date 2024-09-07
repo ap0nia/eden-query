@@ -8,7 +8,9 @@ export default function Page() {
     search: '',
   })
 
-  const names = eden.api.names.get.useQuery(input, {
+  const [id, setId] = useState(1)
+
+  const { data } = eden.api.products({ id }).get.useQuery(input, {
     /**
      * This prevents the data from disappearing briefly when loading up the next query.
      */
@@ -22,6 +24,10 @@ export default function Page() {
     })
   }
 
+  const handleIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setId(event.target.valueAsNumber)
+  }
+
   return (
     <main>
       <h1>Reactive Input</h1>
@@ -30,11 +36,7 @@ export default function Page() {
 
       <p>The developer can optimize this reactive input by using debounce...</p>
 
-      <ul>
-        {names.data?.map((name, index) => {
-          return <li key={index}>{name}</li>
-        })}
-      </ul>
+      <p>{data}</p>
 
       <label>
         <p>Search for a name by typing into the box</p>
@@ -44,6 +46,7 @@ export default function Page() {
           value={input.search}
           placeholder="Enter name here..."
         />
+        <input type="number" onChange={handleIdChange} />
       </label>
     </main>
   )
