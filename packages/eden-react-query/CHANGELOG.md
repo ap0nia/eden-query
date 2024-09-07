@@ -1,5 +1,13 @@
 # @ap0nia/eden-react-query
 
+## 1.0.1
+
+### Patch Changes
+
+- 5249305: chore: version bump
+- Updated dependencies [5249305]
+  - @ap0nia/eden@1.0.1
+
 ## 1.0.0
 
 ### Major Changes
