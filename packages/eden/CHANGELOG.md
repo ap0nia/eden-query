@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.4
+
+### Patch Changes
+
+- af03b83: chore: version bump to test github actions release
+
 ## 1.0.3
 
 ### Patch Changes
