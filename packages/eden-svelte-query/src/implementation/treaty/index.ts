@@ -127,7 +127,7 @@ export type EdenTreatySvelteQueryRouteHooks<
     ? EdenTreatyMutationMapping<TRoute, TPath>
     : TMethod extends HttpSubscriptionMethod
       ? EdenTreatySubscriptionMapping<TRoute, TPath>
-      : never
+      : `Unknown HTTP Method: ${TMethod & string}`
 
 /**
  * Available hooks assuming that the route supports createQuery.
@@ -209,6 +209,13 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
         const allPathParams = [...pathParams, pathParam.param]
         const pathsWithParams = [...paths, `:${pathParam.key}`]
         return createEdenTreatySvelteQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
+      }
+
+      // There is no option to pass in input from the public exposed hook,
+      // but the internal root `createMutation` hook expects input as the first argument.
+      // Add an empty element at the front representing "input".
+      if (hook === 'createMutation') {
+        args.unshift(undefined)
       }
 
       const modifiedArgs = mutateArgs(hook, args, pathParams)

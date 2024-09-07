@@ -150,6 +150,8 @@ export function createEdenMutation<
 export function edenCreateMutationOptions(
   parsedPathsAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
+  // Default input.
+  input?: InferRouteOptions,
   options: EdenCreateMutationOptions<any, any, any> = {},
   config?: any,
 ): CreateMutationOptions {
@@ -169,10 +171,11 @@ export function edenCreateMutationOptions(
     mutationKey,
     mutationFn: async (variables: any = {}) => {
       const { body, options } = variables as EdenCreateMutationVariables
+      const resolvedOptions = { ...input, ...options }
 
       const params = {
         ...config,
-        options,
+        options: resolvedOptions,
         body,
         path,
         method,

@@ -46,7 +46,8 @@ export type EdenUseMutation<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
   TVariables = InferRouteBody<TRoute>,
-  TInput = InferRouteOptions<TRoute>,
+  TInput = Partial<Pick<InferRouteOptions<TRoute>, 'params'>> &
+    Omit<InferRouteOptions<TRoute>, 'params'>,
   TData = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = <TContext = unknown>(
@@ -142,6 +143,8 @@ export function useEdenMutation<
 export function getEdenUseMutationOptions(
   parsedPathsAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
+  // Default input.
+  input?: InferRouteOptions,
   options?: EdenUseMutationOptions<any, any, any>,
   config?: any,
 ): UseMutationOptions {
@@ -161,9 +164,11 @@ export function getEdenUseMutationOptions(
     mutationFn: async (variables: any = {}) => {
       const { body, options } = variables as EdenUseMutationVariables
 
+      const resolvedOptions = { ...input, ...options }
+
       const params: EdenRequestParams = {
         ...config,
-        options,
+        options: resolvedOptions,
         body,
         path,
         method,

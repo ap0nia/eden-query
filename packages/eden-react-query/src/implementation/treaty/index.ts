@@ -138,7 +138,7 @@ export type EdenTreatyReactQueryRouteHooks<
     ? EdenTreatyMutationMapping<TRoute, TPath>
     : TMethod extends HttpSubscriptionMethod
       ? EdenTreatySubscriptionMapping<TRoute, TPath>
-      : never
+      : `Unknown HTTP Method: ${TMethod & string}`
 
 /**
  * Available hooks assuming that the route supports useQuery.
@@ -231,9 +231,48 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
         return createEdenTreatyReactQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
       }
 
+      // There is no option to pass in input from the public exposed hook,
+      // but the internal root `useMutation` hook expects input as the first argument.
+      // Add an empty element at the front representing "input".
+      if (hook === 'useMutation') {
+        args.unshift(undefined)
+      }
+
       const modifiedArgs = mutateArgs(hook, args, pathParams)
 
-      return (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)
+      /**
+       * ```ts
+       * // The final hook that was invoked.
+       * const hook = "useQuery"
+       *
+       * // The array of path segments up to this point.
+       * // Note how ":id" is included, this will be replaced by the `resolveRequest` function from eden.
+       * const pathsCopy = ["nendoroid", ":id", "name"]
+       *
+       * // Accummulated path parameters up to this point.
+       * const pathParams = [ { id: 1895 } ]
+       *
+       * // The user provided a search query and query options.
+       * const args = [ { location: "jp" }, { refetchOnUnmount: true } ]
+       *
+       * // The accummulated path parameters and search query are merged into one "input" object.
+       * const modifiedArgs = [
+       *   { query: { location: "jp" }, params: { id: 1895 } },
+       *   { refetchOnMount: false }
+       * ]
+       *
+       * // The full function call contains three arguments:
+       * // array of path segments, input, and query options.
+       * rootHooks.useQuery(
+       *   ["nendoroid", ":id", "name"],
+       *   { query: { location: "jp" }, params: { id: 1895 } },
+       *   { refetchOnMount: false }
+       * )
+       * ```
+       */
+      const result = (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)
+
+      return result
     },
   })
 

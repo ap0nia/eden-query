@@ -12,6 +12,7 @@ import {
   createInfiniteQuery as __createInfiniteQuery,
   createQueries as __createQueries,
   createQuery as __createQuery,
+  type SkipToken,
   type StoreOrVal,
   useQueryClient,
 } from '@tanstack/svelte-query'
@@ -122,7 +123,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const createQuery = (
     originalPaths: readonly string[],
-    input: StoreOrVal<InferRouteOptions>,
+    input?: StoreOrVal<InferRouteOptions | SkipToken>,
     options?: StoreOrVal<EdenCreateQueryOptions<unknown, unknown, TError>>,
   ): EdenCreateQueryResult<unknown, TError> => {
     const context = getRawContext()
@@ -176,8 +177,8 @@ export function createEdenTreatyQueryRootHooks<
 
   const createInfiniteQuery = (
     originalPaths: readonly string[],
-    input: StoreOrVal<InferRouteOptions>,
-    options: StoreOrVal<EdenCreateInfiniteQueryOptions<unknown, unknown, TError>>,
+    input?: StoreOrVal<InferRouteOptions | SkipToken>,
+    options?: StoreOrVal<EdenCreateInfiniteQueryOptions<unknown, unknown, TError>>,
   ): EdenCreateInfiniteQueryResult<unknown, TError, unknown> => {
     const context = getRawContext()
 
@@ -217,6 +218,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const createMutation = (
     originalPaths: readonly string[],
+    input?: InferRouteOptions,
     options?: StoreOrVal<EdenCreateMutationOptions<unknown, TError, unknown, unknown>>,
   ): EdenCreateMutationResult<unknown, TError, unknown, unknown, unknown> => {
     const context = getRawContext()
@@ -230,7 +232,7 @@ export function createEdenTreatyQueryRootHooks<
     type HookResult = EdenCreateMutationResult<unknown, TError, unknown, unknown, any>
 
     if (!isStore(options)) {
-      const mutationOptions = edenCreateMutationOptions(parsed, context, options, config)
+      const mutationOptions = edenCreateMutationOptions(parsed, context, input, options, config)
 
       const hook = createEdenMutation(mutationOptions, queryClient) as HookResult
 
@@ -242,7 +244,7 @@ export function createEdenTreatyQueryRootHooks<
     const optionsStore = isStore(options) ? options : readable(options)
 
     const mutationOptionsStore = derived(optionsStore, ($options) => {
-      const mutationOptions = edenCreateMutationOptions(parsed, context, $options, config)
+      const mutationOptions = edenCreateMutationOptions(parsed, context, input, $options, config)
       return mutationOptions
     })
 

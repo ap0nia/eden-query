@@ -41,16 +41,17 @@ export function getPathParam(args: unknown[]) {
 }
 
 /**
- * The positional index of the `input` provided to root query hooks.
- *
- * `undefined` if the function does not receive `input`.
+ * Some hooks have `input` provided as the first argument to the root hook.
+ * If this is the case, then {@link mutateArgs} needs to ensure that any
+ * accummulated path parameters are included.
  */
-const inputPositions: Partial<
-  Record<keyof EdenTreatyQueryRootHooks | LiteralUnion<string>, number>
-> = {
-  useQuery: 0,
-  useInfiniteQuery: 0,
-}
+const hooksWithInput: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] = [
+  'useQuery',
+  'useInfiniteQuery',
+  'useSuspenseQuery',
+  'useSuspenseInfiniteQuery',
+  'useMutation',
+]
 
 /**
  * Directly mutate the arguments passed to the root hooks.
@@ -62,13 +63,11 @@ export function mutateArgs(
   args: unknown[],
   params: Record<string, any>[],
 ) {
-  const inputPosition = inputPositions[hook]
-
-  if (inputPosition == null) {
+  if (!hooksWithInput.includes(hook)) {
     return args
   }
 
-  const query = args[inputPosition]
+  const query = args[0]
 
   if (query == null && params.length === 0) {
     return args
@@ -87,7 +86,7 @@ export function mutateArgs(
     query,
   }
 
-  args[inputPosition] = resolvedInput
+  args[0] = resolvedInput
 
   return args
 }

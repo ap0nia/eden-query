@@ -104,7 +104,7 @@ export function edenUseQueryOptions(
   parsedPathAndMethod: ParsedPathAndMethod,
   context: EdenContextState<any, any>,
   // The internal helper to `useQueryOptions` receives the entire input object, including `query` and `params`.
-  input?: InferRouteOutput | SkipToken,
+  input?: InferRouteOptions | SkipToken,
   options?: EdenUseQueryOptions<unknown, unknown, any>,
   config?: EdenQueryConfig,
 ): UseQueryOptions {

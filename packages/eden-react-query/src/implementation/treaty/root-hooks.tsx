@@ -6,8 +6,10 @@ import {
   type HttpBatchLinkOptions,
   httpLink,
   type HTTPLinkOptions,
+  type InferRouteOptions,
 } from '@ap0nia/eden'
 import {
+  type SkipToken,
   useInfiniteQuery as __useInfiniteQuery,
   useQueries as __useQueries,
   useQuery as __useQuery,
@@ -152,7 +154,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const useQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input?: InferRouteOptions | SkipToken,
     options?: EdenUseQueryOptions<unknown, unknown, TError>,
   ): EdenUseQueryResult<unknown, TError> => {
     const context = useRawContext()
@@ -176,7 +178,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const useSuspenseQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input: InferRouteOptions,
     options?: EdenUseSuspenseQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseQueryResult<unknown, TError> => {
     const context = useRawContext()
@@ -200,7 +202,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const useInfiniteQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input?: InferRouteOptions | SkipToken,
     options?: EdenUseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useRawContext()
@@ -224,7 +226,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const useSuspenseInfiniteQuery = (
     originalPaths: readonly string[],
-    input: any,
+    input: InferRouteOptions,
     options?: EdenUseSuspenseInfiniteQueryOptions<unknown, unknown, TError>,
   ): EdenUseSuspenseInfiniteQueryResult<unknown, TError, unknown> => {
     const context = useRawContext()
@@ -287,13 +289,14 @@ export function createEdenTreatyQueryRootHooks<
 
   const useMutation = (
     originalPaths: readonly string[],
+    input?: InferRouteOptions,
     options?: EdenUseMutationOptions<unknown, TError, unknown, unknown>,
   ): EdenUseMutationResult<unknown, TError, unknown, unknown, unknown> => {
     const context = useRawContext()
 
     const parsed = parsePathsAndMethod(originalPaths)
 
-    const mutationOptions = getEdenUseMutationOptions(parsed, context, options, config)
+    const mutationOptions = getEdenUseMutationOptions(parsed, context, input, options, config)
 
     type HookResult = EdenUseMutationResult<any, any, any, any, any>
 
