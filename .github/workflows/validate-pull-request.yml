@@ -35,7 +35,7 @@ jobs:
       - name: Format pull request title
         id: devmoji
         run: |
-          TITLE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }})
+          TITLE=$(npx --no -- devmoji --text ${{ toJSON(github.event.pull_request.title) }})
           echo "TITLE=$TITLE" >> $GITHUB_OUTPUT
 
       - name: Update pull request title if needed
