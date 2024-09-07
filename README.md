@@ -12,6 +12,22 @@
 
 </div>
 
+## Overview
+
+`eden-query` allows you to connect to your `elysia` backend with end-to-end type-safety and powerful
+asynchronous state management from your frontend.
+
+### Features
+
+- 🌎 Framework agnostic.
+- 🦺 Full end-to-end type-safety.
+- ✅ Fully supports REST API standards.
+- 🖥️SSR support and examples.
+- ✨ Reactive and infinite queries.
+- ⚡ Batching requests on both the client and server.
+- 🔗 Links for customizing the flow of data.
+- 👀 Data transformers for enhanced JSON handling.
+
 ## Get Started
 
 ### Installation
@@ -85,24 +101,22 @@ export type App = typeof app
 
 </details>
 
-## Overview
-
 ## Core Technologies
 
 `eden-query` is a combination of three technologies:
 
-**_Elysia.js_**
+_*Elysia.js*_
 
 TypeScript server framework supercharged by Bun with End-to-End Type Safety,
 unified type system, and outstanding developer experience.
 Learn more about it from [the official documentation](https://elysiajs.com)!
 
-**_Eden_**
+_*Eden*_
 
 A type-safeREST client that offers end-to-end typesafety.
 Learn more about it from [the official documentation](https://elysiajs.com/eden/overview.html)!
 
-**_Tanstack-Query_**
+_*Tanstack-Query*_
 
 A full featured asynchronous state management solution.
 Learn more about it from [the offical documentation](https://tanstack.com/query/latest)
