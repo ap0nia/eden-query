@@ -101,6 +101,21 @@ export type App = typeof app
 
 </details>
 
+### Framework Integrations
+
+More documentation for framework-specific packages can be found in their respective project
+directories as well as the documentation.
+
+- [React](./packages/svelte)
+- [Svelte](./packages/svelte)
+
+### General Purpose Integrations
+
+A custom implementation of the `eden` client is maintained here with the same core functionality
+as the [officially documented one](https://elysiajs.com/eden/overview.html).
+
+Read more about it [here](./packages/eden)
+
 ## Learn More
 
 To see more advanced examples and usage of the integration, read [the full documentation](ap0nia.github.io/eden-query).
@@ -113,14 +128,14 @@ _*Elysia.js*_
 
 TypeScript server framework supercharged by Bun with End-to-End Type Safety,
 unified type system, and outstanding developer experience.
-Learn more about it from [the official documentation](https://elysiajs.com)!
+Learn more about it from [the official documentation](https://elysiajs.com).
 
 _*Eden*_
 
 A type-safeREST client that offers end-to-end typesafety.
-Learn more about it from [the official documentation](https://elysiajs.com/eden/overview.html)!
+Learn more about it from [the official documentation](https://elysiajs.com/eden/overview.html).
 
 _*Tanstack-Query*_
 
 A full featured asynchronous state management solution.
-Learn more about it from [the offical documentation](https://tanstack.com/query/latest)
+Learn more about it from [the offical documentation](https://tanstack.com/query/latest).
