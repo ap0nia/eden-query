@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.2
+
+### Patch Changes
+
+- 6f20c0d: chore: version bump again
+
 ## 1.0.1
 
 ### Patch Changes
