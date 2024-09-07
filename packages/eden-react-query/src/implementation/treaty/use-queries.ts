@@ -16,7 +16,11 @@ import type { AnyElysia, RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../../config'
 import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
-import { getPathParam } from '../../integration/internal/path-params'
+import {
+  type ExtractEdenTreatyRouteParams,
+  type ExtractEdenTreatyRouteParamsInput,
+  getPathParam,
+} from '../../integration/internal/path-params'
 import type { EdenQueryBaseOptions } from '../../integration/internal/query-base-options'
 import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
 import type { UseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
@@ -48,11 +52,19 @@ export type EdenTreatyUseQueriesProxy<T extends AnyElysia> = T extends {
 export type EdenTreatyUseQueriesProxyMapping<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = {
-  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
     ? EdenTreatyUseQueriesHook<TSchema[K], [...TPath, K]>
     : EdenTreatyUseQueriesProxyMapping<TSchema[K], [...TPath, K]>
-}
+} & ({} extends TRouteParams
+  ? {}
+  : (
+      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+    ) => EdenTreatyUseQueriesProxyMapping<
+      TSchema[Extract<keyof TRouteParams, keyof TSchema>],
+      TPath
+    >)
 
 /**
  * When a route is encountered, it is replaced with a callable function that takes the same inputs.

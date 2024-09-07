@@ -2,6 +2,10 @@ import type { EdenClient, InferRouteError, InferRouteOptions, InferRouteOutput }
 import type { SuspenseQueriesOptions, UseSuspenseQueryResult } from '@tanstack/react-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
 
+import type {
+  ExtractEdenTreatyRouteParams,
+  ExtractEdenTreatyRouteParamsInput,
+} from '../../integration/internal/path-params'
 import type { UseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'
 import { createTreatyUseQueriesProxy } from './use-queries'
 
@@ -25,11 +29,19 @@ export type EdenTreatyUseSuspenseQueriesProxy<T extends AnyElysia> = T extends {
 export type EdenTreatyUseSuspenseQueriesProxyMapping<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = {
-  [K in keyof TSchema]: TSchema[K] extends RouteSchema
+  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
     ? UseSuspenseQueriesHook<TSchema[K], [...TPath, K]>
     : EdenTreatyUseSuspenseQueriesProxyMapping<TSchema[K], [...TPath, K]>
-}
+} & ({} extends TRouteParams
+  ? {}
+  : (
+      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+    ) => EdenTreatyUseSuspenseQueriesProxyMapping<
+      TSchema[Extract<keyof TRouteParams, keyof TSchema>],
+      TPath
+    >)
 
 /**
  * When a route is encountered, it is replaced with a callable function that takes the same inputs.
@@ -37,7 +49,7 @@ export type EdenTreatyUseSuspenseQueriesProxyMapping<
 export type UseSuspenseQueriesHook<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
-  TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (

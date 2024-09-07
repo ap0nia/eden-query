@@ -152,9 +152,7 @@ This helper gets the currently cached data from an existing infinite query
     async onMutate(opts) {
       await utils.infinitePosts.get.cancel()
 
-      const allPosts = utils.infinitePosts.getInfiniteData({
-        query: { limit: 10 },
-      })
+      const allPosts = utils.infinitePosts.getInfiniteData({ limit: 10 })
     },
   })
 
@@ -180,7 +178,7 @@ This helper allows you to update a query's cached data
     async onMutate(opts) {
       await utils.infinitePosts.cancel()
 
-      utils.infinitePosts.get.setInfiniteData({ query: { limit: 10 } }, (data) => {
+      utils.infinitePosts.get.setInfiniteData({ limit: 10 }, (data) => {
         if (!data) {
           return {
             pages: [],

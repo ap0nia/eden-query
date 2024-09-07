@@ -179,9 +179,7 @@ export function MyComponent() {
   const myMutation = eden.infinitePosts.post.useMutation({
     async onMutate(opts) {
       await utils.infinitePosts.get.cancel()
-      const allPosts = utils.infinitePosts.get.getInfiniteData({
-        query: { limit: 10 },
-      })
+      const allPosts = utils.infinitePosts.get.getInfiniteData({ limit: 10  })
       // [...]
     },
   })
@@ -220,7 +218,7 @@ export function MyComponent() {
     async onMutate(opts) {
       // await utils.infinitePosts.cancel()
 
-      utils.infinitePosts.get.setInfiniteData({ query: { limit: 10 } }, (data) => {
+      utils.infinitePosts.get.setInfiniteData({ limit: 10 }, (data) => {
         if (!data) {
           return {
             pages: [],

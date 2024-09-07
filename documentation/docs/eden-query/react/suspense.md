@@ -116,12 +116,12 @@ export const eden = createEdenTreatyReactQuery<App>()
 
 // @filename: index.tsx
 // ---cut---
+// @noErrors
 import React from 'react'
 import { eden } from './eden'
 
 function PostView() {
   const [post, postQuery] = eden.post({ id: 1 }).get.useSuspenseQuery()
-  //      ^?
 
   return <>{/* ... */}</>
 }
