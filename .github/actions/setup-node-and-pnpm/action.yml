@@ -9,15 +9,12 @@ runs:
 
   steps:
     - name: Setup Node.js environment
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: lts/hydrogen
 
     - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 9
-        run_install: false
+      uses: pnpm/action-setup@v4
 
     - name: Get pnpm store directory
       id: pnpm-cache
@@ -25,7 +22,7 @@ runs:
       run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
 
     - name: Setup pnpm cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
         key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
