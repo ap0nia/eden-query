@@ -1,5 +1,16 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.0
+
+### Major Changes
+
+- 3ff7160: feat: fully compliant treaty implementation
+
+### Patch Changes
+
+- Updated dependencies [3ff7160]
+  - @ap0nia/eden@1.0.0
+
 ## 0.1.4
 
 ### Patch Changes
