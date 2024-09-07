@@ -18,7 +18,7 @@
 
 </div>
 
-## Overview
+## 📋 Overview
 
 `eden-query` allows you to connect to your `elysia` backend with end-to-end type-safety and powerful
 asynchronous state management from your frontend.
@@ -34,7 +34,7 @@ asynchronous state management from your frontend.
 - 🔗 Links for customizing the flow of data.
 - 👀 Data transformers for enhanced JSON handling.
 
-## Get Started
+## 🚀 Get Started
 
 ### Installation
 
@@ -122,11 +122,11 @@ as the [officially documented one](https://elysiajs.com/eden/overview.html).
 
 Read more about it [here](./packages/eden)
 
-## Learn More
+## 📖 Learn More
 
 To see more advanced examples and usage of the integration, read [the full documentation](ap0nia.github.io/eden-query).
 
-## Core Technologies
+### Core Technologies
 
 `eden-query` is a combination of three technologies:
 
@@ -146,7 +146,7 @@ _*Tanstack-Query*_
 A full featured asynchronous state management solution.
 Learn more about it from [the offical documentation](https://tanstack.com/query/latest).
 
-## Star History
+## ⭐Star History
 
 <a href="https://star-history.com/#ap0nia/eden-query&Date">
  <picture>
