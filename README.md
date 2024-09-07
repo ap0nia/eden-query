@@ -101,6 +101,10 @@ export type App = typeof app
 
 </details>
 
+## Learn More
+
+To see more advanced examples and usage of the integration, read [the full documentation](ap0nia.github.io/eden-query).
+
 ## Core Technologies
 
 `eden-query` is a combination of three technologies:
