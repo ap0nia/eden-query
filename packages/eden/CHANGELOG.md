@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.3
+
+### Patch Changes
+
+- 8e21adc: chore: version bump to test changeset github actions
+
 ## 1.0.2
 
 ### Patch Changes
