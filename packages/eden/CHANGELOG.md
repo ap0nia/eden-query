@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.5
+
+### Patch Changes
+
+- fe4b6e1: fix: github actions release workflow
+
 ## 1.0.4
 
 ### Patch Changes
