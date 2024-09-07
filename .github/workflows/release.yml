@@ -43,8 +43,9 @@ jobs:
 
       - name: 🚀 Create pull request or publish to npm
         uses: changesets/action@v1
+        id: changesets
         with:
-          publish: changeset publish && pnpm publish -r
+          publish: pnpm changeset publish && pnpm publish -r
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
         env:
