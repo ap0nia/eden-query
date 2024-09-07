@@ -146,6 +146,6 @@ _*Tanstack-Query*_
 A full featured asynchronous state management solution.
 Learn more about it from [the offical documentation](https://tanstack.com/query/latest).
 
-## Stargazers over time
+## Star History
 
-[![Stargazers over time](https://starchart.cc/ap0nia/eden-query.svg?variant=adaptive)](https://starchart.cc/ap0nia/eden-query)
+[![Star History Chart](https://api.star-history.com/svg?repos=ap0nia/eden-query&type=Date)](https://star-history.com/#ap0nia/eden-query&Date)
