@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: publish
-    if: ${{ needs.publish.outputs.published }}
+    if: needs.publish.outputs.published == 'true'
 
     steps:
       - name: 👀 Get package.json version
