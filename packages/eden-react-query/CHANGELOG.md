@@ -1,5 +1,13 @@
 # @ap0nia/eden-react-query
 
+## 1.0.4
+
+### Patch Changes
+
+- af03b83: chore: version bump to test github actions release
+- Updated dependencies [af03b83]
+  - @ap0nia/eden@1.0.4
+
 ## 1.0.3
 
 ### Patch Changes
