@@ -22,9 +22,6 @@ jobs:
     env:
       RAW_COMMIT_MESSAGE: 'chore: release package(s)'
 
-    outputs:
-      published: ${{ steps.changesets.outputs.published }}
-
     steps:
       - name: ⏬ Checkout repository
         uses: actions/checkout@v3
@@ -45,9 +42,9 @@ jobs:
           echo "MESSAGE=$MESSAGE" >> $GITHUB_OUTPUT
 
       - name: 🚀 Create pull request or publish to npm
-        id: changesets
         uses: changesets/action@v1
         with:
+          publish: changeset publish && pnpm publish -r
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
         env:
@@ -56,25 +53,3 @@ jobs:
 
       - name: Debug
         run: echo ${{ steps.changesets.outputs.published }}
-
-  release:
-    name: Release GitHub packages
-
-    runs-on: ubuntu-latest
-
-    needs: publish
-
-    if: ${{ needs.publish.outputs.published == 'true' }}
-
-    steps:
-      - name: 👀 Get package.json version
-        id: package-json-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
-
-      - name: 🎁 Create Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ steps.package-json-version.outputs.current-version }}
-          release_name: v${{ steps.package-json-version.outputs.current-version }}
