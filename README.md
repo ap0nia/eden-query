@@ -4,11 +4,17 @@
 
 <div align="center">
 
-![NPM License](https://img.shields.io/npm/l/%40ap0nia%2Feden-svelte-query)
-![Publish](https://img.shields.io/github/actions/workflow/status/ap0nia/eden-query/release.yml)
-![GitHub Release](https://img.shields.io/github/v/release/ap0nia/eden-query)
-![GitHub Repo stars](https://img.shields.io/github/stars/ap0nia/eden-query)
-![NPM Downloads](https://img.shields.io/npm/dm/%40ap0nia%2Feden)
+![Publish](https://img.shields.io/github/actions/workflow/status/ap0nia/eden-query/release.yml?style=for-the-badge)
+![GitHub Release](https://img.shields.io/github/v/release/ap0nia/eden-query?style=for-the-badge)
+![GitHub Repo stars](https://img.shields.io/github/stars/ap0nia/eden-query?style=for-the-badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/ap0nia/eden-query?style=for-the-badge)
+
+</div>
+
+<div align="center">
+
+![NPM License](https://img.shields.io/npm/l/%40ap0nia%2Feden-svelte-query?style=for-the-badge)
+![NPM Downloads](https://img.shields.io/npm/dm/%40ap0nia%2Feden?style=for-the-badge)
 
 </div>
 
