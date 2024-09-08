@@ -68,3 +68,9 @@ export type EdenClientOptions<T extends AnyElysia> = {
  * TODO: placeholder for TRPCClientError<TInferrable>.
  */
 export type EdenClientError<_T extends AnyElysia> = any
+
+export class OperationError extends Error {
+  constructor(message?: string) {
+    super(message)
+  }
+}

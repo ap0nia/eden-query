@@ -1,7 +1,12 @@
 import type { AnyElysia } from 'elysia'
 
 import { Observable } from './observable'
-import type { Operation, OperationLink, OperationResultObservable } from './operation'
+import {
+  type Operation,
+  OperationError,
+  type OperationLink,
+  type OperationResultObservable,
+} from './operation'
 
 export type ChainOptions<TElysia extends AnyElysia, TInput = unknown, TOutput = unknown> = {
   links: OperationLink<TElysia, TInput, TOutput>[]
@@ -16,7 +21,7 @@ export function createChain<TElysia extends AnyElysia, TInput = unknown, TOutput
       const next = options.links[index]
 
       if (next == null) {
-        throw new Error('No more links to execute - did you forget to add an ending link?')
+        throw new OperationError('No more links to execute - did you forget to add an ending link?')
       }
 
       const subscription = next({
