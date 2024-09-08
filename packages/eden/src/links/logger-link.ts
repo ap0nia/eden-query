@@ -166,7 +166,7 @@ function defaultLogger(options: LoggerOptions): LoggerLinkFn {
     const fn: 'error' | 'log' =
       props.direction === 'down' &&
       props.result &&
-      (props.result instanceof Error || 'error' in props.result.result)
+      (props.result instanceof Error || 'error' in props.result)
         ? 'error'
         : 'log'
 

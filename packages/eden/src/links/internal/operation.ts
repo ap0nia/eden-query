@@ -41,8 +41,7 @@ export type OperationResultObserver<TRoute extends AnyElysia, TOutput> = Observe
   EdenClientError<TRoute>
 >
 
-export type OperationResultEnvelope<T> = {
-  result: EdenResultMessage<T> | EdenSuccessResponse<T>
+export type OperationResultEnvelope<T = any> = (EdenResultMessage<T> | EdenSuccessResponse<T>) & {
   context?: OperationContext
 }
 

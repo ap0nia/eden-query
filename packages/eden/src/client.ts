@@ -127,12 +127,12 @@ export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
 
     const $observable = observable.subscribe({
       next: (envelope) => {
-        if (envelope.result.type === 'started') {
+        if (envelope.type === 'started') {
           options?.onStarted?.()
-        } else if (envelope.result.type === 'stopped') {
+        } else if (envelope.type === 'stopped') {
           options?.onStopped?.()
         } else {
-          options?.onData?.(envelope.result.data)
+          options?.onData?.(envelope.data)
         }
       },
       error: (err) => {
