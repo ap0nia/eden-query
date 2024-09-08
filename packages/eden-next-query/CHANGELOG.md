@@ -1,5 +1,13 @@
 # @ap0nia/eden-next-query
 
+## 1.0.7
+
+### Patch Changes
+
+- b3de133: feat: initial test suite implementation
+- Updated dependencies [b3de133]
+  - @ap0nia/eden-react-query@1.0.7
+
 ## 1.0.6
 
 ### Patch Changes
