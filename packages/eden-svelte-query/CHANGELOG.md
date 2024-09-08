@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.7
+
+### Patch Changes
+
+- b3de133: feat: initial test suite implementation
+
 ## 1.0.6
 
 ### Patch Changes
