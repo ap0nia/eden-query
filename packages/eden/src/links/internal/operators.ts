@@ -45,19 +45,21 @@ export function share<TValue, TError>(
     const startIfNeeded = () => {
       if (subscription != null) return
 
+      // Make shallow copy of observers in case they unsubscribe during the loop.
+
       subscription = source.subscribe({
         next: (value) => {
-          for (const observer of observers) {
+          for (const observer of [...observers]) {
             observer.next?.(value)
           }
         },
         error: (error) => {
-          for (const observer of observers) {
+          for (const observer of [...observers]) {
             observer.error?.(error)
           }
         },
         complete: () => {
-          for (const observer of observers) {
+          for (const observer of [...observers]) {
             observer.complete?.()
           }
         },
@@ -72,10 +74,10 @@ export function share<TValue, TError>(
       }
     }
 
-    return new Observable((subscriber) => {
+    return new Observable((observer) => {
       refCount++
 
-      observers.push(subscriber)
+      observers.push(observer)
 
       startIfNeeded()
 
@@ -85,7 +87,7 @@ export function share<TValue, TError>(
 
           resetIfNeeded()
 
-          const index = observers.findIndex((observer) => observer === subscriber)
+          const index = observers.findIndex((observer) => observer === observer)
 
           if (index >= 0) {
             observers.splice(index, 1)
