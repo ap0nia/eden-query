@@ -8,6 +8,10 @@
     "url": "https://github.com/ap0nia/eden-query",
     "directory": "packages/eden"
   },
+  "scripts": {
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",

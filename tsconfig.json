@@ -48,5 +48,6 @@
     "skipLibCheck": true,
 
     "noErrorTruncation": false
-  }
+  },
+  "exclude": ["**/coverage"]
 }

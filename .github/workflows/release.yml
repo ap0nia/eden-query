@@ -31,7 +31,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: 🔨 Build
-        run: pnpm --filter \!@elysiajs/documentation build
+        run: pnpm --exclude documentation
 
       - name: ✏️ Generate commit message
         id: devmoji

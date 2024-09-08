@@ -31,7 +31,8 @@
   "type": "module",
   "scripts": {
     "postinstall": "changeset init && husky install",
-    "build": "nx run-many -t build"
+    "build": "nx run-many -t build",
+    "test:coverage": "nx run-many -t test:coverage"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.7",
@@ -43,6 +44,7 @@
     "@types/lint-staged": "^13.3.0",
     "@typescript-eslint/eslint-plugin": "^7.18.0",
     "@typescript-eslint/parser": "^7.18.0",
+    "@vitest/coverage-v8": "^2.0.5",
     "commitizen": "^4.3.0",
     "commitlint": "^19.3.0",
     "cz-conventional-changelog": "^3.3.0",
@@ -58,7 +60,8 @@
     "svelte": "^4.2.18",
     "svelte-eslint-parser": "^0.41.0",
     "typescript": "^5.5.4",
-    "typescript-eslint": "^7.18.0"
+    "typescript-eslint": "^7.18.0",
+    "vitest": "^2.0.5"
   },
   "packageManager": "pnpm@9.1.1",
   "engines": {
