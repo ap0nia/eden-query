@@ -20,25 +20,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: ⏬ Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: 🕺 Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
-      - name: Install devDependencies
+      - name: 📦 Install dependencies
         run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
 
-      - name: Lint pull request title
+      - name: 🧶 Lint pull request title
         run: echo ${{ toJSON(github.event.pull_request.title) }} | npx --no -- commitlint
 
-      - name: Format pull request title
+      - name: 🖊️ Format pull request title
         id: devmoji
         run: |
           TITLE=$(npx --no -- devmoji --text ${{ toJSON(github.event.pull_request.title) }})
           echo "TITLE=$TITLE" >> $GITHUB_OUTPUT
 
-      - name: Update pull request title if needed
+      - name: 🔄 Update pull request title if needed
         if: toJSON(github.event.pull_request.title) != toJSON(steps.devmoji.outputs.TITLE)
         uses: octokit/request-action@v2.x
         with:

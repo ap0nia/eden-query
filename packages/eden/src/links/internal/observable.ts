@@ -20,7 +20,7 @@ export type OperatorFunction<
   TErrorAfter = any,
 > = UnaryFunction<Subscribable<TValueBefore, TErrorBefore>, Subscribable<TValueAfter, TErrorAfter>>
 
-export type Observer<TValue, TError> = {
+export type Observer<TValue = any, TError = any> = {
   next: (value: TValue) => void
   error: (err: TError) => void
   complete: () => void
@@ -78,17 +78,17 @@ export function promisifyObservable<T>(observable: Observable<T>) {
 }
 
 export class ObservableAbortError extends Error {
-  constructor(message: string) {
+  constructor(message?: string) {
     super(message)
     this.name = 'ObservableAbortError'
     Object.setPrototypeOf(this, ObservableAbortError.prototype)
   }
 }
 
-export class Subscribable<TValue, TError> {
+export class Subscribable<TValue = any, TError = any> {
   constructor(public onSubscribe: (observer: Observer<TValue, TError>) => TeardownLogic) {}
 
-  subscribe(observer: Partial<Observer<TValue, TError>>): Unsubscribable {
+  subscribe(observer?: Partial<Observer<TValue, TError>>): Unsubscribable {
     let teardownRef: TeardownLogic | null = null
     let isDone = false
     let unsubscribed = false
@@ -114,18 +114,18 @@ export class Subscribable<TValue, TError> {
     teardownRef = this.onSubscribe({
       next: (value) => {
         if (isDone) return
-        observer.next?.(value)
+        observer?.next?.(value)
       },
       error: (err) => {
         if (isDone) return
         isDone = true
-        observer.error?.(err)
+        observer?.error?.(err)
         unsubscribe()
       },
       complete: () => {
         if (isDone) return
         isDone = true
-        observer.complete?.()
+        observer?.complete?.()
         unsubscribe()
       },
     })
@@ -160,14 +160,14 @@ export class Observable<TValue = any, TError = any> extends Subscribable<TValue,
     op1: OperatorFunction<TValue, TError, TValue1, TError1>,
     op2: OperatorFunction<TValue1, TError1, TValue2, TError2>,
     op3: OperatorFunction<TValue2, TError2, TValue3, TError3>,
-  ): Observable<TValue2, TError2>
+  ): Observable<TValue3, TError3>
 
   pipe<TValue1, TError1, TValue2, TError2, TValue3, TError3, TValue4, TError4>(
     op1: OperatorFunction<TValue, TError, TValue1, TError1>,
     op2: OperatorFunction<TValue1, TError1, TValue2, TError2>,
     op3: OperatorFunction<TValue2, TError2, TValue3, TError3>,
     op4: OperatorFunction<TValue3, TError3, TValue4, TError4>,
-  ): Observable<TValue2, TError2>
+  ): Observable<TValue4, TError4>
 
   pipe<TValue1, TError1, TValue2, TError2, TValue3, TError3, TValue4, TError4, TValue5, TError5>(
     op1: OperatorFunction<TValue, TError, TValue1, TError1>,
@@ -175,7 +175,7 @@ export class Observable<TValue = any, TError = any> extends Subscribable<TValue,
     op3: OperatorFunction<TValue2, TError2, TValue3, TError3>,
     op4: OperatorFunction<TValue3, TError3, TValue4, TError4>,
     op5: OperatorFunction<TValue4, TError4, TValue5, TError5>,
-  ): Observable<TValue2, TError2>
+  ): Observable<TValue5, TError5>
 
   pipe(...operations: OperatorFunction[]): Observable {
     return operations.reduce(pipeReducer, this)

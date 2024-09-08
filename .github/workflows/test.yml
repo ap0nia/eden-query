@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+---
+name: Test
+
+on:
+  push:
+
+jobs:
+  publish:
+    name: Test packages
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⏬ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🕺 Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔨 Test
+        run: pnpm test:coverage
+
+      - name: ⏫ Upload results to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

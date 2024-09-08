@@ -4,8 +4,7 @@
 
 <div align="center">
 
-![Publish](https://img.shields.io/github/actions/workflow/status/ap0nia/eden-query/release.yml?style=flat-square)
-![GitHub Release](https://img.shields.io/github/v/release/ap0nia/eden-query?style=flat-square)
+![GitHub Release Workflow](https://img.shields.io/github/actions/workflow/status/ap0nia/eden-query/release.yml?style=flat-square)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ap0nia/eden-query?style=flat-square)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ap0nia/eden-query?style=flat-square)
 
@@ -13,8 +12,15 @@
 
 <div align="center">
 
+![NPM Version](https://img.shields.io/npm/v/%40ap0nia%2Feden)
 ![NPM License](https://img.shields.io/npm/l/%40ap0nia%2Feden-svelte-query?style=flat-square)
 ![NPM Downloads](https://img.shields.io/npm/dm/%40ap0nia%2Feden?style=flat-square)
+
+</div>
+
+<div align="center">
+
+[![codecov](https://codecov.io/github/ap0nia/eden-query/branch/documentation/graph/badge.svg?token=PZD53QOA9D)](https://codecov.io/github/ap0nia/eden-query)
 
 </div>
 
@@ -49,7 +55,7 @@ yarn add elysia @ap0nia/eden-react-query
 pnpm add elysia @ap0nia/eden-react-query
 ```
 
-### Usage
+### Usage (React)
 
 ```tsx
 import { eden } from './eden'
@@ -112,14 +118,15 @@ export type App = typeof app
 More documentation for framework-specific packages can be found in their respective project
 directories as well as the documentation.
 
-- [React](./packages/svelte)
-- [Svelte](./packages/svelte)
+- [React](./packages/eden-react-query)
+- [Svelte](./packages/eden-svelte-query)
 
 ### General Purpose Integrations
 
+- [Eden](./packages/eden)
+
 A custom implementation of the `eden` client is maintained here with the same core functionality
 as the [officially documented one](https://elysiajs.com/eden/overview.html).
-Read more about it [here](./packages/eden).
 
 ## 📖 Learn More
 
@@ -144,6 +151,12 @@ _*Tanstack-Query*_
 
 A full featured asynchronous state management solution.
 Learn more about it from [the offical documentation](https://tanstack.com/query/latest).
+
+## 👷 Contributing
+
+Please read the [contributing guidelines](CONTRIBUTING.md) before opening an issue or pull request
+to begin developing. The guide will provide an overview of steps to initialize the local
+development environment, as well as architecture of the project.
 
 ## ⭐Star History
 

@@ -104,6 +104,7 @@ const config = tsEslint.config(
       '**/build/**',
       '**/cdk.out/**',
       '**/node_modules/**',
+      '**/coverage',
     ],
   },
 )
