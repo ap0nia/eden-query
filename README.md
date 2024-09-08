@@ -4,8 +4,7 @@
 
 <div align="center">
 
-![Publish](https://img.shields.io/github/actions/workflow/status/ap0nia/eden-query/release.yml?style=flat-square)
-![GitHub Release](https://img.shields.io/github/v/release/ap0nia/eden-query?style=flat-square)
+![GitHub Release Workflow](https://img.shields.io/github/actions/workflow/status/ap0nia/eden-query/release.yml?style=flat-square)
 ![GitHub Repo stars](https://img.shields.io/github/stars/ap0nia/eden-query?style=flat-square)
 ![GitHub last commit](https://img.shields.io/github/last-commit/ap0nia/eden-query?style=flat-square)
 
@@ -13,8 +12,15 @@
 
 <div align="center">
 
+![NPM Version](https://img.shields.io/npm/v/%40ap0nia%2Feden)
 ![NPM License](https://img.shields.io/npm/l/%40ap0nia%2Feden-svelte-query?style=flat-square)
 ![NPM Downloads](https://img.shields.io/npm/dm/%40ap0nia%2Feden?style=flat-square)
+
+</div>
+
+<div align="center">
+
+![Codecov](https://img.shields.io/codecov/c/github/ap0nia/eden-query)
 
 </div>
 
