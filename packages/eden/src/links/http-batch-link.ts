@@ -1,4 +1,4 @@
-import type { AnyElysia, MaybeArray } from 'elysia'
+import type { AnyElysia } from 'elysia'
 
 import { BATCH_ENDPOINT } from '../constants'
 import type { EdenQueryStoreKey } from '../constraints'
@@ -7,7 +7,6 @@ import type { HTTPHeaders } from '../http'
 import type { BatchPluginOptions } from '../plugins'
 import { type EdenRequestOptions, type EdenResponse } from '../request'
 import { type EdenRequestParams, resolveEdenRequest } from '../resolve'
-import { arrayToDict } from '../utils/array-to-dict'
 import { notNull } from '../utils/null'
 import type { NonEmptyArray } from '../utils/types'
 import { httpLinkFactory } from './http-link'
@@ -56,47 +55,74 @@ export type HttpBatchLinkOptions<
         transformer?: DataTransformerOptions
       })
 
-export type GetInputParams = {
-  url?: string
-  path: string
-  type: OperationType
-  transformer?: DataTransformerOptions
-  input: MaybeArray<unknown>
-  method?: BatchMethod
-}
-
 export type BatchMethod = 'GET' | 'POST'
 
-export function getInput(params: GetInputParams) {
-  const transformer = getDataTransformer(params.transformer)
+/**
+ * If using GET request to batch, the request data will be encoded in query parameters.
+ * This is only possible if all requests are GET requests.
+ *
+ * The query will look like this
+ *
+ * // GET request to /api/b?name=elysia, i.e. query of name=elysia
+ *
+ * batch=1&0.path=/api/b&0.method=GET&0.query.name=elysia
+ */
+export function generateGetBatchRequestInformation(operations: Operation[]) {
+  const query: Record<string, any> = {}
 
-  return Array.isArray(params.input)
-    ? arrayToDict(params.input.map((input) => transformer?.input.serialize(input)))
-    : transformer?.input.serialize(params.input)
-}
+  const headers = new Headers()
 
-export function getUrl(params: GetInputParams) {
-  let url = params.url + '/' + params.path
+  operations.forEach((operation, index) => {
+    let operationPath = operation.params.path ?? ''
 
-  const queryParts: string[] = []
-
-  if (Array.isArray(params.input)) {
-    queryParts.push('batch=1')
-  }
-
-  if (params.type === 'query') {
-    const input = getInput(params)
-
-    if (input !== undefined && params.method !== 'POST') {
-      queryParts.push(`input=${encodeURIComponent(JSON.stringify(input))}`)
+    // Handle path params.
+    for (const key in operation.params.options?.params) {
+      const placeholder = `:${key}`
+      const param = operation.params.options.params[key as never]
+      if (param != null) {
+        operationPath = operationPath.replace(placeholder, param)
+      }
     }
-  }
 
-  if (queryParts.length) {
-    url += '?' + queryParts.join('&')
-  }
+    query[`${index}.path`] = operationPath
 
-  return url
+    if (operation.params.method != null) {
+      query[`${index}.method`] = operation.params.method
+    }
+
+    for (const key in operation.params.options?.query) {
+      const value = operation.params.options.query[key as never]
+      if (value != null) {
+        query[`${index}.query.${key}`] = value
+      }
+    }
+
+    // Handle headers.
+
+    /**
+     * These headers may be set at the root of the client as defaults.
+     */
+    const defaultHeaders =
+      typeof operation.params.headers === 'function'
+        ? operation.params.headers(operationPath, operation.params.fetch)
+        : operation.params.headers
+
+    /**
+     * These headers are set on this specific request.
+     */
+    const requestHeaders = operation.params.options?.headers
+
+    const resolvedHeaders = { ...defaultHeaders, ...requestHeaders }
+
+    for (const key in resolvedHeaders) {
+      const header = resolvedHeaders[key as never]
+      if (header != null) {
+        headers.append(key, header)
+      }
+    }
+  })
+
+  return { body: null, query, headers }
 }
 
 /**
@@ -119,7 +145,10 @@ export function getUrl(params: GetInputParams) {
  *   '1.query.name': 'elysia'
  * }
  */
-export function generatePostBatchParams(operations: Operation[], options?: HttpBatchLinkOptions) {
+export function generatePostBatchRequestInformation(
+  operations: Operation[],
+  options?: HttpBatchLinkOptions,
+) {
   const body = new FormData()
 
   const headers = new Headers()
@@ -127,107 +156,90 @@ export function generatePostBatchParams(operations: Operation[], options?: HttpB
   operations.forEach((operation, index) => {
     let operationPath = operation.params.path ?? ''
 
+    // Specify method of the request.
     if (operation.params.method != null) {
       body.append(`${index}.method`, operation.params.method)
     }
 
-    /**
-     * TODO: should `{index}.params.${key}` be encoded in the body too, or only the finalized path?
-     *
-     * For now, it's encoded only in the finalized path to simplify the data storage.
-     */
-    if (operation.params.options?.params != null) {
-      Object.entries(operation.params.options?.params).forEach(([key, value]) => {
-        operationPath = operationPath.replace(`:${key}`, value as string)
-      })
-    }
-
-    /**
-     * TODO: should `{index}.query.${key}` be encoded in the finalized path?
-     *
-     * For now, it's encoded in the body to save URL space...
-     */
-    if (operation.params.options?.query != null) {
-      Object.entries(operation.params.options.query).forEach(([key, value]) => {
-        body.append(`${index}.query.${key}`, value as any)
-      })
-    }
-
-    if (operation.params?.body != null) {
-      const transformer = getDataTransformer(options?.transformer ?? operation.params.transformer)
-
-      if (operation.params.body instanceof FormData) {
-        body.append(`${index}.body_type`, 'formdata')
-
-        operation.params.body.forEach((value, key) => {
-          const resolvedValue = transformer != null ? transformer.input.serialize(value) : value
-
-          body.set(`${index}.body.${key}`, resolvedValue)
-        })
-      } else {
-        body.append(`${index}.body_type`, 'json')
-
-        const resolvedBody =
-          transformer != null
-            ? transformer.input.serialize(operation.params.body)
-            : operation.params.body
-
-        body.set(`${index}.body`, JSON.stringify(resolvedBody))
+    // Handle path parameters.
+    for (const key in operation.params.options?.params) {
+      const placeholder = `:${key}`
+      const param = operation.params.options.params[key as never]
+      if (param != null) {
+        operationPath = operationPath.replace(placeholder, param)
       }
     }
 
+    // Specify the path of the request.
     body.append(`${index}.path`, operationPath)
+
+    // Handle query parameters.
+    for (const key in operation.params.options?.query) {
+      const value = operation.params.options.query[key as never]
+
+      if (value != null) {
+        body.append(`${index}.query.${key}`, value)
+      }
+    }
+
+    // Handle headers.
+
+    /**
+     * These headers may be set at the root of the client as defaults.
+     */
+    const defaultHeaders =
+      typeof operation.params.headers === 'function'
+        ? operation.params.headers(operationPath, operation.params.fetch)
+        : operation.params.headers
+
+    /**
+     * These headers are set on this specific request.
+     */
+    const requestHeaders = operation.params.options?.headers
+
+    const resolvedHeaders = { ...defaultHeaders, ...requestHeaders }
+
+    for (const key in resolvedHeaders) {
+      const header = resolvedHeaders[key as never]
+      if (header != null) {
+        headers.append(key, header)
+      }
+    }
+
+    // Handle body.
+
+    if (operation.params?.body == null) return
+
+    const rawTransformer = options?.transformer ?? operation.params.transformer
+
+    const transformer = getDataTransformer(rawTransformer)
+
+    if (operation.params.body instanceof FormData) {
+      body.append(`${index}.body_type`, 'formdata')
+
+      operation.params.body.forEach((value, key) => {
+        const serialized = transformer.input.serialize(value)
+
+        // FormData is special and can handle additional data types, like Files.
+        // So we will not JSON.stringify the serialized result.
+        body.set(`${index}.body.${key}`, serialized)
+      })
+    } else {
+      body.append(`${index}.body_type`, 'json')
+
+      const serialized = transformer.input.serialize(operation.params.body)
+      const stringified = JSON.stringify(serialized)
+
+      body.set(`${index}.body`, stringified)
+    }
   })
 
   return { body, query: {}, headers }
 }
 
-/**
- * If using GET request to batch, the request data will be encoded in query parameters.
- * This is only possible if all requests are GET requests.
- *
- * The query will look like this
- *
- * // GET request to /api/b?name=elysia, i.e. query of name=elysia
- *
- * batch=1&0.path=/api/b&0.method=GET&0.query.name=elysia
- */
-export function generateGetBatchParams(operations: Operation[]) {
-  const query: Record<string, any> = {}
-
-  const headers = new Headers()
-
-  operations.forEach((operation, index) => {
-    let operationPath = operation.params.path ?? ''
-
-    if (operation.params.method != null) {
-      query[`${index}.method`] = operation.params.method
-    }
-
-    if (operation.params.options?.params != null) {
-      Object.entries(operation.params.options?.params).forEach(([key, value]) => {
-        operationPath = operationPath.replace(`:${key}`, value as string)
-      })
-    }
-
-    if (operation.params.options?.query != null) {
-      Object.entries(operation.params.options.query).forEach(([key, value]) => {
-        if (value != null) {
-          query[`${index}.query.${key}`] = operation.params.method
-        }
-      })
-    }
-
-    // Don't handle body for GET requests.
-    // if (operation.params?.body != null) { }
-  })
-
-  return { body: null, query, headers }
-}
-
-const generateBatchParams = {
-  GET: generateGetBatchParams,
-  POST: generatePostBatchParams,
+const generateBatchRequestInformation = {
+  GET: generateGetBatchRequestInformation,
+  POST: generatePostBatchRequestInformation,
 }
 
 function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
@@ -236,16 +248,19 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
   const { endpoint, maxURLLength, headers, transformer, method, domain, ...requestOptions } =
     resolvedFactoryOptions
 
-  const createBatchLoader = (type: OperationType): BatchLoader<Operation> => {
+  const createBatchLoader = (_type: OperationType): BatchLoader<Operation> => {
     return {
       validate: (batchOps) => {
         // Escape hatch for quick calculations.
         if (maxURLLength === Infinity) return true
 
-        const path = batchOps.map((operation) => operation.params.path).join(',')
-        const input = batchOps.map((operation) => operation.params.options?.query)
+        const requestInformation = generateGetBatchRequestInformation(batchOps)
 
-        const url = getUrl({ ...resolvedFactoryOptions, type, path, input })
+        const searchParams = new URLSearchParams(requestInformation.query)
+
+        const path = endpoint ?? BATCH_ENDPOINT
+
+        const url = `${path}${searchParams.size ? '?' : ''}${searchParams}`
 
         return url.length <= maxURLLength
       },
@@ -266,6 +281,8 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
 
             const singleResult = universalRequester(requesterOptions)
 
+            // Batched-data-loader expects an array of results,
+            // which will each be resolved to the corresponding promise.
             const promise = singleResult.promise.then((result) => [result])
 
             return { promise, cancel: singleResult.cancel }
@@ -286,8 +303,6 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
           abortController?.abort()
         }
 
-        const path = endpoint ?? BATCH_ENDPOINT
-
         const defaultBatchMethod: BatchMethod = method ?? 'POST'
 
         /**
@@ -300,7 +315,11 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
               : 'GET'
             : 'POST'
 
-        const batchParams = generateBatchParams[resolvedMethod](batchOps, resolvedFactoryOptions)
+        const batchInformationGenerator = generateBatchRequestInformation[resolvedMethod]
+
+        const information = batchInformationGenerator(batchOps, resolvedFactoryOptions)
+
+        const path = endpoint ?? BATCH_ENDPOINT
 
         const defaultHeaders =
           headers == null
@@ -309,28 +328,38 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
               ? headers(batchOps as NonEmptyArray<Operation>)
               : headers
 
-        const { body, query } = batchParams
+        // Force to await headers.
+        const awaitDefaultHeaders = async () => await defaultHeaders
 
-        const resolvedHeaders = { ...defaultHeaders, ...batchParams.headers }
+        const promise = awaitDefaultHeaders().then(async (defaultHeaders) => {
+          const { body, query } = information
 
-        const resolvedParams: EdenRequestParams<any, true> = {
-          domain,
-          transformer,
-          path,
-          method: resolvedMethod,
-          options: { query },
-          body,
-          headers: resolvedHeaders,
-          ...requestOptions,
-          raw: true,
-        }
+          for (const key in defaultHeaders) {
+            const header = defaultHeaders[key as never]
+            if (header != null) {
+              information.headers.append(key, header)
+            }
+          }
 
-        if (signals.length) {
-          resolvedParams.fetch ??= {}
-          resolvedParams.fetch.signal = abortController?.signal
-        }
+          const resolvedParams: EdenRequestParams<any, true> = {
+            domain,
+            transformer,
+            path,
+            method: resolvedMethod,
+            options: { query },
+            body,
+            headers: information.headers,
+            ...requestOptions,
+            raw: true,
+          }
 
-        const promise = resolveEdenRequest(resolvedParams).then((result) => {
+          if (signals.length) {
+            resolvedParams.fetch ??= {}
+            resolvedParams.fetch.signal = abortController?.signal
+          }
+
+          const result = await resolveEdenRequest(resolvedParams)
+
           /**
            * result.data should be an array of JSON data from each request in the batch.
            */

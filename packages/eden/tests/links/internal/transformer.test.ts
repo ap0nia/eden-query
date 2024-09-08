@@ -7,8 +7,17 @@ import {
 } from '../../../src/links/internal/transformer'
 
 describe('getDataTransformer', () => {
-  test('returns null for nullish input', () => {
-    expect(getDataTransformer(undefined)).toBeUndefined()
+  test('returns default transformer for nullish input', () => {
+    const dataTransformer = getDataTransformer(undefined)
+
+    expect(dataTransformer).toBeDefined()
+
+    const value = 'Elysia'
+
+    expect(dataTransformer.input.serialize(value)).toBe(value)
+    expect(dataTransformer.input.deserialize(value)).toBe(value)
+    expect(dataTransformer.output.serialize(value)).toBe(value)
+    expect(dataTransformer.output.deserialize(value)).toBe(value)
   })
 
   test('returns the same transformer for input and output', () => {
