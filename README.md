@@ -12,7 +12,7 @@
 
 <div align="center">
 
-![NPM Version](https://img.shields.io/npm/v/%40ap0nia%2Feden)
+![NPM Version](https://img.shields.io/npm/v/%40ap0nia%2Feden?style=flat-square)
 ![NPM License](https://img.shields.io/npm/l/%40ap0nia%2Feden-svelte-query?style=flat-square)
 ![NPM Downloads](https://img.shields.io/npm/dm/%40ap0nia%2Feden?style=flat-square)
 
