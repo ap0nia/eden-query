@@ -7,7 +7,7 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 export const server = setupServer()
 
 // Start server before all tests.
-beforeAll(() => server.listen())
+beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
 
 //  Close server after all tests.
 afterAll(() => server.close())

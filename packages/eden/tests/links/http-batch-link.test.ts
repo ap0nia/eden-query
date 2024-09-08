@@ -489,7 +489,7 @@ describe('httpBatchLink', () => {
       expect(promise).rejects.toEqual(expect.any(BatchError))
     })
 
-    test('resolves request with 404 if invalid url', async () => {
+    test('fails to resolves request if invalid url', async () => {
       const batchLink = unsafeHttpBatchLink({ method: 'GET' })
 
       const link = batchLink({})
@@ -513,7 +513,8 @@ describe('httpBatchLink', () => {
 
       const { promise } = promisifyObservable(observable)
 
-      expect(promise).resolves.toEqual(expect.objectContaining({ status: 404 }))
+      // Invalid request that has not been handled by msw.
+      expect(promise).rejects.toThrowError()
     })
   })
 })
