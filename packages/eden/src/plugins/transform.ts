@@ -1,11 +1,4 @@
-import {
-  type DefinitionBase,
-  Elysia,
-  type EphemeralType,
-  type MetadataBase,
-  type RouteBase,
-  type SingletonBase,
-} from 'elysia'
+import { Elysia } from 'elysia'
 
 import type { EdenQueryStoreKey } from '../constraints'
 import { type DataTransformerOptions, getDataTransformer } from '../links/internal/transformer'
@@ -18,17 +11,8 @@ import { type DataTransformerOptions, getDataTransformer } from '../links/intern
 export function transformPlugin<T extends DataTransformerOptions>(transformer: T) {
   const resolvedTransformer = getDataTransformer(transformer)
 
-  const plugin = <
-    BasePath extends string,
-    Scoped extends boolean,
-    Singleton extends SingletonBase,
-    Definitions extends DefinitionBase,
-    Metadata extends MetadataBase,
-    Routes extends RouteBase,
-    Ephemeral extends EphemeralType,
-    Volatile extends EphemeralType,
-  >(
-    elysia: Elysia<BasePath, Scoped, Singleton, Definitions, Metadata, Routes, Ephemeral, Volatile>,
+  const plugin = <BasePath extends string>(
+    elysia: Elysia<BasePath>,
   ): Elysia<
     BasePath,
     false,

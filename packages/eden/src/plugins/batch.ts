@@ -1,11 +1,4 @@
-import {
-  type DefinitionBase,
-  Elysia,
-  type EphemeralType,
-  type MetadataBase,
-  type RouteBase,
-  type SingletonBase,
-} from 'elysia'
+import { Elysia } from 'elysia'
 
 import { BATCH_ENDPOINT } from '../constants'
 import type { EdenQueryStoreKey } from '../constraints'
@@ -13,25 +6,56 @@ import { parseResponse } from '../resolve'
 import { createUrl } from '../utils/create-url'
 import { set } from '../utils/set'
 
+/**
+ * Individual request data that can be extracted from a {@link Request} that contains
+ * information about multiple requests.
+ */
 export type BatchedRequestData = {
+  /**
+   * The path for this request.
+   */
   path: string
+
+  /**
+   * The HTTP method for this request.
+   */
   method?: string
+
+  /**
+   * The body of the request. It may either be JSON or FormData.
+   */
   body?: any
+
+  /**
+   * The type of the body.
+   */
   body_type?: 'formdata' | 'json'
+
+  /**
+   * All headers specifically for the request.
+   */
   headers?: Headers
+
+  /**
+   * Any query parameters for the request.
+   */
   query?: URLSearchParams
-  rawBody?: Record<string, any>
 }
 
 export type BatchPluginOptions = {
   endpoint?: string
 }
 
+/**
+ * @param body The body from the elysia handler context. It should be null if the request contained formData.
+ */
 async function unBatchRequests(request: Request, body?: any): Promise<BatchedRequestData[]> {
   const batchedRequests = body
     ? unBatchRequestJsonData(body)
     : await unBatchRequestFormData(request)
+
   const batchedHeaders = unBatchHeaders(request)
+
   const batchedQueries = unBatchQueries(request)
 
   // Zip batched headers with batched requests.
@@ -158,8 +182,6 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
   return result
 }
 
-/**
- */
 function unBatchHeaders(request: Request): { requests: Headers[]; shared: Headers } {
   const requests: Headers[] = []
   const shared = new Headers()
@@ -195,22 +217,12 @@ function unBatchQueries(request: Request): URLSearchParams[] {
 }
 
 /**
- * @fixme:
- *
+ * This may result in a TS error if you have "declaration": true in your tsconfig.
  * TS 4118 The type of this node cannot be serialized because its property '[EdenQueryStoreKey]' cannot be serialized.
  */
 export function batchPlugin(options?: BatchPluginOptions) {
-  const plugin = <
-    BasePath extends string,
-    Scoped extends boolean,
-    Singleton extends SingletonBase,
-    Definitions extends DefinitionBase,
-    Metadata extends MetadataBase,
-    Routes extends RouteBase,
-    Ephemeral extends EphemeralType,
-    Volatile extends EphemeralType,
-  >(
-    elysia: Elysia<BasePath, Scoped, Singleton, Definitions, Metadata, Routes, Ephemeral, Volatile>,
+  const plugin = <BasePath extends string>(
+    elysia: Elysia<BasePath>,
   ): Elysia<
     BasePath,
     false,
