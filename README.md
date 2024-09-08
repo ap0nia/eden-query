@@ -20,7 +20,7 @@
 
 <div align="center">
 
-![Codecov](https://img.shields.io/codecov/c/github/ap0nia/eden-query)
+[![codecov](https://codecov.io/github/ap0nia/eden-query/branch/documentation/graph/badge.svg?token=PZD53QOA9D)](https://codecov.io/github/ap0nia/eden-query)
 
 </div>
 
