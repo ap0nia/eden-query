@@ -275,6 +275,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
               ...firstOperation,
             }
 
+            // Forward domain.
             if (domain != null) {
               requesterOptions.params = { ...requesterOptions.params, domain }
             }
@@ -472,4 +473,13 @@ export const httpBatchLink = <T extends AnyElysia>(
   : TypeError<'Batch plugin not detected on Elysia.js app instance'> => {
   const batchRequester = createBatchRequester(options)
   return httpLinkFactory({ requester: batchRequester })() as any
+}
+
+/**
+ * @link https://trpc.io/docs/v11/client/links/httpLink
+ */
+export function unsafeHttpBatchLink<T extends AnyElysia>(
+  options?: HttpBatchLinkOptions<T>,
+): EdenLink<T> {
+  return httpBatchLink(options) as any
 }
