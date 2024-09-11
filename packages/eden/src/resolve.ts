@@ -413,7 +413,7 @@ export async function resolveEdenRequest<
     }
   }
 
-  const domain = params.domain ?? ''
+  const domain = typeof params.domain === 'string' ? params.domain : 'http://localhost:3000'
 
   const url = domain + path + q
 

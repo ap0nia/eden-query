@@ -50,14 +50,15 @@ export type EdenCreateMutation<
   TRoute extends RouteSchema,
   _TPath extends any[] = [],
   TVariables = InferRouteBody<TRoute>,
-  TInput = InferRouteOptions<TRoute>,
+  TInput = Partial<Pick<InferRouteOptions<TRoute>, 'params'>> &
+    Omit<InferRouteOptions<TRoute>, 'params'>,
   TData = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = <TContext = unknown>(
-  options?: EdenCreateMutationOptions<TVariables, TData, TError, TContext>,
+  options?: EdenCreateMutationOptions<TVariables, TError, TData, TContext>,
 ) => EdenCreateMutationResult<TData, TError, TVariables, TContext, TInput>
 
-export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TContext = unknown>(
+export type EdenAsyncMutationFunction<TData, TError, TVariables, TInput> = <TContext = TData>(
   variables: TVariables,
   options: {} extends TInput
     ?

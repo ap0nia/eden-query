@@ -12,7 +12,7 @@ import type { Nullish } from './utils/null'
 export type EdenRequestHeaders =
   | MaybeArray<
       | RequestInit['headers']
-      | ((path: string, options: RequestInit) => MaybePromise<RequestInit['headers'] | Nullish>)
+      | ((path: string, options?: RequestInit) => MaybePromise<RequestInit['headers'] | Nullish>)
     >
   | MaybePromise<HTTPHeaders>
 

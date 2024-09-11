@@ -11,6 +11,18 @@ export class EdenFetchError<Status extends number = number, Value = unknown> ext
   }
 }
 
+export class EdenFatalError extends Error {
+  static throw() {
+    return new EdenFatalError()
+  }
+
+  constructor() {
+    super(
+      'Something went wrong. Please submit an issue at https://github.com/ap0nia/eden-query/issues/new',
+    )
+  }
+}
+
 export type MapError<T extends Record<number, unknown>> = [
   {
     [K in keyof T]-?: K extends ErrorRange ? K : never

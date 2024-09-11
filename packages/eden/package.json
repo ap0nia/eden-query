@@ -44,6 +44,7 @@
   },
   "devDependencies": {
     "@types/bun": "^1.1.6",
+    "msw": "^2.4.4",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {

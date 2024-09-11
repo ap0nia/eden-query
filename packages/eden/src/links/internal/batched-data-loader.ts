@@ -1,3 +1,4 @@
+import { EdenFatalError } from '../../errors'
 import type { Noop } from '../../utils/noop'
 
 export type Batch<TKey, TValue> = {
@@ -33,13 +34,10 @@ export type BatchFetcher<TKey, TValue> = (
   cancel: Noop
 }
 
-/**
- * A function that should never be called unless we messed something up.
- */
-function throwFatalError() {
-  throw new Error(
-    'Something went wrong. Please submit an issue at https://github.com/trpc/trpc/issues/new',
-  )
+export class BatchError extends Error {
+  constructor(message?: string) {
+    super(message)
+  }
 }
 
 /**
@@ -49,13 +47,13 @@ function throwFatalError() {
  * When cancelling a single fetch the whole batch will be cancelled only when _all_ items are cancelled.
  */
 export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue>) {
-  let pendingItems: BatchItem<TKey, TValue>[] | null = null
+  let pendingItems: BatchItem<TKey, TValue>[] = []
   let dispatchTimer: ReturnType<typeof setTimeout> | null = null
 
   const destroyTimerAndPendingItems = () => {
     clearTimeout(dispatchTimer as any)
     dispatchTimer = null
-    pendingItems = null
+    pendingItems = []
   }
 
   /**
@@ -64,46 +62,55 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
   const groupItems = (items: BatchItem<TKey, TValue>[]) => {
     const groupedItems: BatchItem<TKey, TValue>[][] = [[]]
 
-    let index = 0
-
+    let i = 0
     let item: BatchItem<TKey, TValue> | undefined
+    let lastGroup: BatchItem<TKey, TValue>[] | undefined
 
-    while ((item = items[index])) {
-      const lastGroup = groupedItems[groupedItems.length - 1]
-
-      if (lastGroup == null) break
-
+    for (; i < items.length && (lastGroup = groupedItems.at(-1)) && (item = items[i]); ++i) {
       // Item was aborted before it was dispatched.
       if (item.aborted) {
-        item.reject?.(new Error('Aborted'))
-        index++
+        item.reject?.(new BatchError('Aborted'))
         continue
       }
 
-      const isValid = loader.validate(lastGroup.concat(item).map((item) => item.key))
+      // Create a new group to test whether the resulting group would be valid;
+      // do not mutate the original group reference if it is not.
+      const lastGroupWithNewItem = [...lastGroup, item]
+
+      const keys = lastGroupWithNewItem.map((item) => item.key)
+
+      const isValid = loader.validate(keys)
 
       // Add consecutive, valid items that have not been aborted to the end of the queue.
       if (isValid) {
         lastGroup.push(item)
-        index++
         continue
       }
 
+      // Failed to add any items to an existing group.
       if (lastGroup.length === 0) {
-        item.reject?.(new Error('Input is too big for a single dispatch'))
-        index++
+        item.reject?.(new BatchError('Invalid item failed to be added to batch.'))
         continue
       }
 
-      // Create new group, next iteration will try to add the item to that.
-      groupedItems.push([])
+      const newGroup = [item]
+      const newKeys = [item.key]
+
+      const isNewGroupValid = loader.validate(newKeys)
+
+      if (isNewGroupValid) {
+        groupedItems.push(newGroup)
+      } else {
+        item.reject?.(new BatchError('Invalid item failed to be added to batch.'))
+        groupedItems.push([])
+      }
     }
 
     return groupedItems
   }
 
   const dispatch = () => {
-    const groupedItems = groupItems(pendingItems ?? [])
+    const groupedItems = groupItems(pendingItems)
 
     destroyTimerAndPendingItems()
 
@@ -111,7 +118,7 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
     for (const items of groupedItems) {
       if (items.length === 0) continue
 
-      const batch: Batch<TKey, TValue> = { items, cancel: throwFatalError }
+      const batch: Batch<TKey, TValue> = { items, cancel: EdenFatalError.throw }
 
       for (const item of items) {
         item.batch = batch
@@ -163,14 +170,13 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
       aborted: false,
       key,
       batch: null,
-      resolve: throwFatalError,
-      reject: throwFatalError,
+      resolve: EdenFatalError.throw,
+      reject: EdenFatalError.throw,
     }
 
     const promise = new Promise<TValue>((resolve, reject) => {
       item.reject = reject
       item.resolve = resolve
-      pendingItems ??= []
       pendingItems.push(item)
     })
 
