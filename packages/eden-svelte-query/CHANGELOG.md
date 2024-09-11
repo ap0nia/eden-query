@@ -1,5 +1,15 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.8
+
+### Patch Changes
+
+- 12e11ee: fix: type of return for mutateAsync
+- eebaa36: fix: useMutation types
+- Updated dependencies [12e11ee]
+- Updated dependencies [eebaa36]
+  - @ap0nia/eden@1.0.7
+
 ## 1.0.7
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@ap0nia/eden-next-query",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "elysia.js eden and Next.js/react-query integration",
   "license": "MIT",
   "repository": {
