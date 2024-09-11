@@ -1,5 +1,12 @@
 # @ap0nia/eden
 
+## 1.0.7
+
+### Patch Changes
+
+- 12e11ee: fix: type of return for mutateAsync
+- eebaa36: fix: useMutation types
+
 ## 1.0.6
 
 ### Patch Changes
