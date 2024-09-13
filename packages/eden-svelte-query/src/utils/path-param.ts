@@ -21,7 +21,7 @@ import type { LiteralUnion } from './literal-union'
  * Heuristic: A path parameter function call needs exactly one object with exactly one key passed as an argument.
  */
 export function getPathParam(args: unknown[]) {
-  if (args.length === 0) {
+  if (args.length !== 1) {
     return
   }
 
