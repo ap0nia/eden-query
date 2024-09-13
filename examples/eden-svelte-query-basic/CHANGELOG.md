@@ -1,5 +1,12 @@
 # eden-svelte-query-basic
 
+## 0.0.25
+
+### Patch Changes
+
+- Updated dependencies [31e305c]
+  - @ap0nia/eden-svelte-query@1.0.15
+
 ## 0.0.24
 
 ### Patch Changes

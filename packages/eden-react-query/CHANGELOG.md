@@ -1,5 +1,13 @@
 # @ap0nia/eden-react-query
 
+## 1.0.12
+
+### Patch Changes
+
+- 31e305c: fix(eden): remove root headers from batch request
+- Updated dependencies [31e305c]
+  - @ap0nia/eden@1.0.11
+
 ## 1.0.11
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.15
+
+### Patch Changes
+
+- 31e305c: fix(eden): remove root headers from batch request
+- Updated dependencies [31e305c]
+  - @ap0nia/eden@1.0.11
+
 ## 1.0.14
 
 ### Patch Changes
