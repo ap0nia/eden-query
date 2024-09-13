@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.14
+
+### Patch Changes
+
+- 635f0ed: fix(eden-svelte-query): mutate args should work for all three major hooks
+
 ## 1.0.13
 
 ### Patch Changes
