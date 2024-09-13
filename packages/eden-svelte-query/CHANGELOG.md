@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.10
+
+### Patch Changes
+
+- 7c2d725: fix(eden-svelte-query): check input arguments is exactly length 1
+
 ## 1.0.9
 
 ### Patch Changes
