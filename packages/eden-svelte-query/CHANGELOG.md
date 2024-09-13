@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.9
+
+### Patch Changes
+
+- 8f46078: fix(eden): do not set default domain
+- Updated dependencies [8f46078]
+  - @ap0nia/eden@1.0.8
+
 ## 1.0.8
 
 ### Patch Changes

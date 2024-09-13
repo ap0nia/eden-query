@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.8
+
+### Patch Changes
+
+- 8f46078: fix(eden): do not set default domain
+
 ## 1.0.7
 
 ### Patch Changes
