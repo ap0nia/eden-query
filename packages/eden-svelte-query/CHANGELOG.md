@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.16
+
+### Patch Changes
+
+- bfa8c31: fix(eden-svelte-query): remove console.log
+
 ## 1.0.15
 
 ### Patch Changes
