@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.13
+
+### Patch Changes
+
+- 955b9a5: fix(eden-svelte-query): handle path params for mutation
+
 ## 1.0.12
 
 ### Patch Changes
