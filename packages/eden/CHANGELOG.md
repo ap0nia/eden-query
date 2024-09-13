@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.11
+
+### Patch Changes
+
+- 31e305c: fix(eden): remove root headers from batch request
+
 ## 1.0.10
 
 ### Patch Changes
