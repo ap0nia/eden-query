@@ -184,6 +184,11 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
   return result
 }
 
+/**
+ * Temporary fix to ignore these headers from the batch request.
+ */
+const ignoreHeaders = ['content-type', 'content-length']
+
 function unBatchHeaders(request: Request): { requests: Headers[]; shared: Headers } {
   const requests: Headers[] = []
   const shared = new Headers()
@@ -194,7 +199,7 @@ function unBatchHeaders(request: Request): { requests: Headers[]; shared: Header
     if (Number.isInteger(requestId) && headerName != null) {
       requests[Number(requestId)] ??= new Headers()
       requests[Number(requestId)]?.set(headerName, value)
-    } else {
+    } else if (!ignoreHeaders.includes(key)) {
       shared.set(key, value)
     }
   })
@@ -248,6 +253,8 @@ export function batchPlugin(options?: BatchPluginOptions) {
 
         const responses = await Promise.allSettled(
           requests.map(async (batchedRequest) => {
+            // TODO: how to handle this?
+
             const fullPath = `${originalUrl.origin}${batchedRequest.path}`
 
             const requestUrl = createUrl(fullPath, batchedRequest.query)
