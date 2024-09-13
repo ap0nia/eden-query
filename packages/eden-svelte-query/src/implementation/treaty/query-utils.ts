@@ -329,19 +329,53 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
 
       const argsCopy = [...args]
 
+      /**
+       * @example ['api', 'hello', 'get', 'invalidate']
+       */
       const pathsCopy = [...originalPaths]
 
-      const lastArg = pathsCopy.pop() ?? ''
+      /**
+       * @example
+       *
+       * Original array: ['api', 'hello', 'get', 'invalidate']
+       *
+       * Hook: 'invalidate'
+       *
+       * Resulting array: ['api', 'hello', 'get']
+       */
+      const hook = pathsCopy.pop() ?? ''
 
+      /**
+       * This will trim the method from the {@link pathsCopy} if it still exists.
+       *
+       * @example
+       *
+       * Previous array: ['api', 'hello', 'get']
+       *
+       * Method: 'get'
+       *
+       * Resulting array: ['api', 'hello']
+       */
       const { paths } = parsePathsAndMethod(pathsCopy)
 
-      const queryType = getQueryType(lastArg)
+      const queryType = getQueryType(hook)
 
-      const input = argsCopy.shift() // args can now be spread when input removed
+      // The rest of the args are passed directly to the function.
+      const firstArg = argsCopy.shift()
+
+      const params: Record<string, any> = {}
+
+      for (const param of pathParams) {
+        for (const key in param) {
+          params[key] = param[key]
+        }
+      }
+
+      const input = { query: firstArg, params }
 
       const queryKey = getQueryKey(paths, input, queryType)
 
-      switch (lastArg) {
+      switch (hook) {
         case 'fetch': {
           return context.fetchQuery(queryKey, ...argsCopy).then(mergeSSRCache)
         }

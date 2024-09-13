@@ -116,8 +116,10 @@ export function mutateArgs(
   })
 
   const inputStore = derived([queryStore, paramsStore], ([query, params]) => {
-    for (const key in staticParams) {
-      params[key] = staticParams[key]
+    for (const param of staticParams) {
+      for (const key in param) {
+        params[key] = param[key]
+      }
     }
     return { query, params }
   })
