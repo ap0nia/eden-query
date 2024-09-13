@@ -49,6 +49,11 @@ export function getPathParam(args: unknown[]) {
   return { param: argument as any, key: argumentKeys[0] }
 }
 
+const hooksToMutateArgs: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] = [
+  'createQuery',
+  'createInfiniteQuery',
+  'createMutation',
+]
 /**
  * Directly mutate the arguments passed to the root hooks.
  *
@@ -61,7 +66,7 @@ export function mutateArgs(
 ) {
   const input = args[0]
 
-  if ((input == null && params.length === 0) || hook !== 'createMutation') {
+  if (input == null && params.length === 0 && !hooksToMutateArgs.includes(hook)) {
     return args
   }
 
