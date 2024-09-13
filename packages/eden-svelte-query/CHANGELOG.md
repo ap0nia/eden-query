@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.12
+
+### Patch Changes
+
+- cd4cd2f: fix(eden-svelte-query): use correct query settings for proxy
+- Updated dependencies [cd4cd2f]
+  - @ap0nia/eden@1.0.10
+
 ## 1.0.11
 
 ### Patch Changes
