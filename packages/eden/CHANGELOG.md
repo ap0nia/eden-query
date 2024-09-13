@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.9
+
+### Patch Changes
+
+- 49f9dc0: fix(eden): batch plugin forwarding query parameters
+
 ## 1.0.8
 
 ### Patch Changes

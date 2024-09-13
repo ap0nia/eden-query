@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.11
+
+### Patch Changes
+
+- 49f9dc0: fix(eden): batch plugin forwarding query parameters
+- Updated dependencies [49f9dc0]
+  - @ap0nia/eden@1.0.9
+
 ## 1.0.10
 
 ### Patch Changes
