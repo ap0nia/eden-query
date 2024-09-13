@@ -154,7 +154,7 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
 
   // Unbatch basic request information.
   for (const [key, value] of Object.entries(body)) {
-    const [id, property] = key.split('.')
+    const [id, property, maybeQueryKey] = key.split('.')
 
     if (id == null || property == null) continue
 
@@ -162,15 +162,17 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
       const index = Number(id)
       const definedResult: any = { ...result[index] }
 
-      set(definedResult, property, value)
-
-      if (property.startsWith('body')) {
+      if (property === 'query') {
+        definedResult.query ??= new URLSearchParams()
+        definedResult.query.append(maybeQueryKey, value)
+      } else if (property.startsWith('body')) {
         const [_prefix, bodyKey] = property.split('.')
-
         if (bodyKey != null) {
           definedResult.rawBody ??= {}
           definedResult.rawBody[bodyKey] = value
         }
+      } else {
+        set(definedResult, property, value)
       }
 
       result[index] = definedResult
