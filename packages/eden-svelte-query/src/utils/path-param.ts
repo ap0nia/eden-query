@@ -50,18 +50,6 @@ export function getPathParam(args: unknown[]) {
 }
 
 /**
- * The positional index of the `input` provided to root query hooks.
- *
- * `undefined` if the function does not receive `input`.
- */
-const inputPositions: Partial<
-  Record<keyof EdenTreatyQueryRootHooks | LiteralUnion<string>, number>
-> = {
-  createQuery: 0,
-  createInfiniteQuery: 0,
-}
-
-/**
  * Directly mutate the arguments passed to the root hooks.
  *
  * Make sure that the interpretation of args matches up with the implementation of root hooks.
@@ -71,15 +59,9 @@ export function mutateArgs(
   args: unknown[],
   params: StoreOrVal<Record<string, any>>[],
 ) {
-  const inputPosition = inputPositions[hook]
+  const input = args[0]
 
-  if (inputPosition == null) {
-    return args
-  }
-
-  const input = args[inputPosition]
-
-  if (input == null && params.length === 0) {
+  if ((input == null && params.length === 0) || hook !== 'createMutation') {
     return args
   }
 
@@ -124,7 +106,7 @@ export function mutateArgs(
     return { query, params }
   })
 
-  args[inputPosition] = inputStore
+  args[0] = inputStore
 
   return args
 }

@@ -218,7 +218,7 @@ export function createEdenTreatyQueryRootHooks<
 
   const createMutation = (
     originalPaths: readonly string[],
-    input?: InferRouteOptions,
+    input?: StoreOrVal<InferRouteOptions>,
     options?: StoreOrVal<EdenCreateMutationOptions<unknown, TError, unknown, unknown>>,
   ): EdenCreateMutationResult<unknown, TError, unknown, unknown, unknown> => {
     const context = getRawContext()
@@ -231,7 +231,7 @@ export function createEdenTreatyQueryRootHooks<
 
     type HookResult = EdenCreateMutationResult<unknown, TError, unknown, unknown, any>
 
-    if (!isStore(options)) {
+    if (!isStore(input) && !isStore(options)) {
       const mutationOptions = edenCreateMutationOptions(parsed, context, input, options, config)
 
       const hook = createEdenMutation(mutationOptions, queryClient) as HookResult
@@ -241,10 +241,12 @@ export function createEdenTreatyQueryRootHooks<
       return hook
     }
 
+    const inputStore = isStore(input) ? input : readable(input)
+
     const optionsStore = isStore(options) ? options : readable(options)
 
-    const mutationOptionsStore = derived(optionsStore, ($options) => {
-      const mutationOptions = edenCreateMutationOptions(parsed, context, input, $options, config)
+    const mutationOptionsStore = derived([inputStore, optionsStore], ([$input, $options]) => {
+      const mutationOptions = edenCreateMutationOptions(parsed, context, $input, $options, config)
       return mutationOptions
     })
 

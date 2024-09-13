@@ -211,13 +211,6 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
         return createEdenTreatySvelteQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
       }
 
-      // There is no option to pass in input from the public exposed hook,
-      // but the internal root `createMutation` hook expects input as the first argument.
-      // Add an empty element at the front representing "input".
-      if (hook === 'createMutation') {
-        args.unshift(undefined)
-      }
-
       const modifiedArgs = mutateArgs(hook, args, pathParams)
 
       return (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)

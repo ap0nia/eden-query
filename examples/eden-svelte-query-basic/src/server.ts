@@ -94,6 +94,7 @@ const rootController = new Elysia()
     },
   )
   .get('/todos/:id', (context) => context.params.id)
+  .post('/products/:id', () => {})
 
 export const app = new Elysia({ prefix: '/api' })
   .use(transformPlugin(SuperJSON))
