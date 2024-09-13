@@ -405,7 +405,6 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
         }
 
         case 'invalidate': {
-          console.log({ queryKey, argsCopy, input, paths })
           return context.invalidateQueries(queryKey, ...argsCopy)
         }
 
