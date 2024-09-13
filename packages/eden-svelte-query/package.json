@@ -1,6 +1,6 @@
 {
   "name": "@ap0nia/eden-svelte-query",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "elysia.js eden and svelte-query integration",
   "license": "MIT",
   "repository": {
