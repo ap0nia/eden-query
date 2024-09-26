@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.12
+
+### Patch Changes
+
+- ec1fa09: fix(eden): do not initialize plugins multiple times
+
 ## 1.0.11
 
 ### Patch Changes

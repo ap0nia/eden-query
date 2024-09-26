@@ -1,5 +1,14 @@
 # @ap0nia/eden-next-query
 
+## 1.0.13
+
+### Patch Changes
+
+- ec1fa09: fix(eden): do not initialize plugins multiple times
+- Updated dependencies [ec1fa09]
+  - @ap0nia/eden@1.0.12
+  - @ap0nia/eden-react-query@1.0.13
+
 ## 1.0.12
 
 ### Patch Changes
