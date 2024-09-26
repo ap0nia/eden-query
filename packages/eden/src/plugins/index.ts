@@ -59,10 +59,6 @@ export function edenPlugin<T extends EdenQueryConstraints>(config: T) {
       current = current.use(batchPlugin(batchConfig))
     }
 
-    if (config.batch && config.transformer) {
-      return elysia.use(transformPlugin(config.transformer)).use(batchPlugin()) as any
-    }
-
     return current
   }
 
