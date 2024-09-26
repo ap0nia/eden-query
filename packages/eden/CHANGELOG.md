@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.13
+
+### Patch Changes
+
+- 17424ac: fix(eden): temporary fix for inconsistent error handling from mapResponse
+
 ## 1.0.12
 
 ### Patch Changes

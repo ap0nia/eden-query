@@ -1,5 +1,12 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.18
+
+### Patch Changes
+
+- Updated dependencies [17424ac]
+  - @ap0nia/eden@1.0.13
+
 ## 1.0.17
 
 ### Patch Changes
