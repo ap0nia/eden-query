@@ -1,7 +1,23 @@
-import { Elysia } from 'elysia'
+import { Elysia, ELYSIA_RESPONSE } from 'elysia'
 
 import type { EdenQueryStoreKey } from '../constraints'
 import { type DataTransformerOptions, getDataTransformer } from '../links/internal/transformer'
+
+function isError(response: unknown): boolean {
+  if (response == null) {
+    return false
+  }
+
+  if (typeof response === 'object' && 'error' in response && ELYSIA_RESPONSE in response) {
+    return true
+  }
+
+  if (response instanceof Error) {
+    return true
+  }
+
+  return false
+}
 
 /**
  * @fixme:
@@ -41,10 +57,18 @@ export function transformPlugin<T extends DataTransformerOptions>(transformer: T
 
         return await resolvedTransformer.input.deserialize(json)
       })
+
       /**
        * Serialize outgoing JSON data from the server using SuperJSON.
+       *
+       * Currently pending open issue with mapResponse and error
+       * @see https://github.com/elysiajs/elysia/issues/854
        */
       .mapResponse(async (context) => {
+        // FIXME: upstream, this function should not be called if there was an error.
+        // But it might get called anyways...
+        if (isError(context.response)) return
+
         // TODO: when should responses not be transformed?
         // if (typeof context.response !== 'object') return
 
