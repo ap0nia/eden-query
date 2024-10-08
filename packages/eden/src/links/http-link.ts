@@ -84,4 +84,8 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
 /**
  * @link https://trpc.io/docs/v11/client/links/httpLink
  */
-export const httpLink = httpLinkFactory({ requester: universalRequester })
+export const safeHttpLink = httpLinkFactory({ requester: universalRequester })
+
+export function httpLink<T extends AnyElysia>(options?: HTTPLinkOptions<T, true>): EdenLink<T> {
+  return httpLink(options as any)
+}
