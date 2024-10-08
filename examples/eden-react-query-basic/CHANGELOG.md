@@ -1,5 +1,12 @@
 # eden-react-query-basic
 
+## 0.0.25
+
+### Patch Changes
+
+- Updated dependencies [47d786f]
+  - @ap0nia/eden-react-query@1.0.15
+
 ## 0.0.24
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @ap0nia/eden-react-query
 
+## 1.0.15
+
+### Patch Changes
+
+- 47d786f: fix(react-query): call root hooks if hook is found
+
 ## 1.0.14
 
 ### Patch Changes

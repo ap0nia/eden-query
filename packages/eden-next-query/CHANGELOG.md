@@ -1,5 +1,12 @@
 # @ap0nia/eden-next-query
 
+## 1.0.15
+
+### Patch Changes
+
+- Updated dependencies [47d786f]
+  - @ap0nia/eden-react-query@1.0.15
+
 ## 1.0.14
 
 ### Patch Changes
