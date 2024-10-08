@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.0.19
+
+### Patch Changes
+
+- 47d786f: fix(eden-svelte-query): call root hooks if hook is found
+
 ## 1.0.18
 
 ### Patch Changes
