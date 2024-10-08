@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.1.0
+
+### Minor Changes
+
+- 5ff7808: refactor: default to unsafe http and http-batch links
+
 ## 1.0.13
 
 ### Patch Changes

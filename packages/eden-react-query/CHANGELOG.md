@@ -1,5 +1,16 @@
 # @ap0nia/eden-react-query
 
+## 1.1.0
+
+### Minor Changes
+
+- 5ff7808: refactor: default to unsafe http and http-batch links
+
+### Patch Changes
+
+- Updated dependencies [5ff7808]
+  - @ap0nia/eden@1.1.0
+
 ## 1.0.15
 
 ### Patch Changes
