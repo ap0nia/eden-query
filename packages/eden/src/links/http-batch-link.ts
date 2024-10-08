@@ -49,11 +49,15 @@ export type HttpBatchLinkOptions<
     | ((operations: NonEmptyArray<Operation>) => HTTPHeaders | Promise<HTTPHeaders>)
 
   method?: BatchMethod
-} & (TTransformer extends DataTransformerOptions
-    ? { transformer: TTransformer }
-    : {
+} & (TTransformer extends false
+    ? {
         transformer?: DataTransformerOptions
-      })
+      }
+    : TTransformer extends DataTransformerOptions
+      ? { transformer: TTransformer }
+      : {
+          transformer?: DataTransformerOptions
+        })
 
 export type BatchMethod = 'GET' | 'POST'
 
@@ -466,7 +470,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
 /**
  * @link https://trpc.io/docs/v11/client/links/httpLink
  */
-export const httpBatchLink = <T extends AnyElysia>(
+export const safeHttpBatchLink = <T extends AnyElysia>(
   options?: HttpBatchLinkOptions<T>,
 ): T['store'][typeof EdenQueryStoreKey]['batch'] extends true | BatchPluginOptions
   ? EdenLink<T>
@@ -478,8 +482,8 @@ export const httpBatchLink = <T extends AnyElysia>(
 /**
  * @link https://trpc.io/docs/v11/client/links/httpLink
  */
-export function unsafeHttpBatchLink<T extends AnyElysia>(
-  options?: HttpBatchLinkOptions<T>,
+export function httpBatchLink<T extends AnyElysia>(
+  options?: HttpBatchLinkOptions<T, false>,
 ): EdenLink<T> {
-  return httpBatchLink(options) as any
+  return safeHttpBatchLink(options as any) as any
 }

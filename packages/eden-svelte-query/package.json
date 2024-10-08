@@ -13,7 +13,7 @@
   "dependencies": {
     "@ap0nia/eden": "workspace:^",
     "@tanstack/svelte-query": "^5.51.15",
-    "elysia": "1.1.6"
+    "elysia": "1.1.19"
   },
   "devDependencies": {
     "tsup": "^8.2.3",
@@ -21,7 +21,7 @@
   },
   "peerDependencies": {
     "@tanstack/svelte-query": "^5.51.15",
-    "elysia": "1.1.6"
+    "elysia": "1.1.19"
   },
   "publishConfig": {
     "access": "public"

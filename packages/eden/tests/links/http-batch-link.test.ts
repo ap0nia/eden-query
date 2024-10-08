@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 import {
   generateGetBatchRequestInformation,
   generatePostBatchRequestInformation,
-  unsafeHttpBatchLink,
+  httpBatchLink,
 } from '../../src/links/http-batch-link'
 import { BatchError } from '../../src/links/internal/batched-data-loader'
 import { Observable, promisifyObservable } from '../../src/links/internal/observable'
@@ -434,7 +434,7 @@ describe('generatePostBatchParams', () => {
 describe('httpBatchLink', () => {
   describe('get', () => {
     test('will not make any requests if all operations fail max URL length', () => {
-      const batchLink = unsafeHttpBatchLink({ method: 'GET', maxURLLength: 1 })
+      const batchLink = httpBatchLink({ method: 'GET', maxURLLength: 1 })
 
       const link = batchLink({})
 
@@ -462,7 +462,7 @@ describe('httpBatchLink', () => {
 
   describe('post', () => {
     test('rejects with error if one request was batched unsuccessfully', async () => {
-      const batchLink = unsafeHttpBatchLink({ method: 'GET', maxURLLength: 0 })
+      const batchLink = httpBatchLink({ method: 'GET', maxURLLength: 0 })
 
       const link = batchLink({})
 
@@ -490,7 +490,7 @@ describe('httpBatchLink', () => {
     })
 
     test('fails to resolves request if invalid url', async () => {
-      const batchLink = unsafeHttpBatchLink({ method: 'GET' })
+      const batchLink = httpBatchLink({ method: 'GET' })
 
       const link = batchLink({})
 

@@ -218,6 +218,9 @@ importers:
       '@tanstack/react-query':
         specifier: ^5.51.16
         version: 5.51.21(react@18.3.1)
+      elysia:
+        specifier: ^1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       next:
         specifier: 14.2.7
         version: 14.2.7(@opentelemetry/api@1.9.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -248,13 +251,13 @@ importers:
         version: link:../../packages/eden-react-query
       '@elysiajs/cors':
         specifier: ^1.1.0
-        version: 1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
+        version: 1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
       '@tanstack/react-query':
         specifier: ^5.51.16
         version: 5.51.21(react@18.3.1)
       elysia:
-        specifier: 1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: 1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -296,8 +299,8 @@ importers:
         specifier: ^5.51.15
         version: 5.51.21(svelte@4.2.18)
       elysia:
-        specifier: 1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: 1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       superjson:
         specifier: ^2.2.1
         version: 2.2.1
@@ -330,8 +333,8 @@ importers:
   packages/eden:
     dependencies:
       elysia:
-        specifier: 1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: 1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
     devDependencies:
       '@types/bun':
         specifier: ^1.1.6
@@ -355,8 +358,8 @@ importers:
         specifier: ^5.51.16
         version: 5.51.21(react@18.3.1)
       elysia:
-        specifier: 1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: 1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -380,8 +383,8 @@ importers:
         specifier: ^5.51.16
         version: 5.51.21(react@18.3.1)
       elysia:
-        specifier: 1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: 1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -402,8 +405,8 @@ importers:
         specifier: ^5.51.15
         version: 5.51.21(svelte@4.2.18)
       elysia:
-        specifier: 1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: 1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
     devDependencies:
       tsup:
         specifier: ^8.2.3
@@ -1514,6 +1517,13 @@ packages:
     resolution:
       {
         integrity: sha512-G/M/tIiMrTAxEWRfLfQJMmGNX28IxBg4PBz8XqQhqUHLFI6TL2htpIB1iQCj144V5ee/JaKyT9/WZ0MGZWfA7A==,
+      }
+    engines: { node: ^12.0.0 || ^14.0.0 || >=16.0.0 }
+
+  '@eslint-community/regexpp@4.11.1':
+    resolution:
+      {
+        integrity: sha512-m4DVN9ZqskZoLU5GlWZadwDnYo3vAEydiUayB9widCl9ffWx2IvPnp6n3on5rJmziJSw9Bv+Z3ChDVdMwXCY8Q==,
       }
     engines: { node: ^12.0.0 || ^14.0.0 || >=16.0.0 }
 
@@ -4314,6 +4324,18 @@ packages:
       supports-color:
         optional: true
 
+  debug@4.3.7:
+    resolution:
+      {
+        integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==,
+      }
+    engines: { node: '>=6.0' }
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
   decode-named-character-reference@1.0.2:
     resolution:
       {
@@ -4489,6 +4511,21 @@ packages:
       {
         integrity: sha512-QR7/A7ZkMS8tZuoftC/jfqNkZLQO779SSW3YuZHP4eXpj3EffGLFcB/Xu9AAZQzLccTiCV+EmUo3ha4mQ9wnlA==,
       }
+
+  elysia@1.1.19:
+    resolution:
+      {
+        integrity: sha512-a/dRJC+EsI55v7Xk1bspcWKsbXi8XEXjtbq9/Ofs+8JrFvopLcT+oPlVGMSiO3TIam4YXyAWEkxoVDa8SVVpnw==,
+      }
+    peerDependencies:
+      '@sinclair/typebox': '>= 0.32.0'
+      openapi-types: '>= 12.0.0'
+      typescript: '>= 5.0.0'
+    peerDependenciesMeta:
+      openapi-types:
+        optional: true
+      typescript:
+        optional: true
 
   elysia@1.1.6:
     resolution:
@@ -5330,6 +5367,13 @@ packages:
     resolution:
       {
         integrity: sha512-5Fytz/IraMjqpwfd34ke28PTVMjZjJG2MPn5t7OE4eUCUNf8BAa7b5WUS9/Qvr6mwOQS7Mk6vdsMno5he+T8Xw==,
+      }
+    engines: { node: '>= 4' }
+
+  ignore@5.3.2:
+    resolution:
+      {
+        integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==,
       }
     engines: { node: '>= 4' }
 
@@ -6398,6 +6442,12 @@ packages:
     resolution:
       {
         integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==,
+      }
+
+  ms@2.1.3:
+    resolution:
+      {
+        integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==,
       }
 
   msw@2.4.4:
@@ -9209,9 +9259,9 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@elysiajs/cors@1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
+  '@elysiajs/cors@1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
     dependencies:
-      elysia: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+      elysia: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
 
   '@elysiajs/eden@1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
     dependencies:
@@ -9394,13 +9444,15 @@ snapshots:
 
   '@eslint-community/regexpp@4.11.0': {}
 
+  '@eslint-community/regexpp@4.11.1': {}
+
   '@eslint/eslintrc@2.1.4':
     dependencies:
       ajv: 6.12.6
-      debug: 4.3.6
+      debug: 4.3.7
       espree: 9.6.1
       globals: 13.24.0
-      ignore: 5.3.1
+      ignore: 5.3.2
       import-fresh: 3.3.0
       js-yaml: 4.1.0
       minimatch: 3.1.2
@@ -9443,7 +9495,7 @@ snapshots:
   '@humanwhocodes/config-array@0.11.14':
     dependencies:
       '@humanwhocodes/object-schema': 2.0.3
-      debug: 4.3.6
+      debug: 4.3.7
       minimatch: 3.1.2
     transitivePeerDependencies:
       - supports-color
@@ -11337,6 +11389,10 @@ snapshots:
     dependencies:
       ms: 2.1.2
 
+  debug@4.3.7:
+    dependencies:
+      ms: 2.1.3
+
   decode-named-character-reference@1.0.2:
     dependencies:
       character-entities: 2.0.2
@@ -11408,6 +11464,15 @@ snapshots:
   eastasianwidth@0.2.0: {}
 
   electron-to-chromium@1.5.5: {}
+
+  elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4):
+    dependencies:
+      '@sinclair/typebox': 0.33.0
+      cookie: 0.6.0
+      fast-decode-uri-component: 1.0.1
+    optionalDependencies:
+      openapi-types: 12.1.3
+      typescript: 5.5.4
 
   elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4):
     dependencies:
@@ -11552,7 +11617,7 @@ snapshots:
   eslint@8.57.0:
     dependencies:
       '@eslint-community/eslint-utils': 4.4.0(eslint@8.57.0)
-      '@eslint-community/regexpp': 4.11.0
+      '@eslint-community/regexpp': 4.11.1
       '@eslint/eslintrc': 2.1.4
       '@eslint/js': 8.57.0
       '@humanwhocodes/config-array': 0.11.14
@@ -11562,7 +11627,7 @@ snapshots:
       ajv: 6.12.6
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      debug: 4.3.6
+      debug: 4.3.7
       doctrine: 3.0.0
       escape-string-regexp: 4.0.0
       eslint-scope: 7.2.2
@@ -11576,7 +11641,7 @@ snapshots:
       glob-parent: 6.0.2
       globals: 13.24.0
       graphemer: 1.4.0
-      ignore: 5.3.1
+      ignore: 5.3.2
       imurmurhash: 0.1.4
       is-glob: 4.0.3
       is-path-inside: 3.0.3
@@ -11969,6 +12034,8 @@ snapshots:
   ieee754@1.2.1: {}
 
   ignore@5.3.1: {}
+
+  ignore@5.3.2: {}
 
   import-fresh@3.3.0:
     dependencies:
@@ -12634,6 +12701,8 @@ snapshots:
   mrmime@2.0.0: {}
 
   ms@2.1.2: {}
+
+  ms@2.1.3: {}
 
   msw@2.4.4(typescript@5.5.4):
     dependencies:
