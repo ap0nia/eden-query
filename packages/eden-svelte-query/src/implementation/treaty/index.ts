@@ -205,7 +205,9 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
 
       const pathParam = getPathParam(args)
 
-      if (pathParam?.key != null) {
+      const isRootProperty = Object.prototype.hasOwnProperty.call(rootHooks, hook)
+
+      if (pathParam?.key != null && !isRootProperty) {
         const allPathParams = [...pathParams, pathParam.param]
         const pathsWithParams = [...paths, `:${pathParam.key}`]
         return createEdenTreatySvelteQueryProxy(rootHooks, config, pathsWithParams, allPathParams)

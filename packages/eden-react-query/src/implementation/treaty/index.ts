@@ -214,17 +214,19 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
       return createEdenTreatyReactQueryProxy(rootHooks, config, nextPaths, pathParams)
     },
     apply: (_target, _thisArg, args) => {
+      const pathsCopy = [...paths]
+
       const pathParam = getPathParam(args)
 
-      if (pathParam?.key != null) {
+      const hook = pathsCopy.pop() ?? ''
+
+      const isRootProperty = Object.prototype.hasOwnProperty.call(rootHooks, hook)
+
+      if (pathParam?.key != null && !isRootProperty) {
         const allPathParams = [...pathParams, pathParam.param]
         const pathsWithParams = [...paths, `:${pathParam.key}`]
         return createEdenTreatyReactQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
       }
-
-      const pathsCopy = [...paths]
-
-      const hook = pathsCopy.pop() ?? ''
 
       /**
        * Hidden internal hook that returns the path array up to this point.
