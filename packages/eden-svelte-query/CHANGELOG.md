@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.2.1
+
+### Patch Changes
+
+- 25151e7: refactor(eden): make eden plugin unsafe by default
+- Updated dependencies [25151e7]
+  - @ap0nia/eden@1.2.1
+
 ## 1.2.0
 
 ### Minor Changes

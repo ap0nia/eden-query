@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.2.1
+
+### Patch Changes
+
+- 25151e7: refactor(eden): make eden plugin unsafe by default
+
 ## 1.2.0
 
 ### Minor Changes
