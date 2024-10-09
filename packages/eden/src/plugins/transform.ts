@@ -1,4 +1,5 @@
-import { Elysia, ELYSIA_RESPONSE } from 'elysia'
+import { Elysia } from 'elysia'
+import { ElysiaCustomStatusResponse } from 'elysia/error'
 
 import type { EdenQueryStoreKey } from '../constraints'
 import { type DataTransformerOptions, getDataTransformer } from '../links/internal/transformer'
@@ -8,7 +9,12 @@ function isError(response: unknown): boolean {
     return false
   }
 
-  if (typeof response === 'object' && 'error' in response && ELYSIA_RESPONSE in response) {
+  if (response instanceof ElysiaCustomStatusResponse) {
+    return true
+  }
+
+  // For some reason, instanceof does not reliably detect if it is the right instance...
+  if (response.constructor.name === ElysiaCustomStatusResponse.name) {
     return true
   }
 
