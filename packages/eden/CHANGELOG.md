@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.2.0
+
+### Minor Changes
+
+- 456df95: fix(eden): updated error checker
+
 ## 1.1.0
 
 ### Minor Changes

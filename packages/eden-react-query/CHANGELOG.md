@@ -1,5 +1,16 @@
 # @ap0nia/eden-react-query
 
+## 1.2.0
+
+### Minor Changes
+
+- 456df95: fix(eden): updated error checker
+
+### Patch Changes
+
+- Updated dependencies [456df95]
+  - @ap0nia/eden@1.2.0
+
 ## 1.1.0
 
 ### Minor Changes
