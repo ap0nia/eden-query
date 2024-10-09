@@ -26,7 +26,7 @@ export type EdenPluginOptions = EdenQueryConstraints
  *   this is at your own risk, since eden allows transformers to be specified for any request,
  *   but it's not guranteed to be parsed correctly by the server...
  */
-export function edenPlugin<T extends EdenQueryConstraints>(config: T) {
+export function safeEdenPlugin<T extends EdenQueryConstraints>(config: T) {
   const plugin = <BasePath extends string>(
     elysia: Elysia<BasePath>,
   ): Elysia<
@@ -63,6 +63,29 @@ export function edenPlugin<T extends EdenQueryConstraints>(config: T) {
   }
 
   return plugin
+}
+
+/**
+ * Combines both the batch and transform plugins, ___and orders them properly___.
+ *
+ * The transform plugin (if used) needs to be set before the batch plugin.
+ *
+ * --
+ *
+ * Type Invariants
+ *
+ * > Constraints that are captured on the type-level.
+ *
+ * If the server has enabled batching, the client can use batching if desired.
+ * If the server has NOT enabled batching, the client can NOT use a batch link.
+ *
+ * If the server has enabled a transformer, the client MUST apply the same transformer.
+ * If the server has NOT enabled any transformers, the client can opt-in to using a transformer;
+ *   this is at your own risk, since eden allows transformers to be specified for any request,
+ *   but it's not guranteed to be parsed correctly by the server...
+ */
+export function edenPlugin<T extends EdenQueryConstraints>(config: T) {
+  return safeEdenPlugin(config)
 }
 
 export * from './batch'
