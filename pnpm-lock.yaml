@@ -93,13 +93,13 @@ importers:
     dependencies:
       '@elysiajs/eden':
         specifier: 1.1.0
-        version: 1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
+        version: 1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
       '@elysiajs/opentelemetry':
         specifier: 1.1.0
-        version: 1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
+        version: 1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
       '@elysiajs/swagger':
         specifier: 1.1.0
-        version: 1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
+        version: 1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))
       '@griseo.js/brush':
         specifier: ^1.4.4
         version: 1.4.4
@@ -131,8 +131,8 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
       elysia:
-        specifier: ^1.1.6
-        version: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+        specifier: ^1.1.19
+        version: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       nanoid:
         specifier: ^5.0.7
         version: 5.0.7
@@ -4516,21 +4516,6 @@ packages:
     resolution:
       {
         integrity: sha512-a/dRJC+EsI55v7Xk1bspcWKsbXi8XEXjtbq9/Ofs+8JrFvopLcT+oPlVGMSiO3TIam4YXyAWEkxoVDa8SVVpnw==,
-      }
-    peerDependencies:
-      '@sinclair/typebox': '>= 0.32.0'
-      openapi-types: '>= 12.0.0'
-      typescript: '>= 5.0.0'
-    peerDependenciesMeta:
-      openapi-types:
-        optional: true
-      typescript:
-        optional: true
-
-  elysia@1.1.6:
-    resolution:
-      {
-        integrity: sha512-nj3m1EU+KK2171yhHKm4MyVf5tYAOvq0uwjQ57q40r+fNxxPr8YEahE9PoJngZrrs6ctmKYCuoKSr96bfnSZAQ==,
       }
     peerDependencies:
       '@sinclair/typebox': '>= 0.32.0'
@@ -9263,23 +9248,23 @@ snapshots:
     dependencies:
       elysia: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
 
-  '@elysiajs/eden@1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
+  '@elysiajs/eden@1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
     dependencies:
-      elysia: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+      elysia: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
 
-  '@elysiajs/opentelemetry@1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
+  '@elysiajs/opentelemetry@1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
     dependencies:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/auto-instrumentations-node': 0.48.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/sdk-node': 0.52.1(@opentelemetry/api@1.9.0)
-      elysia: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+      elysia: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
     transitivePeerDependencies:
       - encoding
       - supports-color
 
-  '@elysiajs/swagger@1.1.0(elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
+  '@elysiajs/swagger@1.1.0(elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4))':
     dependencies:
-      elysia: 1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
+      elysia: 1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4)
       lodash.clonedeep: 4.5.0
       openapi-types: 12.1.3
 
@@ -11466,15 +11451,6 @@ snapshots:
   electron-to-chromium@1.5.5: {}
 
   elysia@1.1.19(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4):
-    dependencies:
-      '@sinclair/typebox': 0.33.0
-      cookie: 0.6.0
-      fast-decode-uri-component: 1.0.1
-    optionalDependencies:
-      openapi-types: 12.1.3
-      typescript: 5.5.4
-
-  elysia@1.1.6(@sinclair/typebox@0.33.0)(openapi-types@12.1.3)(typescript@5.5.4):
     dependencies:
       '@sinclair/typebox': 0.33.0
       cookie: 0.6.0

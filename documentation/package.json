@@ -23,7 +23,7 @@
     "@vueuse/core": "^10.11.1",
     "dayjs": "^1.11.11",
     "devalue": "^5.0.0",
-    "elysia": "^1.1.6",
+    "elysia": "^1.1.19",
     "nanoid": "^5.0.7",
     "npm-to-yarn": "^2.2.1",
     "react": "^18.3.1",
