@@ -227,7 +227,7 @@ function unBatchQueries(request: Request): URLSearchParams[] {
  * This may result in a TS error if you have "declaration": true in your tsconfig.
  * TS 4118 The type of this node cannot be serialized because its property '[EdenQueryStoreKey]' cannot be serialized.
  */
-export function batchPlugin(options?: BatchPluginOptions) {
+export function safeBatchPlugin(options?: BatchPluginOptions) {
   const plugin = <BasePath extends string>(
     elysia: Elysia<BasePath>,
   ): Elysia<
@@ -361,4 +361,8 @@ export function batchPlugin(options?: BatchPluginOptions) {
   }
 
   return plugin
+}
+
+export function batchPlugin(options?: BatchPluginOptions) {
+  return safeBatchPlugin(options)
 }
