@@ -29,8 +29,10 @@ function isError(response: unknown): boolean {
  * @fixme:
  *
  * TS 4118 The type of this node cannot be serialized because its property '[EdenQueryStoreKey]' cannot be serialized.
+ *
+ * Turn off declaration: true and declarationMap: true
  */
-export function transformPlugin<T extends DataTransformerOptions>(transformer: T) {
+export function safeTransformPlugin<T extends DataTransformerOptions>(transformer: T) {
   const resolvedTransformer = getDataTransformer(transformer)
 
   const plugin = <BasePath extends string>(
@@ -98,4 +100,8 @@ export function transformPlugin<T extends DataTransformerOptions>(transformer: T
   }
 
   return plugin
+}
+
+export function transformPlugin(transformer: DataTransformerOptions) {
+  return safeTransformPlugin(transformer)
 }
