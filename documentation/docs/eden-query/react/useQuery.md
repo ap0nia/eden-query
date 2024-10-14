@@ -60,7 +60,7 @@ You'll notice that you get autocompletion on the `input` based on what you have 
 
 ```typescript twoslash include eq-react-useQuery-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 export const app = new Elysia().use(batchPlugin()).get(
   '/hello',

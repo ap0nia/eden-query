@@ -39,7 +39,7 @@ to make it easy to directly use your data and renaming the variable to something
 
 ```typescript twoslash include eq-react-suspense-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 const posts = [
   { id: '1', title: 'everlong' },

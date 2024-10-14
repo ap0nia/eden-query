@@ -47,7 +47,7 @@ Instead, use `useUtils` which is a Svelte hook that implements `getContext` and 
 
 ```typescript twoslash include eq-svelte-createUtils-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-svelte-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query/server'
 
 export const app = new Elysia().use(batchPlugin()).get('/post/all', (context) => {
   return {

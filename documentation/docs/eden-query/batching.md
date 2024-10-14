@@ -29,7 +29,7 @@ This has to be enabled on the server, and the client application can use it via 
 
 ```typescript twoslash include eq-batching-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin, edenPlugin } from '@ap0nia/eden-react-query/server'
 
 /**
  * Option 1: Use the eden plugin and opt into batching.

@@ -23,10 +23,10 @@
       "default": "./src/index.ts"
     },
     "./*": {
-      "types": "./src/*",
-      "import": "./src/*",
-      "node": "./src/*",
-      "default": "./src/*"
+      "types": "./src/*.ts",
+      "import": "./src/*.ts",
+      "node": "./src/*.ts",
+      "default": "./src/*.ts"
     }
   },
   "typesVersions": {

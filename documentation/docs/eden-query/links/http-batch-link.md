@@ -30,7 +30,7 @@ to a batch endpoint.
 
 ```typescript twoslash include eq-links-batch-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 export const app = new Elysia().use(batchPlugin()).get('/', () => 'Hello, World!')
 

@@ -28,7 +28,7 @@ npm install elysia @ap0nia/eden-react-query @tanstack/react-query
 
 ```typescript twoslash include eq-react-setup-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { edenPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
 
 const users = [
   {

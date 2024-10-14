@@ -1,6 +1,7 @@
 import { transformerTwoslash } from '@shikijs/vitepress-twoslash'
 import ci from 'ci-info'
 import { bundledLanguages, createHighlighter } from 'shiki'
+import { ModuleResolutionKind } from 'typescript'
 import { defineConfig } from 'vitepress'
 import { repository } from '../../../package.json'
 import { npmToYarn } from './npm-to-yarn'
@@ -50,7 +51,13 @@ const config = defineConfig({
           return codeWithIncludes
         },
       },
-      transformerTwoslash(),
+      transformerTwoslash({
+        twoslashOptions: {
+          compilerOptions: {
+            moduleResolution: ModuleResolutionKind.Bundler,
+          },
+        },
+      }),
     ],
   },
   head: [

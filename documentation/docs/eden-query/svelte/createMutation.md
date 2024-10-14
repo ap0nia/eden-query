@@ -34,7 +34,7 @@ This is the Elysia application that will be used for the following examples.
 
 ```typescript twoslash include eq-svelte-createMutation-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-svelte-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query/server'
 
 export const app = new Elysia().use(batchPlugin()).post(
   '/login',

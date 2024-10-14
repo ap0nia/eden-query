@@ -31,7 +31,7 @@ To get the type of input for the route, use the [inference helpers](./inferring-
 
 ```typescript twoslash include eq-svelte-reactive-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-svelte-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query/server'
 
 export const app = new Elysia().use(batchPlugin()).get('/post/:id', (context) => {
   return {

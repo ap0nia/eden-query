@@ -34,7 +34,7 @@ If you are using Next.js we recommend using [our integration with that](../nextj
 
 ```typescript twoslash include eq-react-index-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 export const app = new Elysia()
   .use(batchPlugin())

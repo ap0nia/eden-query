@@ -48,7 +48,7 @@ Let's say you're using `httpBatchLink` as the terminating link in your tRPC clie
 
 ```typescript twoslash include eq-links-split-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 const posts = ['post 1', 'post 2', 'post 3']
 
