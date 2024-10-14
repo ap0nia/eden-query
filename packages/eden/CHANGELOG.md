@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.3.0
+
+### Minor Changes
+
+- 3e231fd: refactor(eden): expose server plugins in different entrypoint file
+
 ## 1.2.1
 
 ### Patch Changes

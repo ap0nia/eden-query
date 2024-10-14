@@ -1,5 +1,17 @@
 # @ap0nia/eden-next-query
 
+## 1.3.0
+
+### Minor Changes
+
+- 3e231fd: refactor(eden): expose server plugins in different entrypoint file
+
+### Patch Changes
+
+- Updated dependencies [3e231fd]
+  - @ap0nia/eden-react-query@1.3.0
+  - @ap0nia/eden@1.3.0
+
 ## 1.2.1
 
 ### Patch Changes
