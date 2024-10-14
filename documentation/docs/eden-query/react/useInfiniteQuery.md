@@ -32,7 +32,7 @@ head:
 
 ```typescript twoslash include eq-react-useInfiniteQuery-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 let prisma: any
 

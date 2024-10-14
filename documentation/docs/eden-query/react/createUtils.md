@@ -45,7 +45,7 @@ Instead, use `useUtils` which is a React hook that implements `useCallback` and 
 
 ```typescript twoslash include eq-react-createUtils-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 export const app = new Elysia().use(batchPlugin()).get('/post/all', (context) => {
   return {

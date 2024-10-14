@@ -51,7 +51,7 @@ Additionally, if the underlying procedure is using something like Prisma's `find
 
 ```typescript twoslash include eq-svelte-createQueries-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-svelte-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query/server'
 
 export const app = new Elysia()
   .use(batchPlugin())

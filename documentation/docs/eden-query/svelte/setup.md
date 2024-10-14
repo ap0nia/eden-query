@@ -38,7 +38,7 @@ npm install elysia @ap0nia/eden-svelte-query @tanstack/react-query
 
 ```typescript twoslash include eq-svelte-setup-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { edenPlugin } from '@ap0nia/eden-svelte-query'
+import { edenPlugin } from '@ap0nia/eden-svelte-query/server'
 
 const users = [
   {

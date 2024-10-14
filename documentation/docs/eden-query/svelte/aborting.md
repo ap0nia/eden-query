@@ -38,7 +38,7 @@ This has been discussed within tRPC [here](https://github.com/trpc/trpc/issues/4
 
 ```typescript twoslash include eq-svelte-aborting-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-svelte-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query/server'
 
 export const app = new Elysia().use(batchPlugin()).get('/post/:id', (context) => {
   return {

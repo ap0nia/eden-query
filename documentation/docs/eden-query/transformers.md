@@ -59,7 +59,7 @@ yarn add superjson
 
 ```typescript twoslash include eq-transformers-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { edenPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
 import SuperJSON from 'superjson'
 
 const app = new Elysia()

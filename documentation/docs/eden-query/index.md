@@ -206,7 +206,7 @@ or `edenPlugin` with the `batch` property defined.
 
 ```typescript twoslash include eq-index-batch-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { edenPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
 
 const app = new Elysia().use(edenPlugin({ batch: true }))
 

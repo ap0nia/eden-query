@@ -32,7 +32,7 @@ Works like react-query's mutations - [see their docs](https://tanstack.com/query
 
 ```typescript twoslash include eq-react-useMutation-application [server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-react-query'
+import { batchPlugin } from '@ap0nia/eden-react-query/server'
 
 export const app = new Elysia().use(batchPlugin()).post(
   '/login',

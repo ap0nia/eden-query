@@ -30,7 +30,7 @@ If it's a function it will get called dynamically for every HTTP request.
 
 ```typescript twoslash include eq-headers-application [server.ts]
 import { Elysia } from 'elysia'
-import { edenPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
 
 export const app = new Elysia()
   .use(edenPlugin({ batch: true }))

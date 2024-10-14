@@ -37,7 +37,7 @@ This hook is an alias for `getContext()`.
 
 ```typescript twoslash include eq-svelte-useUtils-application [src/server.ts]
 import { Elysia, t } from 'elysia'
-import { batchPlugin } from '@ap0nia/eden-svelte-query'
+import { batchPlugin } from '@ap0nia/eden-svelte-query/server'
 
 export const app = new Elysia()
   .use(batchPlugin())
