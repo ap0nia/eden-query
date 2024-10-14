@@ -1,4 +1,4 @@
-import { edenPlugin } from '@ap0nia/eden-react-query'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
 import { cors } from '@elysiajs/cors'
 import { Elysia, t } from 'elysia'
 import SuperJSON from 'superjson'
