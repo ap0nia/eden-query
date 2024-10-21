@@ -27,8 +27,7 @@
   "dependencies": {
     "@ap0nia/eden": "workspace:^",
     "@tanstack/react-query": "^5.51.16",
-    "elysia": "1.1.19",
-    "react": "^18.3.1"
+    "elysia": "1.1.19"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
@@ -36,7 +35,8 @@
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.51.16",
-    "elysia": "1.1.19"
+    "elysia": "1.1.19",
+    "react": "^18.0.0"
   },
   "publishConfig": {
     "access": "public"
