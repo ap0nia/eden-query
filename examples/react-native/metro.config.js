@@ -2,7 +2,7 @@
 
 const path = require('path')
 const { makeMetroConfig } = require('@rnx-kit/metro-config')
-// const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks')
+const MetroSymlinksResolver = require('@rnx-kit/metro-resolver-symlinks')
 const { getDefaultConfig } = require('expo/metro-config')
 
 function defineConfig() {
@@ -28,7 +28,7 @@ function defineConfig() {
     config.resolver.disableHierarchicalLookup = true
 
     // #4 - Add symlink resolver from rnx-kit
-    // config.resolver.resolveRequest = MetroSymlinksResolver()
+    config.resolver.resolveRequest = MetroSymlinksResolver()
   }
 
   return config
