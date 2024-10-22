@@ -30,6 +30,7 @@ function defineConfig() {
     // #4 - Add symlink resolver from rnx-kit
     config.resolver.resolveRequest = MetroSymlinksResolver({
       remapModule: (_context, moduleName, _platform) => {
+        // For some reason, there is a "util" module that does not get resolved properly because of a cycle...
         return moduleName === 'util' ? 'node:util' : moduleName
       },
     })
