@@ -9,8 +9,6 @@ import { eden } from '@/eden'
 export default function HomeScreen() {
   const hello = eden.api.index.get.useQuery()
 
-  console.log({ hello })
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -22,7 +20,7 @@ export default function HomeScreen() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText type="title">Welcome {hello.data}!</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
