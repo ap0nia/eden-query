@@ -1,6 +1,6 @@
 import 'react-native-reanimated'
 
-import { httpBatchLink } from '@ap0nia/eden-react-query'
+import { httpLink } from '@ap0nia/eden-react-query'
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native'
 import { QueryClient } from '@tanstack/react-query'
 import { useFonts } from 'expo-font'
@@ -24,7 +24,7 @@ export default function RootLayout() {
   const [edenClient] = useState(() =>
     eden.createClient({
       links: [
-        httpBatchLink({
+        httpLink({
           // domain: 'http://localhost:3000/eden',
 
           // You can pass any HTTP headers you wish here
