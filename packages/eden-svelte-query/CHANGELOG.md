@@ -1,5 +1,13 @@
 # @ap0nia/eden-svelte-query
 
+## 1.3.1
+
+### Patch Changes
+
+- 17b99f2: fix(eden): infinite recursion with http-link
+- Updated dependencies [17b99f2]
+  - @ap0nia/eden@1.3.1
+
 ## 1.3.0
 
 ### Minor Changes
