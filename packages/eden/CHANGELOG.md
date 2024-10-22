@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.3.1
+
+### Patch Changes
+
+- 17b99f2: fix(eden): infinite recursion on http-link
+
 ## 1.3.0
 
 ### Minor Changes
