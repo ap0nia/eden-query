@@ -87,5 +87,5 @@ export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLin
 export const safeHttpLink = httpLinkFactory({ requester: universalRequester })
 
 export function httpLink<T extends AnyElysia>(options?: HTTPLinkOptions<T, true>): EdenLink<T> {
-  return httpLink(options as any)
+  return safeHttpLink(options as any)
 }
