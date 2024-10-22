@@ -28,7 +28,11 @@ function defineConfig() {
     config.resolver.disableHierarchicalLookup = true
 
     // #4 - Add symlink resolver from rnx-kit
-    config.resolver.resolveRequest = MetroSymlinksResolver()
+    config.resolver.resolveRequest = MetroSymlinksResolver({
+      remapModule: (_context, moduleName, _platform) => {
+        return moduleName === 'util' ? 'node:util' : moduleName
+      },
+    })
   }
 
   return config

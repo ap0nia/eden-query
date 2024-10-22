@@ -25,7 +25,8 @@ function config(context) {
     },
     web: {
       bundler: 'metro',
-      // output: 'static',
+      // output: 'static', // Does not work well in monorepo...
+      output: 'server',
       favicon: './assets/images/favicon.png',
     },
     plugins: ['expo-router'],
