@@ -2,6 +2,7 @@ import {
   EdenClient,
   type EdenClientError as EdenClientError,
   type EdenRequestParams,
+  parsePathsAndMethod,
 } from '@ap0nia/eden'
 import {
   type CancelOptions,
@@ -25,7 +26,6 @@ import * as React from 'react'
 import type { EdenQueryConfig } from './config'
 import type { EdenFetchInfiniteQueryOptions } from './integration/hooks/fetch-infinite'
 import type { EdenFetchQueryOptions } from './integration/hooks/fetch-query'
-import { parsePathsAndMethod } from './integration/internal/parse-paths-and-method'
 import type { EdenMutationKey, EdenQueryKey, EdenQueryType } from './integration/internal/query-key'
 
 /**

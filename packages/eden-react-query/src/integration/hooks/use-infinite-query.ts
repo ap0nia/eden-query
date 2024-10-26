@@ -1,4 +1,9 @@
-import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
+import type {
+  InferRouteError,
+  InferRouteOptions,
+  InferRouteOutput,
+  ParsedPathAndMethod,
+} from '@ap0nia/eden'
 import {
   type InfiniteData,
   type InfiniteQueryObserverSuccessResult,
@@ -12,7 +17,6 @@ import type { RouteSchema } from 'elysia'
 import { type EdenContextState, useSSRQueryOptionsIfNeeded } from '../../context'
 import type { DistributiveOmit } from '../../utils/types'
 import type { ExtractQueryCursor, ReservedInfiniteQueryKeys } from '../internal/infinite-query'
-import type { ParsedPathAndMethod } from '../internal/parse-paths-and-method'
 import type { EdenQueryBaseOptions } from '../internal/query-base-options'
 import type { WithEdenQueryExtension } from '../internal/query-hook-extension'
 import { getQueryKey } from '../internal/query-key'

@@ -52,6 +52,9 @@ export type InferRouteBody<
       : ReplaceBlobWithFiles<Omit<TRoute['body'], TOmitInput>>
     : unknown
 
+/**
+ * Only returns the output for a successful response.
+ */
 export type InferRouteOutput<TRoute extends RouteSchema = RouteSchema> =
   TRoute['response'] extends Record<number, unknown>
     ? ReplaceGeneratorWithAsyncGenerator<TRoute['response']>[200]
@@ -63,3 +66,44 @@ export type InferRouteError<T extends Record<string, any> = any> =
       ? EdenFetchError<number, string>
       : Errors
     : EdenFetchError<number, string>
+
+export type TreatyResponse<Res extends Record<number, unknown>> =
+  | {
+      data: Res[200]
+      error: null
+      response: Response
+      status: number
+      headers: FetchRequestInit['headers']
+    }
+  | {
+      data: null
+      error: Exclude<keyof Res, 200> extends never
+        ? {
+            status: unknown
+            value: unknown
+          }
+        : {
+            [Status in keyof Res]: {
+              status: Status
+              value: Res[Status]
+            }
+          }[Exclude<keyof Res, 200>]
+      response: Response
+      status: number
+      headers: FetchRequestInit['headers']
+    }
+
+/**
+ * Returns map of status codes to response types.
+ */
+export type InferRouteOutputAll<TRoute extends RouteSchema = RouteSchema> =
+  TRoute['response'] extends Record<number, unknown>
+    ? ReplaceGeneratorWithAsyncGenerator<TRoute['response']>
+    : never
+
+/**
+ * Strongly typed route response.
+ */
+export type InferRouteResponse<TRoute extends RouteSchema = RouteSchema> = TreatyResponse<
+  InferRouteOutputAll<TRoute>
+>

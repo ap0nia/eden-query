@@ -1,11 +1,15 @@
-import type {
-  EdenCreateClient,
-  HttpMutationMethod,
-  HttpQueryMethod,
-  InferRouteBody,
-  InferRouteError,
-  InferRouteOptions,
-  InferRouteOutput,
+import {
+  type EdenCreateClient,
+  type ExtractEdenTreatyRouteParams,
+  type ExtractEdenTreatyRouteParamsInput,
+  getPathParam,
+  type HttpMutationMethod,
+  type HttpQueryMethod,
+  type InferRouteBody,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+  parsePathsAndMethod,
 } from '@ap0nia/eden'
 import type {
   CancelOptions,
@@ -41,12 +45,6 @@ import type {
   InfiniteCursorKey,
   ReservedInfiniteQueryKeys,
 } from '../../integration/internal/infinite-query'
-import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
-import {
-  type ExtractEdenTreatyRouteParams,
-  type ExtractEdenTreatyRouteParamsInput,
-  getPathParam,
-} from '../../integration/internal/path-params'
 import {
   type EdenQueryKey,
   getMutationKey,

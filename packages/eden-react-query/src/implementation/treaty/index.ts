@@ -2,6 +2,8 @@ import type {
   EdenClient,
   EdenCreateClient,
   EdenRequestOptions,
+  ExtractEdenTreatyRouteParams,
+  ExtractEdenTreatyRouteParamsInput,
   HttpBatchLinkOptions,
   HTTPLinkOptions,
   HttpMutationMethod,
@@ -20,10 +22,6 @@ import type { EdenUseQuery } from '../../integration/hooks/use-query'
 import type { EdenUseSuspenseInfiniteQuery } from '../../integration/hooks/use-suspense-infinite-query'
 import type { EdenUseSuspenseQuery } from '../../integration/hooks/use-suspense-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
-import type {
-  ExtractEdenTreatyRouteParams,
-  ExtractEdenTreatyRouteParamsInput,
-} from '../../integration/internal/path-params'
 import type {
   EdenMutationKey,
   EdenQueryKey,
@@ -352,6 +350,7 @@ export function mutateArgs(
 }
 
 export * from './infer'
+export * from './query-utils'
 export * from './root-hooks'
 export * from './use-queries'
 export * from './use-suspense-queries'

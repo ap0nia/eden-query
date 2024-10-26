@@ -1,4 +1,4 @@
-import { isHttpMethod } from '@ap0nia/eden'
+import { isHttpMethod } from './utils/http'
 
 /**
  * The result of parsing a paths array.
@@ -78,7 +78,7 @@ export function parsePathsAndMethod(
 
   const result: ParsedPathAndMethod = { paths, path }
 
-  if (lastSegmentIsHttpMethod) {
+  if (lastSegmentIsHttpMethod && typeof lastSegment === 'string') {
     result.method = lastSegment
   }
 

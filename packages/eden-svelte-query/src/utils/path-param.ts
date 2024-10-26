@@ -49,7 +49,7 @@ export function getPathParam(args: unknown[]) {
   return { param: argument as any, key: argumentKeys[0] }
 }
 
-const hooksToMutateArgs: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] = [
+const hooksToMutateArgs: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string> | symbol)[] = [
   'createQuery',
   'createInfiniteQuery',
   'createMutation',
@@ -60,7 +60,7 @@ const hooksToMutateArgs: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)
  * Make sure that the interpretation of args matches up with the implementation of root hooks.
  */
 export function mutateArgs(
-  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string>,
+  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string> | symbol,
   args: unknown[],
   params: StoreOrVal<Record<string, any>>[],
 ) {

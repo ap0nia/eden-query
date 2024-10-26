@@ -30,6 +30,9 @@ export type EdenOnRequest = (
  */
 export type EdenOnResponse = (response: Response) => MaybePromise<EdenResponse | Nullish>
 
+/**
+ * General, untyped response.
+ */
 export type EdenResponse<TRaw extends boolean = false> = (
   | {
       data: null

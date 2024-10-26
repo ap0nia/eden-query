@@ -1,11 +1,17 @@
-import type {
-  EdenCreateClient,
-  HttpMutationMethod,
-  HttpQueryMethod,
-  InferRouteBody,
-  InferRouteError,
-  InferRouteOptions,
-  InferRouteOutput,
+import {
+  createEdenTreaty,
+  type EdenTreatyClient,
+  type EmptyToVoid,
+  type ExtractEdenTreatyRouteParams,
+  type ExtractEdenTreatyRouteParamsInput,
+  getPathParam,
+  type HttpMutationMethod,
+  type HttpQueryMethod,
+  type InferRouteBody,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+  parsePathsAndMethod,
 } from '@ap0nia/eden'
 import {
   type CancelOptions,
@@ -44,12 +50,6 @@ import type {
   InfiniteCursorKey,
   ReservedInfiniteQueryKeys,
 } from '../../integration/internal/infinite-query'
-import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
-import {
-  type ExtractEdenTreatyRouteParams,
-  type ExtractEdenTreatyRouteParamsInput,
-  getPathParam,
-} from '../../integration/internal/path-params'
 import {
   type EdenQueryKey,
   getMutationKey,
@@ -66,7 +66,7 @@ export type EdenTreatyQueryContextProps<
   TElysia extends AnyElysia,
   TSSRContext,
 > = EdenContextPropsBase<TElysia, TSSRContext> & {
-  client: EdenCreateClient<TElysia>
+  client: EdenTreatyClient<TElysia>
 }
 
 export type EdenTreatyQueryUtilsProxy<
@@ -106,17 +106,17 @@ export type EdenTreatyQueryUtilsQueryUtils<
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
   fetch: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<TOutput>
 
   prefetch: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<void>
 
   ensureData: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<TOutput>
 
@@ -157,10 +157,10 @@ export type EdenTreatyQueryUtilsQueryUtils<
     options?: SetDataOptions,
   ): [QueryKey, TOutput]
 
-  getData: (input: {} extends TInput ? void | TInput : TInput) => TOutput | undefined
+  getData: (input: EmptyToVoid<TInput>) => TOutput | undefined
 
   options: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: CreateQueryOptions<TOutput, TError>,
   ) => CreateQueryOptions<TOutput, TError>
 }
@@ -174,17 +174,17 @@ export type EdenTreatyQueryUtilsInfiniteUtils<
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
   fetchInfinite: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchInfiniteQueryOptions<TInput, TOutput, TError>,
   ) => Promise<InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>>>
 
   prefetchInfinite: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<void>
 
   getInfiniteData: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
   ) => InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined
 
   setInfiniteData: (
@@ -197,7 +197,7 @@ export type EdenTreatyQueryUtilsInfiniteUtils<
   ) => void
 
   infiniteOptions: (
-    input: {} extends TInput ? void | TInput : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenCreateInfiniteQueryOptions<TInput, TOutput, TError>,
   ) => CreateInfiniteQueryOptions<TOutput, TError, TOutput, TKey>
 }
@@ -245,7 +245,7 @@ export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContex
   context: EdenContextState<TRouter, TSSRContext>,
   config?: EdenQueryConfig<TRouter>,
 ): EdenTreatyQueryUtils<TRouter, TSSRContext> {
-  // const clientProxy = createTRPCClientProxy(context.client)
+  const clientProxy = createEdenTreaty(context.client)
 
   const queryClient = context.queryClient ?? new QueryClient()
 
@@ -266,15 +266,18 @@ export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContex
         return topLevelProperties[path as never]
       }
 
-      // if (contextName === 'client') {
-      //   return clientProxy
-      // }
+      switch (contextName) {
+        case 'client': {
+          return clientProxy
+        }
 
-      if (contextProps.includes(contextName)) {
-        return context[contextName]
+        default: {
+          if (contextProps.includes(contextName)) {
+            return context[contextName]
+          }
+          return proxy[path as never]
+        }
       }
-
-      return proxy[path as never]
     },
   })
 
@@ -313,7 +316,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
     return result
   }
 
-  const proxy = new Proxy(() => {}, {
+  const edenTreatyQueryUtilsProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
       return createEdenTreatyQueryUtilsProxy(context, config, nextPaths, pathParams)
@@ -459,5 +462,5 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
     },
   })
 
-  return proxy as any
+  return edenTreatyQueryUtilsProxy as any
 }
