@@ -4,7 +4,6 @@ import {
   type EmptyToVoid,
   type ExtractEdenTreatyRouteParams,
   type ExtractEdenTreatyRouteParamsInput,
-  getPathParam,
   type HttpMutationMethod,
   type HttpQueryMethod,
   type InferRouteBody,
@@ -55,6 +54,7 @@ import {
   getMutationKey,
   getQueryKey,
 } from '../../integration/internal/query-key'
+import { getPathParam } from '../../utils/path-param'
 import type { DeepPartial, Override, ProtectedIntersection } from '../../utils/types'
 
 export type EdenTreatyQueryUtils<TElysia extends AnyElysia, TSSRContext> = ProtectedIntersection<

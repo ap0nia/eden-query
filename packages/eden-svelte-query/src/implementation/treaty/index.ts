@@ -46,25 +46,29 @@ export type EdenTreatySvelteQuery<
 > = EdenTreatySvelteQueryBase<TElysia, TSSRContext> & EdenTreatyQueryHooks<TElysia>
 
 /**
- * Utilities available at the treaty-query root.
+ * Utilities available at the eden-treaty + svelte-query root.
  */
 export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContext> {
   /**
    * Get utilities provided via the context API.
+   *
+   * @see https://trpc.io/docs/v11/client/react/useUtils
    */
   getUtils(): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
   /**
    * Get utilities provided via the context API.
    *
-   * Alias for {@link getUtils}
+   * @deprecated renamed to {@link getUtils} and will be removed in a future tRPC version
+   *
+   * @see https://trpc.io/docs/v11/client/react/useUtils
    */
   getContext(): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
   /**
-   * Returns everything needed to set context.
+   * Returns everything that will be provided from context.
    *
-   * e.g. the root utility functions, and configuration settings.
+   * e.g. the root utility functions, and root configuration settings.
    */
   createContext(
     props: EdenContextProps<TElysia, TSSRContext>,
@@ -88,6 +92,11 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
   ): EdenContextState<TElysia, TSSRContext>
 
   /**
+   * Wraps the `create-queries` svelte-query hook in a type-safe proxy.
+   */
+  createQueries: EdenTreatyCreateQueries<TElysia>
+
+  /**
    * Create a raw, untyped-client.
    */
   createClient: EdenCreateClient<TElysia>
@@ -101,15 +110,10 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
    * Convenience method for creating and configuring a client with a single HttpBatchLink.
    */
   createHttpBatchClient: (options?: HttpBatchLinkOptions<TElysia>) => EdenClient<TElysia>
-
-  /**
-   * `createQueries` tanstack-query hook.
-   */
-  createQueries: EdenTreatyCreateQueries<TElysia>
 }
 
 /**
- * A strongly-typed proxy with tanstack-query hooks for interacting with the {@link AnyElysia} backend.
+ * A strongly-typed proxy with svelte-query hooks for interacting with the {@link AnyElysia} backend.
  */
 export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {
   _routes: infer TSchema extends Record<string, any>
@@ -126,7 +130,7 @@ export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {
 // prettier-ignore
 export type EdenTreatySvelteQueryHooksProxy<
   /**
-   * The {@link RouteSchema} from the {@link AnyElysia} instance.
+   * The {@link RouteSchema} or {@link Routes} from the {@link AnyElysia} instance.
    */
   TSchema extends Record<string, any>,
 
@@ -135,34 +139,44 @@ export type EdenTreatySvelteQueryHooksProxy<
 
   // Keys that are considered path parameters instead of regular path segments.
   TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
-> =
-  // Iterate over all regular path segments (excluding path paramters), and convert them
-  // to leaves or recursively process them.
-  {
-    [K in Exclude<keyof TSchema, keyof TRouteParams>]:
-    TSchema[K] extends RouteSchema
+> = EdenTreatySvelteQueryPathHooks<TSchema, TPath, TRouteParams> &
+  EdenTreatySvelteQueryHooksPathParameterHook<TSchema, TPath, TRouteParams>
 
-    // If the current value is a route, then the current key is the HTTP method,
-    // e.g. "get", "post", etc. and the path segments up to this point is the actual route
-    // (excluding path parameters).
+/**
+ * Iterate over all regular path segments (excluding path parameters), and convert them
+ * to leaves or recursively process them.
+ *
+ * If the current value is a route, then the current key is the HTTP method,
+ * e.g. "get", "post", etc. and the path segments up to this point is the actual route
+ * (excluding path parameters).
+ *
+ * If the current value is not a route, then add the key to the path segments found,
+ * then recursively process it.
+ */
+export type EdenTreatySvelteQueryPathHooks<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
+> = {
+  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
     ? EdenTreatySvelteQueryRouteLeaf<TSchema[K], K, TPath>
-
-    // If the current value is not a route, then add the key to the path segments found,
-    // then recursively process it.
     : EdenTreatySvelteQueryHooksProxy<TSchema[K], [...TPath, K]>
-  }
-  &
-  // If there are no route parameters, then intersect with an empty object as a NOOP.
-  // Otherwise, this part of the proxy can also be called like a function, which will
-  // return the rest of the proxy (excluding the current path parameter).
-  ({} extends TRouteParams
-    ? {}
-    : (
-      params: StoreOrVal<ExtractEdenTreatyRouteParamsInput<TRouteParams>>,
-    ) => EdenTreatySvelteQueryHooksProxy<
-      TSchema[Extract<keyof TRouteParams, keyof TSchema>],
-      TPath
-    >)
+}
+
+/**
+ * If there are no route parameters, then return empty object.
+ * Otherwise, this part of the proxy can also be called like a function, which will
+ * return the rest of the proxy (excluding the current path parameter).
+ */
+type EdenTreatySvelteQueryHooksPathParameterHook<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+  TRouteParams = {},
+> = {} extends TRouteParams
+  ? {}
+  : (
+      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+    ) => EdenTreatySvelteQueryHooksProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>
 
 /**
  * Leaf node for the proxy that maps a {@link RouteSchema} to an object with hooks.
@@ -176,10 +190,10 @@ export type EdenTreatySvelteQueryRouteLeaf<
 > = TMethod extends HttpQueryMethod
   ? EdenTreatySvelteQueryLeaf<TRoute, TPath>
   : TMethod extends HttpMutationMethod
-    ? EdenTreatyQueryMutationLeaf<TRoute, TPath>
+    ? EdenTreatySvelteQueryMutationLeaf<TRoute, TPath>
     : TMethod extends HttpSubscriptionMethod
-      ? EdenTreatyQuerySubscriptionLeaf<TRoute, TPath>
-      : EdenTreatyQueryUnknownLeaf<TRoute, TPath>
+      ? EdenTreatySvelteQuerySubscriptionLeaf<TRoute, TPath>
+      : EdenTreatySvelteQueryUnknownLeaf<TRoute, TPath>
 
 /**
  * Available hooks assuming that the route supports `createQuery`.
@@ -213,7 +227,10 @@ export type EdenTreatySvelteQueryInfiniteQueryLeaf<
  *
  * e.g. Basically a route with any HTTP methods other than "GET."
  */
-export type EdenTreatyQueryMutationLeaf<TRoute extends RouteSchema, TPath extends any[] = []> = {
+export type EdenTreatySvelteQueryMutationLeaf<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+> = {
   createMutation: EdenCreateMutation<TRoute, TPath>
 }
 
@@ -222,7 +239,7 @@ export type EdenTreatyQueryMutationLeaf<TRoute extends RouteSchema, TPath extend
  *
  * e.g. Routes that support "CONNECT" or "SUBSCRIBE" requests.
  */
-export type EdenTreatyQuerySubscriptionLeaf<
+export type EdenTreatySvelteQuerySubscriptionLeaf<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute>,
@@ -236,13 +253,13 @@ export type EdenTreatyQuerySubscriptionLeaf<
  *
  * Will just show all possible hooks...
  */
-export type EdenTreatyQueryUnknownLeaf<
+export type EdenTreatySvelteQueryUnknownLeaf<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
 > = EdenTreatySvelteQueryLeaf<TRoute, TPath> &
   EdenTreatySvelteQueryInfiniteQueryLeaf<TRoute, TPath> &
-  EdenTreatyQueryMutationLeaf<TRoute, TPath> &
-  EdenTreatyQuerySubscriptionLeaf<TRoute, TPath>
+  EdenTreatySvelteQueryMutationLeaf<TRoute, TPath> &
+  EdenTreatySvelteQuerySubscriptionLeaf<TRoute, TPath>
 
 /**
  * Main entrypoint for this library.
@@ -281,29 +298,21 @@ export function createEdenTreatySvelteQuery<TElysia extends AnyElysia, TSSRConte
 
 /**
  * Creates the recursive proxy.
+ *
+ * @param config Root hooks that were created.
+ *
+ * @param rootHooks The original configuration for eden-treaty.
+ *
+ * @param paths Path parameter strings including the current path parameter as a placeholder.
+ *  @example [ 'products', ':id', ':cursor' ]
+ *
+ * @param pathParams An array of objects representing path parameter replacements.
+ * @example [ { id: 123 }, writable({ cursor: '456' }) ]
  */
 export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia>(
-  /**
-   * Root hooks that were created.
-   */
   rootHooks: EdenTreatyQueryRootHooks<T>,
-
-  /**
-   * The original configuration for eden-treaty.
-   */
   config?: EdenQueryConfig<T>,
-
-  /**
-   * Path parameter strings including the current path parameter as a placeholder.
-   *
-   * @example [ 'products', ':id', ':cursor' ]
-   */
   paths: (string | symbol)[] = [],
-
-  /**
-   * An array of objects representing path parameter replacements.
-   * @example [ { id: 123 }, writable({ cursor: '456' }) ]
-   */
   pathParams: StoreOrVal<Record<string, any>>[] = [],
 ) {
   const edenTreatyQueryProxy = new Proxy(() => {}, {
@@ -354,8 +363,10 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
        */
       const pathParam = getPathParam(args)
 
-      // Determine if the property can be found on the root hooks.
-      // e.g. "createQuery," "createMutation," etc.
+      /**
+       * Determine if the property can be found on the root hooks.
+       * @example "createQuery," "createMutation," etc.
+       */
       const isRootProperty = Object.prototype.hasOwnProperty.call(rootHooks, hook)
 
       if (pathParam?.key != null && !isRootProperty) {
@@ -375,19 +386,57 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
         return createEdenTreatySvelteQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
       }
 
+      // There is no option to pass in input from the public exposed hook,
+      // but the internal root `useMutation` hook expects input as the first argument.
+      // Add an empty element at the front representing "input".
+      if (hook === 'createMutation') {
+        args.unshift(undefined)
+      }
+
       // The order of arguments passed to "createMutation" differs from everything else for some reason.
       // Directly mutate the arguments so they are always uniform before being passed to a root hook.
       const modifiedArgs = mutateArgs(hook, args, pathParams)
 
-      // Dynamically invoke a root hook.
-      return (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)
+      /**
+       * ```ts
+       * // The final hook that was invoked.
+       * const hook = "createQuery"
+       *
+       * // The array of path segments up to this point.
+       * // Note how ":id" is included, this will be replaced by the `resolveRequest` function from eden.
+       * const pathsCopy = ["nendoroid", ":id", "name"]
+       *
+       * // Accummulated path parameters up to this point.
+       * const pathParams = [ { id: 1895 } ]
+       *
+       * // The user provided a search query and query options.
+       * const args = [ { location: "jp" }, { refetchOnUnmount: true } ]
+       *
+       * // The accummulated path parameters and search query are merged into one "input" object.
+       * const modifiedArgs = [
+       *   { query: { location: "jp" }, params: { id: 1895 } },
+       *   { refetchOnMount: false }
+       * ]
+       *
+       * // The full function call contains three arguments:
+       * // array of path segments, input, and query options.
+       * rootHooks.createQuery(
+       *   ["nendoroid", ":id", "name"],
+       *   { query: { location: "jp" }, params: { id: 1895 } },
+       *   { refetchOnMount: false }
+       * )
+       * ```
+       */
+      const result = (rootHooks as any)[hook](pathsCopy, ...modifiedArgs)
+
+      return result
     },
   })
 
   return edenTreatyQueryProxy
 }
 
-export const routeDefinitionSymbol = Symbol('eden-treaty-query-defs')
+export const routeDefinitionSymbol = Symbol('eden-treaty-svelte-query-defs')
 
 export function getQueryKey<TSchema extends Record<string, any>>(
   route: EdenTreatySvelteQueryHooksProxy<TSchema>,
