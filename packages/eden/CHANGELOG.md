@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.4.1
+
+### Patch Changes
+
+- 17ddc6e: fix(eden): treaty types
+
 ## 1.4.0
 
 ### Minor Changes

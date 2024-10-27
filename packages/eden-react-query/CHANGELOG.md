@@ -1,5 +1,14 @@
 # @ap0nia/eden-react-query
 
+## 1.4.1
+
+### Patch Changes
+
+- 8de6067: fix: types for exposed client in context utils
+- 17ddc6e: fix(eden): treaty types
+- Updated dependencies [17ddc6e]
+  - @ap0nia/eden@1.4.1
+
 ## 1.4.0
 
 ### Minor Changes
