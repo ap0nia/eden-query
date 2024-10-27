@@ -139,7 +139,8 @@ export type EdenTreatySvelteQueryHooksProxy<
 
   // Keys that are considered path parameters instead of regular path segments.
   TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
-> = EdenTreatySvelteQueryPathHooks<TSchema, TPath, TRouteParams> &
+> =
+EdenTreatySvelteQueryPathHooks<TSchema, TPath, TRouteParams> &
   EdenTreatySvelteQueryHooksPathParameterHook<TSchema, TPath, TRouteParams>
 
 /**

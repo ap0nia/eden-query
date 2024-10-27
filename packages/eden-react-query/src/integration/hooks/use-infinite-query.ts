@@ -1,4 +1,5 @@
 import type {
+  EmptyToVoid,
   InferRouteError,
   InferRouteOptions,
   InferRouteOutput,
@@ -54,7 +55,7 @@ export type EdenUseInfiniteQuery<
   TError = InferRouteError<TRoute>,
   TInfiniteInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>['query'],
 > = (
-  input: {} extends TInfiniteInput ? void | TInfiniteInput : SkipToken,
+  input: EmptyToVoid<TInfiniteInput> | SkipToken,
   options: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
 ) => EdenUseInfiniteQueryResult<TOutput, TError, TInput>
 

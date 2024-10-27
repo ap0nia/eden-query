@@ -1,6 +1,7 @@
 import {
   type EdenClient,
   type EdenRequestParams,
+  type EmptyToVoid,
   type ExtractEdenTreatyRouteParams,
   type ExtractEdenTreatyRouteParamsInput,
   getPathParam,
@@ -75,7 +76,7 @@ export type EdenTreatyUseQueriesHook<
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (
-  input: {} extends TInput ? void | TInput : TInput,
+  input: EmptyToVoid<TInput>,
   opts?: UseQueryOptionsForUseQueries<TOutput, TInput, TError>,
 ) => UseQueryOptions<TOutput, TError, TOutput, TKey>
 

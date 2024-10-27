@@ -1,4 +1,9 @@
-import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
+import type {
+  EmptyToVoid,
+  InferRouteError,
+  InferRouteOptions,
+  InferRouteOutput,
+} from '@ap0nia/eden'
 import type {
   InfiniteData,
   UseSuspenseInfiniteQueryOptions,
@@ -47,6 +52,6 @@ export type EdenUseSuspenseInfiniteQuery<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  input: {} extends TInput ? void | TInput : TInput,
+  input: EmptyToVoid<TInput>,
   options?: EdenUseSuspenseInfiniteQueryOptions<TOutput, TOutput, TError>,
 ) => EdenUseSuspenseInfiniteQueryResult<TOutput, TError, TInput>

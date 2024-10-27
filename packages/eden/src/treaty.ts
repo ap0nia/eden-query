@@ -13,6 +13,7 @@ import type { EdenRequestOptions } from './request'
 import type { EdenRequestParams } from './resolve'
 import type { EmptyToVoid } from './utils/empty-to-void'
 import { isGetOrHeadMethod, isHttpMethod } from './utils/http'
+import type { Optional } from './utils/optional'
 import type { EdenWS } from './ws'
 
 export interface EdenTreatyOptions<T extends AnyElysia> {
@@ -44,33 +45,44 @@ export type EdenTreatyHooksProxy<
   // Keys that are considered path parameters instead of regular path segments.
   TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > =
-  // Iterate over all regular path segments (excluding path paramters), and convert them
-  // to leaves or recursively process them.
-  {
-    [K in Exclude<keyof TSchema, keyof TRouteParams>]:
-    TSchema[K] extends RouteSchema
+  EdenTreatyPathHooks<TSchema, TPath, TRouteParams> &
+  EdenTreatyHooksPathParameterHook<TSchema, TPath, TRouteParams>
 
-    // If the current value is a route, then the current key is the HTTP method,
-    // e.g. "get", "post", etc. and the path segments up to this point is the actual route
-    // (excluding path parameters).
+/**
+ * Iterate over all regular path segments (excluding path parameters), and convert them
+ * to leaves or recursively process them.
+ *
+ * If the current value is a route, then the current key is the HTTP method,
+ * e.g. "get", "post", etc. and the path segments up to this point is the actual route
+ * (excluding path parameters).
+ *
+ * If the current value is not a route, then add the key to the path segments found,
+ * then recursively process it.
+ */
+type EdenTreatyPathHooks<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
+> = {
+  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
     ? EdenTreatyQueryRouteLeaf<TSchema[K], K>
-
-    // If the current value is not a route, then add the key to the path segments found,
-    // then recursively process it.
     : EdenTreatyHooksProxy<TSchema[K], [...TPath, K]>
-  }
-  &
-  // If there are no route parameters, then intersect with an empty object as a NOOP.
-  // Otherwise, this part of the proxy can also be called like a function, which will
-  // return the rest of the proxy (excluding the current path parameter).
-  ({} extends TRouteParams
-    ? {}
-    : (
+}
+
+/**
+ * If there are no route parameters, then return empty object.
+ * Otherwise, this part of the proxy can also be called like a function, which will
+ * return the rest of the proxy (excluding the current path parameter).
+ */
+type EdenTreatyHooksPathParameterHook<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+  TRouteParams = {},
+> = {} extends TRouteParams
+  ? {}
+  : (
       params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
-    ) => EdenTreatyHooksProxy<
-      TSchema[Extract<keyof TRouteParams, keyof TSchema>],
-      TPath
-    >)
+    ) => EdenTreatyHooksProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>
 
 export type EdenTreatyQueryRouteLeaf<
   TRoute extends RouteSchema,
@@ -87,15 +99,15 @@ export type EdenTreatyQueryRouteLeaf<
  * Function that is called to make a query (i.e. "GET") request.
  */
 export type EdenTreatyQueryLeaf<TRoute extends RouteSchema> = (
-  options: EmptyToVoid<InferRouteOptions<TRoute>>,
-) => InferRouteResponse<TRoute>
+  options: EmptyToVoid<Optional<InferRouteOptions<TRoute>, 'params'>>,
+) => Promise<InferRouteResponse<TRoute>>
 
 /**
  */
 export type EdenTreatyMutationLeaf<TRoute extends RouteSchema> = (
   body: EmptyToVoid<InferRouteBody<TRoute>>,
-  options: EmptyToVoid<InferRouteOptions>,
-) => InferRouteResponse<TRoute>
+  options: EmptyToVoid<Optional<InferRouteOptions, 'params'>>,
+) => Promise<InferRouteResponse<TRoute>>
 
 /**
  * @TODO: Available hooks assuming that the route supports `createSubscription`.
@@ -103,7 +115,7 @@ export type EdenTreatyMutationLeaf<TRoute extends RouteSchema> = (
  * e.g. Routes that support "CONNECT" or "SUBSCRIBE" requests.
  */
 export type EdenTreatySubscriptionLeaf<TRoute extends RouteSchema> = (
-  options: EmptyToVoid<InferRouteOptions<TRoute>>,
+  options: EmptyToVoid<Optional<InferRouteOptions<TRoute>, 'params'>>,
 ) => EdenWS<TRoute>
 
 /**

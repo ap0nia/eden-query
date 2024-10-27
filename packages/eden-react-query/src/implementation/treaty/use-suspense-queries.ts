@@ -1,5 +1,6 @@
 import type {
   EdenClient,
+  EmptyToVoid,
   ExtractEdenTreatyRouteParams,
   ExtractEdenTreatyRouteParamsInput,
   InferRouteError,
@@ -56,7 +57,7 @@ export type UseSuspenseQueriesHook<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  input: {} extends TInput ? void | TInput : TInput,
+  input: EmptyToVoid<TInput>,
   opts?: UseQueryOptionsForUseSuspenseQueries<TOutput, TError>,
 ) => UseQueryOptionsForUseSuspenseQueries<TOutput, TError>
 

@@ -1,4 +1,9 @@
-import type { InferRouteError, InferRouteOptions, InferRouteOutput } from '@ap0nia/eden'
+import type {
+  EmptyToVoid,
+  InferRouteError,
+  InferRouteOptions,
+  InferRouteOutput,
+} from '@ap0nia/eden'
 import type { UseSuspenseQueryOptions, UseSuspenseQueryResult } from '@tanstack/react-query'
 import type { RouteSchema } from 'elysia'
 
@@ -25,6 +30,6 @@ export type EdenUseSuspenseQuery<
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
 > = (
-  input: {} extends TInput ? void | TInput : TInput,
+  input: EmptyToVoid<TInput>,
   options?: EdenUseSuspenseQueryOptions<TOutput, TOutput, TError>,
 ) => EdenUseSuspenseQueryResult<TOutput, TError>

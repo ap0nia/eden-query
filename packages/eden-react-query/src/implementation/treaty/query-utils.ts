@@ -1,5 +1,6 @@
 import {
   type EdenCreateClient,
+  type EmptyToVoid,
   type ExtractEdenTreatyRouteParams,
   type ExtractEdenTreatyRouteParamsInput,
   getPathParam,
@@ -101,17 +102,17 @@ export type EdenTreatyQueryUtilsQueryUtils<
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
   fetch: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<TOutput>
 
   prefetch: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<void>
 
   ensureData: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<TOutput>
 
@@ -152,10 +153,10 @@ export type EdenTreatyQueryUtilsQueryUtils<
     options?: SetDataOptions,
   ): [QueryKey, TOutput]
 
-  getData: (input: {} extends TInput ? TInput | void : TInput) => TOutput | undefined
+  getData: (input: EmptyToVoid<TInput>) => TOutput | undefined
 
   options: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: UseQueryOptions<TOutput, TError>,
   ) => UseQueryOptions<TOutput, TError>
 }
@@ -169,17 +170,17 @@ export type EdenTreatyQueryUtilsInfiniteUtils<
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,
 > = {
   fetchInfinite: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchInfiniteQueryOptions<TInput, TOutput, TError>,
   ) => Promise<InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>>>
 
   prefetchInfinite: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenFetchQueryOptions<TOutput, TError>,
   ) => Promise<void>
 
   getInfiniteData: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
   ) => InfiniteData<TOutput, NonNullable<ExtractCursorType<TInput>>> | undefined
 
   setInfiniteData: (
@@ -192,7 +193,7 @@ export type EdenTreatyQueryUtilsInfiniteUtils<
   ) => void
 
   infiniteOptions: (
-    input: {} extends TInput ? TInput | void : TInput,
+    input: EmptyToVoid<TInput>,
     options?: EdenUseInfiniteQueryOptions<TInput, TOutput, TError>,
   ) => UseInfiniteQueryOptions<TOutput, TError, TOutput, TKey>
 }

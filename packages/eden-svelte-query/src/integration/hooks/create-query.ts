@@ -1,5 +1,6 @@
 import {
   type EdenRequestParams,
+  type EmptyToVoid,
   type InferRouteError,
   type InferRouteOptions,
   type InferRouteOutput,
@@ -65,12 +66,12 @@ export interface EdenCreateQuery<
   TError = InferRouteError<TRoute>,
 > {
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<{} extends TInput ? void | TInput : TInput>,
+    input: StoreOrVal<EmptyToVoid<TInput>>,
     options: EdenDefinedCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
   ): EdenDefinedCreateQueryResult<TData, TError>
 
   <TQueryFnData extends TOutput = TOutput, TData = TQueryFnData>(
-    input: StoreOrVal<({} extends TInput ? void | TInput : TInput) | SkipToken>,
+    input: StoreOrVal<EmptyToVoid<TInput> | SkipToken>,
     options?: EdenCreateQueryOptions<TQueryFnData, TData, TError, TOutput>,
   ): EdenCreateQueryResult<TData, TError>
 }
