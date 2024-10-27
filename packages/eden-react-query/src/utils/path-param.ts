@@ -45,7 +45,7 @@ export function getPathParam(args: unknown[]) {
  * If this is the case, then {@link mutateArgs} needs to ensure that any
  * accummulated path parameters are included.
  */
-const hooksWithInput: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] = [
+const hooksWithInput: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string> | symbol)[] = [
   'useQuery',
   'useInfiniteQuery',
   'useSuspenseQuery',
@@ -59,7 +59,7 @@ const hooksWithInput: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] 
  * Make sure that the interpretation of args matches up with the implementation of root hooks.
  */
 export function mutateArgs(
-  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string>,
+  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string> | symbol,
   args: unknown[],
   params: Record<string, any>[],
 ) {

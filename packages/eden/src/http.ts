@@ -63,8 +63,28 @@ export const httpMutationMethods = ['post', 'put', 'patch', 'delete'] as const
 
 export const httpSubscriptionMethods = ['connect', 'subscribe'] as const
 
+export const httpMethods = [
+  ...httpQueryMethods,
+  ...httpMutationMethods,
+  ...httpSubscriptionMethods,
+] as const
+
+/**
+ * Recognized HTTP methods for queries.
+ */
 export type HttpQueryMethod = (typeof httpQueryMethods)[number]
 
+/**
+ * Recognized HTTP methods for mutations.
+ */
 export type HttpMutationMethod = (typeof httpMutationMethods)[number]
 
+/**
+ * Recognized HTTP methods for subscriptions.
+ */
 export type HttpSubscriptionMethod = (typeof httpSubscriptionMethods)[number]
+
+/**
+ * All recognized HTTP methods.
+ */
+export type HttMethod = (typeof httpMethods)[number]

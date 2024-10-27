@@ -35,12 +35,26 @@ export function getPathParam(args: unknown[]) {
   return { param: argument as any, key: argumentKeys[0] }
 }
 
+/**
+ * Only maps over keys that represents valid route params. i.e. path segments that begin with colon.
+ */
 export type ExtractEdenTreatyRouteParams<T> = {
   [K in keyof T as K extends `:${string}` ? K : never]: T[K]
 }
 
+/**
+ * Create an object that maps the name of the route param to possible values (string or number).
+ *
+ * @example
+ *
+ * '/products/:id'
+ *
+ * :id is a path parameter, and this would return { id: string | number }
+ *
+ * Eden will recognize this object as a path parameter.
+ *
+ * @see https://elysiajs.com/eden/treaty/overview.html#dynamic-path
+ */
 export type ExtractEdenTreatyRouteParamsInput<T> = {
   [K in keyof T as K extends `:${infer TParam}` ? TParam : never]: string | number
 }
-
-export type ExtractRouteParam<T> = T extends `:${infer TParam}` ? TParam : T

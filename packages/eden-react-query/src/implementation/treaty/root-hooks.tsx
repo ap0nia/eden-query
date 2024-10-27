@@ -7,6 +7,7 @@ import {
   httpLink,
   type HTTPLinkOptions,
   type InferRouteOptions,
+  parsePathsAndMethod,
 } from '@ap0nia/eden'
 import {
   type SkipToken,
@@ -51,7 +52,6 @@ import type {
   EdenUseSuspenseQueryOptions,
   EdenUseSuspenseQueryResult,
 } from '../../integration/hooks/use-suspense-query'
-import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
 import { getEdenQueryExtension } from '../../integration/internal/query-hook-extension'
 import type { EdenUseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
 import type { EdenUseQueryOptionsForUseSuspenseQueries } from '../../integration/internal/use-query-options-for-use-suspense-queries'

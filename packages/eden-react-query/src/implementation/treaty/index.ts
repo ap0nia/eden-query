@@ -2,6 +2,8 @@ import type {
   EdenClient,
   EdenCreateClient,
   EdenRequestOptions,
+  ExtractEdenTreatyRouteParams,
+  ExtractEdenTreatyRouteParamsInput,
   HttpBatchLinkOptions,
   HTTPLinkOptions,
   HttpMutationMethod,
@@ -21,10 +23,6 @@ import type { EdenUseSuspenseInfiniteQuery } from '../../integration/hooks/use-s
 import type { EdenUseSuspenseQuery } from '../../integration/hooks/use-suspense-query'
 import type { InfiniteCursorKey } from '../../integration/internal/infinite-query'
 import type {
-  ExtractEdenTreatyRouteParams,
-  ExtractEdenTreatyRouteParamsInput,
-} from '../../integration/internal/path-params'
-import type {
   EdenMutationKey,
   EdenQueryKey,
   EdenQueryKeyOptions,
@@ -34,48 +32,75 @@ import {
   getMutationKey as internalGetMutationKey,
   getQueryKey as internalGetQueryKey,
 } from '../../integration/internal/query-key'
-import type { LiteralUnion } from '../../utils/literal-union'
-import { getPathParam } from '../../utils/path-param'
+import { getPathParam, mutateArgs } from '../../utils/path-param'
 import type { EdenTreatyQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
 import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
 
+/**
+ * The treaty-query API provides utility methods that are available at the root, as well as
+ * a strongly-typed proxy representing the {@link AnyElysia} API.
+ */
 export type EdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContext> = EdenTreatyReactQueryBase<
   TElysia,
   TSSRContext
 > &
   EdenTreatyReactQueryHooks<TElysia>
 
-export type EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext> = {
+/**
+ * Utilities available at the eden-treaty + react-query root.
+ */
+export interface EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext> {
+  /**
+   * Get utilities provided via the context API.
+   *
+   * @see https://trpc.io/docs/v11/client/react/useUtils
+   */
+  useUtils(): EdenTreatyQueryUtils<TElysia, TSSRContext>
+
+  /**
+   * Returns everything that will be provided from context.
+   *
+   * e.g. the root utility functions, and root configuration settings.
+   */
   createContext(
     props: EdenContextProps<TElysia, TSSRContext>,
   ): EdenContextState<TElysia, TSSRContext>
 
+  /**
+   * Creates a proxy that can invoke tanstack-query helper functions.
+   */
   createUtils(
     props: EdenContextProps<TElysia, TSSRContext>,
   ): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
   /**
-   * @deprecated renamed to `useUtils` and will be removed in a future tRPC version
+   * Get utilities provided via the context API.
+   *
+   * @deprecated renamed to {@link useUtils} and will be removed in a future tRPC version
    *
    * @link https://trpc.io/docs/v11/client/react/useUtils
    */
   useContext(): EdenTreatyQueryUtils<TElysia, TSSRContext>
 
   /**
-   * @link https://trpc.io/docs/v11/client/react/useUtils
+   * React.Provider to set the context.
    */
-  useUtils(): EdenTreatyQueryUtils<TElysia, TSSRContext>
-
   Provider: EdenProvider<TElysia, TSSRContext>
 
+  /**
+   * Wraps the `useQueries` react-query hook in a type-safe proxy.
+   */
   useQueries: EdenTreatyUseQueries<TElysia>
 
+  /**
+   * Wraps the `useSuspenseQueries` react-query hook in a type-safe proxy.
+   */
   useSuspenseQueries: EdenTreatyUseSuspenseQueries<TElysia>
 
   /**
-   * Need to provide `links` in order for this client to work.
+   * Create a raw, untyped-client.
    */
   createClient: EdenCreateClient<TElysia>
 
@@ -90,36 +115,53 @@ export type EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext> = {
   createHttpBatchClient: (options?: HttpBatchLinkOptions<TElysia>) => EdenClient<TElysia>
 }
 
+/**
+ * A strongly-typed proxy with svelte-query hooks for interacting with the {@link AnyElysia} backend.
+ */
 export type EdenTreatyReactQueryHooks<T extends AnyElysia> = T extends {
   _routes: infer TSchema extends Record<string, any>
 }
-  ? EdenTreatyReactQueryHooksImplementation<TSchema>
+  ? EdenTreatyReactQueryHooksProxy<TSchema>
   : 'Please install Elysia before using Eden'
 
-export type EdenTreatyReactQueryHooksImplementation<
-  TSchema extends Record<string, any>,
-  TPath extends any[] = [],
-  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
-> = EdenTreatyReactQueryHooksProxy<TSchema, TPath, TRouteParams> &
-  ({} extends TRouteParams
-    ? {}
-    : (
-        params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
-      ) => EdenTreatyReactQueryHooksImplementation<
-        TSchema[Extract<keyof TRouteParams, keyof TSchema>],
-        TPath
-      >)
-
+/**
+ * TypeScript implementation for the proxy.
+ *
+ * Recursively iterate over all keys in the {@link RouteSchema}, processing path parameters
+ * and regular path segments separately.
+ */
+// prettier-ignore
 export type EdenTreatyReactQueryHooksProxy<
+  /**
+   * The {@link RouteSchema} or {@link Routes} from the {@link AnyElysia} instance.
+   */
+  TSchema extends Record<string, any>,
+  // The current path segments up to this point.
+  TPath extends any[] = [],
+  // Keys that are considered path parameters instead of regular path segments.
+  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
+> = EdenTreatyReactQueryPathHooks<TSchema, TPath, TRouteParams> &
+  EdenTreatyReactQueryHooksPathParameterHook<TSchema, TPath, TRouteParams>
+
+export type EdenTreatyReactQueryPathHooks<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
   TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = {
   [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
-    ? EdenTreatyReactQueryRouteHooks<TSchema[K], K, TPath>
-    : EdenTreatyReactQueryHooksImplementation<TSchema[K], [...TPath, K]>
+    ? EdenTreatyReactQueryRouteLeaf<TSchema[K], K, TPath>
+    : EdenTreatyReactQueryHooksProxy<TSchema[K], [...TPath, K]>
 }
 
+type EdenTreatyReactQueryHooksPathParameterHook<
+  TSchema extends Record<string, any>,
+  TPath extends any[] = [],
+  TRouteParams = {},
+> = {} extends TRouteParams
+  ? {}
+  : (
+      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+    ) => EdenTreatyReactQueryHooksProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>
 /**
  * Maps a {@link RouteSchema} to an object with hooks.
  *
@@ -127,25 +169,24 @@ export type EdenTreatyReactQueryHooksProxy<
  *
  * @example { useQuery: ..., useInfiniteQuery: ... }
  */
-export type EdenTreatyReactQueryRouteHooks<
+export type EdenTreatyReactQueryRouteLeaf<
   TRoute extends RouteSchema,
   TMethod,
   TPath extends any[] = [],
 > = TMethod extends HttpQueryMethod
-  ? EdenTreatyQueryMapping<TRoute, TPath>
+  ? EdenTreatyReactQueryLeaf<TRoute, TPath>
   : TMethod extends HttpMutationMethod
-    ? EdenTreatyMutationMapping<TRoute, TPath>
+    ? EdenTreatyReactQueryMutationLeaf<TRoute, TPath>
     : TMethod extends HttpSubscriptionMethod
-      ? EdenTreatySubscriptionMapping<TRoute, TPath>
-      : // Just add all possible operations since the route is unknown.
-        EdenTreatyQueryMapping<TRoute, TPath> &
-          EdenTreatyMutationMapping<TRoute, TPath> &
-          EdenTreatySubscriptionMapping<TRoute, TPath>
+      ? EdenTreatyReactQuerySubscriptionLeaf<TRoute, TPath>
+      : EdenTreatyReactQueryUnknownLeaf<TRoute, TPath>
 
 /**
- * Available hooks assuming that the route supports useQuery.
+ * Available hooks assuming that the route supports `useQuery`.
+ *
+ * e.g. Routes with a "GET" endpoint.
  */
-export type EdenTreatyQueryMapping<
+export type EdenTreatyReactQueryLeaf<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
@@ -153,28 +194,40 @@ export type EdenTreatyQueryMapping<
   useQuery: EdenUseQuery<TRoute, TPath>
   useSuspenseQuery: EdenUseSuspenseQuery<TRoute, TPath>
 } & (InfiniteCursorKey extends keyof (TInput['params'] & TInput['query'])
-  ? EdenTreatyInfiniteQueryMapping<TRoute, TPath>
+  ? EdenTreatyReactQueryInfiniteQueryLeaf<TRoute, TPath>
   : {})
 
 /**
- * Available hooks assuming that the route supports useInfiniteQuery.
+ * Available hooks assuming that the route supports `useInfiniteQuery`.
+ *
+ * e.g. Routes with a "GET" endpoint that expects "cursor" as a possible query parameter.
  */
-export type EdenTreatyInfiniteQueryMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
+export type EdenTreatyReactQueryInfiniteQueryLeaf<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+> = {
   useInfiniteQuery: EdenUseInfiniteQuery<TRoute, TPath>
   useSuspenseInfiniteQuery: EdenUseSuspenseInfiniteQuery<TRoute, TPath>
 }
 
 /**
- * Available hooks assuming that the route supports useMutation.
+ * Available hooks assuming that the route supports `useMutation`.
+ *
+ * e.g. Basically a route with any HTTP methods other than "GET."
  */
-export type EdenTreatyMutationMapping<TRoute extends RouteSchema, TPath extends any[] = []> = {
+export type EdenTreatyReactQueryMutationLeaf<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+> = {
   useMutation: EdenUseMutation<TRoute, TPath>
 }
 
 /**
- * @TODO: Available hooks assuming that the route supports useMutation.
+ * @TODO: Available hooks assuming that the route supports `useSubscription`.
+ *
+ * e.g. Routes that support "CONNECT" or "SUBSCRIBE" requests.
  */
-export type EdenTreatySubscriptionMapping<
+export type EdenTreatyReactQuerySubscriptionLeaf<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TInput = InferRouteOptions<TRoute>,
@@ -183,14 +236,37 @@ export type EdenTreatySubscriptionMapping<
   queryKey: EdenQueryKey<TPath>
 }
 
+/**
+ * Available hooks for unrecognized HTTP methods.
+ *
+ * Will just show all possible hooks...
+ */
+export type EdenTreatyReactQueryUnknownLeaf<
+  TRoute extends RouteSchema,
+  TPath extends any[] = [],
+> = EdenTreatyReactQueryLeaf<TRoute, TPath> &
+  EdenTreatyReactQueryInfiniteQueryLeaf<TRoute, TPath> &
+  EdenTreatyReactQueryMutationLeaf<TRoute, TPath> &
+  EdenTreatyReactQuerySubscriptionLeaf<TRoute, TPath>
+
 export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContext = unknown>(
   config?: EdenQueryConfig<TElysia>,
 ): EdenTreatyReactQuery<TElysia, TSSRContext> {
+  /**
+   * Root hooks are invoked by leaf nodes in the proxy.
+   */
   const rootHooks = createEdenTreatyQueryRootHooks(config)
 
+  /**
+   * The actual proxy.
+   */
   const edenTreatyReactQueryProxy = createEdenTreatyReactQueryProxy(rootHooks, config)
 
-  const edenTreatyQuery = new Proxy(() => {}, {
+  /**
+   * Wrapper around the proxy that will attempt to return properties found
+   * on the root hooks before accessing the proxy.
+   */
+  const edenTreatyReactQuery = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
       if (Object.prototype.hasOwnProperty.call(rootHooks, path)) {
         return rootHooks[path as never]
@@ -199,13 +275,26 @@ export function createEdenTreatyReactQuery<TElysia extends AnyElysia, TSSRContex
     },
   })
 
-  return edenTreatyQuery as any
+  return edenTreatyReactQuery as any
 }
 
+/**
+ * Creates the recursive proxy.
+ *
+ * @param config Root hooks that were created.
+ *
+ * @param rootHooks The original configuration for eden-treaty.
+ *
+ * @param paths Path parameter strings including the current path parameter as a placeholder.
+ *  @example [ 'products', ':id', ':cursor' ]
+ *
+ * @param pathParams An array of objects representing path parameter replacements.
+ * @example [ { id: 123 }, writable({ cursor: '456' }) ]
+ */
 export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>(
   rootHooks: EdenTreatyQueryRootHooks<T>,
   config?: EdenQueryConfig<T>,
-  paths: string[] = [],
+  paths: (string | symbol)[] = [],
   pathParams: Record<string, any>[] = [],
 ) {
   const edenTreatyQueryProxy = new Proxy(() => {}, {
@@ -214,25 +303,45 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
       return createEdenTreatyReactQueryProxy(rootHooks, config, nextPaths, pathParams)
     },
     apply: (_target, _thisArg, args) => {
+      /**
+       * @example ['products']
+       */
       const pathsCopy = [...paths]
 
-      const pathParam = getPathParam(args)
-
+      /**
+       * @example 'createQuery'
+       */
       const hook = pathsCopy.pop() ?? ''
 
+      /**
+       * Hook that returns path segment array.
+       *
+       * @internal
+       */
+      if (hook === routeDefinitionSymbol) {
+        return pathsCopy
+      }
+
+      /**
+       * Determine whether a path parameter can be found from the provided args.
+       *
+       * @example { param: { id: '123' }, key: 'id' }
+       *
+       * The `param` property is the actual argument that was passed,
+       * while they key is the string representing the placeholder.
+       */
+      const pathParam = getPathParam(args)
+
+      /**
+       * Determine if the property can be found on the root hooks.
+       * @example "useQuery," "useMutation," etc.
+       */
       const isRootProperty = Object.prototype.hasOwnProperty.call(rootHooks, hook)
 
       if (pathParam?.key != null && !isRootProperty) {
         const allPathParams = [...pathParams, pathParam.param]
         const pathsWithParams = [...paths, `:${pathParam.key}`]
         return createEdenTreatyReactQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
-      }
-
-      /**
-       * Hidden internal hook that returns the path array up to this point.
-       */
-      if (hook === '_defs') {
-        return pathsCopy
       }
 
       // There is no option to pass in input from the public exposed hook,
@@ -284,74 +393,26 @@ export function createEdenTreatyReactQueryProxy<T extends AnyElysia = AnyElysia>
 }
 
 export function getQueryKey<TSchema extends Record<string, any>>(
-  route: EdenTreatyReactQueryHooksImplementation<TSchema>,
+  route: EdenTreatyReactQueryHooksProxy<TSchema>,
   input?: TSchema extends RouteSchema ? InferRouteOptions<TSchema> : any,
   type?: EdenQueryType,
 ): EdenQueryKey {
-  const paths = (route as any).defs()
+  const paths = (route as any)[routeDefinitionSymbol]()
   return internalGetQueryKey(paths, input, type ?? 'any')
 }
 
 export function getMutationKey<TSchema extends RouteSchema>(
-  route: EdenTreatyReactQueryHooksImplementation<TSchema>,
+  route: EdenTreatyReactQueryHooksProxy<TSchema>,
   options?: EdenQueryKeyOptions,
 ): EdenMutationKey {
-  const paths = (route as any).defs()
+  const paths = (route as any)[routeDefinitionSymbol]()
   return internalGetMutationKey(paths, options)
 }
 
-/**
- * Some hooks have `input` provided as the first argument to the root hook.
- * If this is the case, then {@link mutateArgs} needs to ensure that any
- * accummulated path parameters are included.
- */
-const hooksWithInput: (keyof EdenTreatyQueryRootHooks | LiteralUnion<string>)[] = [
-  'useQuery',
-  'useInfiniteQuery',
-  'useSuspenseQuery',
-  'useSuspenseInfiniteQuery',
-  'useMutation',
-]
-
-/**
- * Directly mutate the arguments passed to the root hooks.
- *
- * Make sure that the interpretation of args matches up with the implementation of root hooks.
- */
-export function mutateArgs(
-  hook: keyof EdenTreatyQueryRootHooks | LiteralUnion<string>,
-  args: unknown[],
-  params: Record<string, any>[],
-) {
-  if (!hooksWithInput.includes(hook)) {
-    return args
-  }
-
-  const query = args[0]
-
-  if (query == null && params.length === 0) {
-    return args
-  }
-
-  const resolvedParams: Record<string, any> = {}
-
-  for (const param of params) {
-    for (const key in param) {
-      resolvedParams[key] = param[key]
-    }
-  }
-
-  const resolvedInput = {
-    params: resolvedParams,
-    query,
-  }
-
-  args[0] = resolvedInput
-
-  return args
-}
+export const routeDefinitionSymbol = Symbol('eden-treaty-react-query-defs')
 
 export * from './infer'
+export * from './query-utils'
 export * from './root-hooks'
 export * from './use-queries'
 export * from './use-suspense-queries'

@@ -1,9 +1,11 @@
-import type {
-  EdenClient,
-  EdenRequestParams,
-  InferRouteError,
-  InferRouteOptions,
-  InferRouteOutput,
+import {
+  type EdenClient,
+  type EdenRequestParams,
+  type EmptyToVoid,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+  parsePathsAndMethod,
 } from '@ap0nia/eden'
 import type {
   CreateQueryOptions,
@@ -16,7 +18,6 @@ import type { AnyElysia, RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../../config'
 import type { CreateQueryOptionsForCreateQueries } from '../../integration/internal/create-query-options-for-create-queries'
-import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
 import type { EdenQueryBaseOptions } from '../../integration/internal/query-base-options'
 import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
 
@@ -64,7 +65,7 @@ export type EdenTreatyCreateQueriesHook<
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,
 > = (
-  input: {} extends TInput ? void | TInput : TInput,
+  input: EmptyToVoid<TInput>,
   opts?: CreateQueryOptionsForCreateQueries<TOutput, TInput, TError>,
 ) => CreateQueryOptions<TOutput, TError, TOutput, TKey>
 
@@ -75,7 +76,7 @@ export function createTreatyCreateQueriesProxy<T extends AnyElysia = AnyElysia>(
   originalPaths: string[] = [],
   config?: EdenQueryConfig<T>,
 ): EdenTreatyCreateQueriesProxy<T> {
-  const useQueriesProxy = new Proxy(() => {}, {
+  const treatyQueryCreateQueriesProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]
       return createTreatyCreateQueriesProxy(client, nextPaths)
@@ -89,7 +90,7 @@ export function createTreatyCreateQueriesProxy<T extends AnyElysia = AnyElysia>(
 
       const queryOptions: QueryOptions = {
         queryKey: getQueryKey(originalPaths, options, 'query'),
-        queryFn: async (_context) => {
+        queryFn: async (context) => {
           const params: EdenRequestParams = {
             ...config,
             ...eden,
@@ -97,6 +98,12 @@ export function createTreatyCreateQueriesProxy<T extends AnyElysia = AnyElysia>(
             path,
             method,
             fetcher: eden?.fetcher ?? config?.fetcher ?? globalThis.fetch,
+          }
+
+          const shouldForwardSignal = config?.abortOnUnmount ?? eden?.abortOnUnmount
+
+          if (shouldForwardSignal) {
+            params.fetch = { ...params.fetch, signal: context.signal }
           }
 
           const result = await client.query(params)
@@ -114,5 +121,5 @@ export function createTreatyCreateQueriesProxy<T extends AnyElysia = AnyElysia>(
     },
   })
 
-  return useQueriesProxy as any
+  return treatyQueryCreateQueriesProxy as any
 }

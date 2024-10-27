@@ -1,9 +1,13 @@
-import type {
-  EdenClient,
-  EdenRequestParams,
-  InferRouteError,
-  InferRouteOptions,
-  InferRouteOutput,
+import {
+  type EdenClient,
+  type EdenRequestParams,
+  type ExtractEdenTreatyRouteParams,
+  type ExtractEdenTreatyRouteParamsInput,
+  getPathParam,
+  type InferRouteError,
+  type InferRouteOptions,
+  type InferRouteOutput,
+  parsePathsAndMethod,
 } from '@ap0nia/eden'
 import type {
   QueriesOptions,
@@ -15,12 +19,6 @@ import type {
 import type { AnyElysia, RouteSchema } from 'elysia'
 
 import type { EdenQueryConfig } from '../../config'
-import { parsePathsAndMethod } from '../../integration/internal/parse-paths-and-method'
-import {
-  type ExtractEdenTreatyRouteParams,
-  type ExtractEdenTreatyRouteParamsInput,
-  getPathParam,
-} from '../../integration/internal/path-params'
 import type { EdenQueryBaseOptions } from '../../integration/internal/query-base-options'
 import { type EdenQueryKey, getQueryKey } from '../../integration/internal/query-key'
 import type { UseQueryOptionsForUseQueries } from '../../integration/internal/use-query-options-for-use-queries'
