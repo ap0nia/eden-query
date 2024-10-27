@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.4.0
+
+### Minor Changes
+
+- c76900c: feat: eden-treaty and updated APIs
+
 ## 1.3.1
 
 ### Patch Changes
