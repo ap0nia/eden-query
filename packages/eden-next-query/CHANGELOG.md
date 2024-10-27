@@ -1,5 +1,17 @@
 # @ap0nia/eden-next-query
 
+## 1.4.0
+
+### Minor Changes
+
+- c76900c: feat: eden-treaty and updated APIs
+
+### Patch Changes
+
+- Updated dependencies [c76900c]
+  - @ap0nia/eden-react-query@1.4.0
+  - @ap0nia/eden@1.4.0
+
 ## 1.3.1
 
 ### Patch Changes
