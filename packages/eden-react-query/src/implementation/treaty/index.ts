@@ -33,7 +33,7 @@ import {
   getQueryKey as internalGetQueryKey,
 } from '../../integration/internal/query-key'
 import { getPathParam, mutateArgs } from '../../utils/path-param'
-import type { EdenTreatyQueryUtils } from './query-utils'
+import type { EdenTreatyReactQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 import type { EdenTreatyUseQueries } from './use-queries'
 import type { EdenTreatyUseSuspenseQueries } from './use-suspense-queries'
@@ -57,7 +57,7 @@ export interface EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext
    *
    * @see https://trpc.io/docs/v11/client/react/useUtils
    */
-  useUtils(): EdenTreatyQueryUtils<TElysia, TSSRContext>
+  useUtils(): EdenTreatyReactQueryUtils<TElysia, TSSRContext>
 
   /**
    * Returns everything that will be provided from context.
@@ -73,7 +73,7 @@ export interface EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext
    */
   createUtils(
     props: EdenContextProps<TElysia, TSSRContext>,
-  ): EdenTreatyQueryUtils<TElysia, TSSRContext>
+  ): EdenTreatyReactQueryUtils<TElysia, TSSRContext>
 
   /**
    * Get utilities provided via the context API.
@@ -82,7 +82,7 @@ export interface EdenTreatyReactQueryBase<TElysia extends AnyElysia, TSSRContext
    *
    * @link https://trpc.io/docs/v11/client/react/useUtils
    */
-  useContext(): EdenTreatyQueryUtils<TElysia, TSSRContext>
+  useContext(): EdenTreatyReactQueryUtils<TElysia, TSSRContext>
 
   /**
    * React.Provider to set the context.

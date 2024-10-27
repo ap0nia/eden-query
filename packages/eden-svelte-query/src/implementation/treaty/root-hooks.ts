@@ -48,7 +48,7 @@ import type { EdenCreateQueryOptionsForCreateQueries } from '../../integration/i
 import { getEdenQueryHookExtension } from '../../integration/internal/query-hook-extension'
 import { isStore } from '../../utils/is-store'
 import { createTreatyCreateQueriesProxy, type EdenTreatyCreateQueries } from './create-queries'
-import { createEdenTreatyQueryUtils, type EdenTreatyQueryUtils } from './query-utils'
+import { createEdenTreatyQueryUtils, type EdenTreatySvelteQueryUtils } from './query-utils'
 
 export function createEdenTreatyQueryRootHooks<
   TElysia extends AnyElysia,
@@ -99,7 +99,7 @@ export function createEdenTreatyQueryRootHooks<
   const createUtils = (
     props: EdenContextProps<TElysia, TSSRContext>,
     configOverride = config,
-  ): EdenTreatyQueryUtils<TElysia, TSSRContext> => {
+  ): EdenTreatySvelteQueryUtils<TElysia, TSSRContext> => {
     const context = createContext(props, configOverride)
     const utils = createEdenTreatyQueryUtils(context, configOverride)
     return utils

@@ -1,5 +1,6 @@
 import {
-  type EdenCreateClient,
+  EdenClient,
+  type EdenTreatyClient,
   type EmptyToVoid,
   type ExtractEdenTreatyRouteParams,
   type ExtractEdenTreatyRouteParamsInput,
@@ -53,33 +54,46 @@ import {
 } from '../../integration/internal/query-key'
 import type { DeepPartial, Override, ProtectedIntersection } from '../../utils/types'
 
-export type EdenTreatyQueryUtils<TElysia extends AnyElysia, TSSRContext> = ProtectedIntersection<
-  EdenTreatyQueryContextProps<TElysia, TSSRContext>,
-  EdenTreatyQueryUtilsProxy<TElysia['_routes']>
+export type EdenTreatyReactQueryUtils<
+  TElysia extends AnyElysia,
+  TSSRContext,
+> = ProtectedIntersection<
+  DecoratedEdenTreatyReactQueryContextProps<TElysia, TSSRContext>,
+  EdenTreatyReactQueryUtilsProxy<TElysia['_routes']>
 >
 
-export type EdenTreatyQueryContextProps<
+export type DecoratedEdenTreatyReactQueryContextProps<
+  TElysia extends AnyElysia,
+  TSSRContext,
+> = Omit<EdenContextPropsBase<TElysia, TSSRContext>, 'client'> & {
+  client: EdenTreatyClient<TElysia>
+}
+
+export type EdenTreatyReactQueryContextProps<
   TElysia extends AnyElysia,
   TSSRContext,
 > = EdenContextPropsBase<TElysia, TSSRContext> & {
-  client: EdenCreateClient<TElysia>
+  client: EdenClient<TElysia>
 }
 
-export type EdenTreatyQueryUtilsProxy<
+export type EdenTreatyReactQueryUtilsProxy<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
   TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
 > = EdenTreatyQueryUtilsUniversalUtils & {
   [K in keyof TSchema]: TSchema[K] extends RouteSchema
-    ? EdenTreatyQueryUtilsMapping<TSchema[K], TPath, K>
-    : EdenTreatyQueryUtilsProxy<TSchema[K], [...TPath, K]>
+    ? EdenTreatyReactQueryUtilsMapping<TSchema[K], TPath, K>
+    : EdenTreatyReactQueryUtilsProxy<TSchema[K], [...TPath, K]>
 } & ({} extends TRouteParams
     ? {}
     : (
         params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
-      ) => EdenTreatyQueryUtilsProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>)
+      ) => EdenTreatyReactQueryUtilsProxy<
+        TSchema[Extract<keyof TRouteParams, keyof TSchema>],
+        TPath
+      >)
 
-type EdenTreatyQueryUtilsMapping<
+type EdenTreatyReactQueryUtilsMapping<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
   TMethod = '',
@@ -240,7 +254,7 @@ export type EdenTreatyQueryUtilsUniversalUtils = {
 export function createEdenTreatyQueryUtils<TRouter extends AnyElysia, TSSRContext>(
   context: EdenContextState<TRouter, TSSRContext>,
   config?: EdenQueryConfig<TRouter>,
-): EdenTreatyQueryUtils<TRouter, TSSRContext> {
+): EdenTreatyReactQueryUtils<TRouter, TSSRContext> {
   // const clientProxy = createTRPCClientProxy(context.client)
 
   const proxy = createEdenTreatyQueryUtilsProxy(context, config)
@@ -272,7 +286,7 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
   config?: EdenQueryConfig<TRouter>,
   originalPaths: string[] = [],
   pathParams: Record<string, any>[] = [],
-): EdenTreatyQueryUtils<TRouter, TSSRContext> {
+): EdenTreatyReactQueryUtils<TRouter, TSSRContext> {
   const proxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver) => {
       const nextPaths = path === 'index' ? [...originalPaths] : [...originalPaths, path]

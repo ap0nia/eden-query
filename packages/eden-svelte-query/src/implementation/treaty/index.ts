@@ -33,7 +33,7 @@ import {
 } from '../../integration/internal/query-key'
 import { getPathParam, mutateArgs } from '../../utils/path-param'
 import type { EdenTreatyCreateQueries } from './create-queries'
-import type { EdenTreatyQueryUtils } from './query-utils'
+import type { EdenTreatySvelteQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 
 /**
@@ -54,7 +54,7 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
    *
    * @see https://trpc.io/docs/v11/client/react/useUtils
    */
-  getUtils(): EdenTreatyQueryUtils<TElysia, TSSRContext>
+  getUtils(): EdenTreatySvelteQueryUtils<TElysia, TSSRContext>
 
   /**
    * Get utilities provided via the context API.
@@ -63,7 +63,7 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
    *
    * @see https://trpc.io/docs/v11/client/react/useUtils
    */
-  getContext(): EdenTreatyQueryUtils<TElysia, TSSRContext>
+  getContext(): EdenTreatySvelteQueryUtils<TElysia, TSSRContext>
 
   /**
    * Returns everything that will be provided from context.
@@ -81,7 +81,7 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
   createUtils(
     props: EdenContextProps<TElysia, TSSRContext>,
     config?: EdenQueryConfig<TElysia>,
-  ): EdenTreatyQueryUtils<TElysia, TSSRContext>
+  ): EdenTreatySvelteQueryUtils<TElysia, TSSRContext>
 
   /**
    * Create utilities and provide them via context.
