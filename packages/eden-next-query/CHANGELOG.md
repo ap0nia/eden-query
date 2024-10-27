@@ -1,5 +1,15 @@
 # @ap0nia/eden-next-query
 
+## 1.4.1
+
+### Patch Changes
+
+- 17ddc6e: fix(eden): treaty types
+- Updated dependencies [8de6067]
+- Updated dependencies [17ddc6e]
+  - @ap0nia/eden-react-query@1.4.1
+  - @ap0nia/eden@1.4.1
+
 ## 1.4.0
 
 ### Minor Changes
