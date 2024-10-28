@@ -26,9 +26,6 @@ export type EdenCreateClient<T extends AnyElysia = AnyElysia> = (
   options: EdenClientOptions<T>,
 ) => EdenClient<T>
 
-/**
- * The request options that are passed
- */
 export type EdenClientInternalRequestOptions<T extends AnyElysia = any> = {
   type: OperationType
   context?: OperationContext

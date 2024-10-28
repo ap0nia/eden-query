@@ -175,7 +175,7 @@ function defaultLogger(options: LoggerOptions): LoggerLinkFn {
 }
 
 /**
- * @link https://trpc.io/docs/v11/client/links/loggerLink
+ * @see https://trpc.io/docs/v11/client/links/loggerLink
  */
 export function loggerLink<T extends AnyElysia>(options?: LoggerLinkOptions): EdenLink<T> {
   const enabled = options?.enabled ?? constNoop(true)

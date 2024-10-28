@@ -7,7 +7,7 @@ import type { BatchPluginOptions } from './plugins'
 export const EdenQueryStoreKey = Symbol('EdenQueryStoreKey')
 
 /**
- * Constraints that are stored on an elysia.js application that can be read by the client.
+ * Constraints that are stored on an Elysia.js application that can be read by the client.
  *
  * Plugins will mutate the store at the {@link EdenQueryStoreKey} key.
  *
@@ -23,7 +23,7 @@ export type EdenQueryConstraints = {
    * Whether the application has applied the batch plugin.
    *
    * @fixme
-   * constraints is a general file, but it's importing {@link BatchPluginOptions}
+   * This file, "constraints", is a general file, but it's importing {@link BatchPluginOptions}
    * from a specific implementation file...
    */
   batch?: boolean | BatchPluginOptions

@@ -67,6 +67,10 @@ export type InferRouteError<T extends Record<string, any> = any> =
       : Errors
     : EdenFetchError<number, string>
 
+/**
+ * Untyped eden-treaty response. Will either return nullish data and defined error, or vice versa.
+ * Look at concrete implementation of eden-treaty for strongly-typed variant.
+ */
 export type TreatyResponse<Res extends Record<number, unknown>> =
   | {
       data: Res[200]

@@ -21,12 +21,12 @@ import {
 
 /**
  * @remarks Do not derive this from HTTPLinkOptions, because it breaks the types for some reason...
+ *
+ * @template TTransformer
+ * @todo Maybe check if T['store'][EdenQueryStoreKey] matches a certain interface?
  */
 export type HttpBatchLinkOptions<
   T extends AnyElysia = AnyElysia,
-  /**
-   * @todo Maybe check if T['store'][EdenQueryStoreKey] matches a certain interface?
-   */
   TTransformer = T['store'][typeof EdenQueryStoreKey]['transformer'],
 > = Omit<EdenRequestOptions, 'headers' | 'method' | 'transformer'> & {
   /**
@@ -468,7 +468,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
 }
 
 /**
- * @link https://trpc.io/docs/v11/client/links/httpLink
+ * @see https://trpc.io/docs/v11/client/links/httpLink
  */
 export const safeHttpBatchLink = <T extends AnyElysia>(
   options?: HttpBatchLinkOptions<T>,
@@ -480,7 +480,7 @@ export const safeHttpBatchLink = <T extends AnyElysia>(
 }
 
 /**
- * @link https://trpc.io/docs/v11/client/links/httpLink
+ * @see https://trpc.io/docs/v11/client/links/httpLink
  */
 export function httpBatchLink<T extends AnyElysia>(
   options?: HttpBatchLinkOptions<T, false>,

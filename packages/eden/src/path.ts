@@ -38,13 +38,11 @@ export type ParsedPathAndMethod = {
  *
  * const method = 'get'
  */
-export function parsePathsAndMethod(
-  originalPaths: string[] | readonly string[],
-): ParsedPathAndMethod {
+export function parsePathsAndMethod(paths: string[] | readonly string[]): ParsedPathAndMethod {
   /**
    * Don't mutate the original array.
    */
-  const paths = [...originalPaths]
+  const pathsCopy = [...paths]
 
   /**
    * This may be the method, or part of a route.
@@ -62,7 +60,7 @@ export function parsePathsAndMethod(
    * In the GET request, the last item is the method and can be safely popped.
    * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
    */
-  const lastSegment = originalPaths[originalPaths.length - 1]
+  const lastSegment = paths[paths.length - 1]
 
   const lastSegmentIsHttpMethod = isHttpMethod(lastSegment)
 
@@ -71,12 +69,12 @@ export function parsePathsAndMethod(
    * and should be removed before determining the path.
    */
   if (lastSegmentIsHttpMethod) {
-    paths.pop()
+    pathsCopy.pop()
   }
 
-  const path = '/' + paths.join('/')
+  const path = '/' + pathsCopy.join('/')
 
-  const result: ParsedPathAndMethod = { paths, path }
+  const result: ParsedPathAndMethod = { paths: pathsCopy, path }
 
   if (lastSegmentIsHttpMethod && typeof lastSegment === 'string') {
     result.method = lastSegment
