@@ -33,7 +33,7 @@ import {
   getQueryKey as internalGetQueryKey,
 } from '../../integration/internal/query-key'
 import { getPathParam, mutateArgs } from '../../utils/path-param'
-import type { EdenTreatyCreateQueries } from './create-queries'
+import type { EdenTreatySvelteQueryCreateQueries } from './create-queries'
 import type { EdenTreatySvelteQueryUtils } from './query-utils'
 import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from './root-hooks'
 
@@ -44,7 +44,7 @@ import { createEdenTreatyQueryRootHooks, type EdenTreatyQueryRootHooks } from '.
 export type EdenTreatySvelteQuery<
   TElysia extends AnyElysia,
   TSSRContext,
-> = EdenTreatySvelteQueryBase<TElysia, TSSRContext> & EdenTreatyQueryHooks<TElysia>
+> = EdenTreatySvelteQueryBase<TElysia, TSSRContext> & EdenTreatySvelteQueryHooks<TElysia>
 
 /**
  * Utilities available at the eden-treaty + svelte-query root.
@@ -95,7 +95,7 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
   /**
    * Wraps the `create-queries` svelte-query hook in a type-safe proxy.
    */
-  createQueries: EdenTreatyCreateQueries<TElysia>
+  createQueries: EdenTreatySvelteQueryCreateQueries<TElysia>
 
   /**
    * Create a raw, untyped-client.
@@ -116,7 +116,7 @@ export interface EdenTreatySvelteQueryBase<TElysia extends AnyElysia, TSSRContex
 /**
  * RPC proxy derived from {@link AnyElysia._routes} that connects svelte-query with an Elysia.js API.
  */
-export type EdenTreatyQueryHooks<T extends AnyElysia> = T extends {
+export type EdenTreatySvelteQueryHooks<T extends AnyElysia> = T extends {
   _routes: infer TSchema extends Record<string, any>
 }
   ? EdenTreatySvelteQueryHooksProxy<TSchema>
@@ -144,8 +144,7 @@ export type EdenTreatySvelteQueryHooksProxy<
  * Recursively handle regular path segments (i.e. NOT path parameters).
  *
  * If the value is a {@link RouteSchema}, then it's a "leaf" that does not need to be
- * recursively processed. The result should be the key, an HTTP method, mapped to a
- * strongly-typed function.
+ * recursively processed. The result should be the key, an HTTP method, mapped to svelte-query hooks.
  *
  * @template TSchema The current level of {@link AnyElysia._routes} being processed.
  * @template TPath The current path segments up to this point (excluding dynamic path parameters).
@@ -162,8 +161,8 @@ export type EdenTreatySvelteQueryPathHooks<
 }
 
 /**
- * {@link EdenTreatyHooksProxy} intersects the object created by {@link EdenTreatyPathHooks}
- * for regular path parameters with anything created by this type for dynamic path parameters.
+ * This intersects the object created by {@link EdenTreatyPathHooks}
+ * (for regular path parameters) to handle dynamic path parameters.
  *
  * If there are no dynamic path parameters, then return an empty object.
  * Intersecting with empty object does nothing.
@@ -242,9 +241,10 @@ export type EdenTreatySvelteQueryMutationLeaf<
 }
 
 /**
- * @TODO: Available hooks assuming that the route supports `createSubscription`.
+ * @todo: svelte-query hooks for "subscriptions". e.g. Basically routes that support "CONNECT" or "SUBSCRIBE" requests.
  *
- * e.g. Routes that support "CONNECT" or "SUBSCRIBE" requests.
+ * @see https://github.com/trpc/trpc/blob/52a57eaa9c12394778abf5f0e6b52ec6f46288ed/packages/react-query/src/shared/hooks/createHooksInternal.tsx#L347
+ * @see https://tkdodo.eu/blog/using-web-sockets-with-react-query
  */
 export type EdenTreatySvelteQuerySubscriptionLeaf<
   TRoute extends RouteSchema,
@@ -256,11 +256,9 @@ export type EdenTreatySvelteQuerySubscriptionLeaf<
 }
 
 /**
- * svelte-query hooks for any unknown HTTP methods.
+ * svelte-query hooks for any unknown HTTP methods will just expose all known hooks for now.
  *
- * Will just expose all possible hooks for now.
- *
- * @todo What should it actually be...
+ * @todo Decide what hooks to expose...
  */
 export type EdenTreatySvelteQueryUnknownLeaf<
   TRoute extends RouteSchema,
@@ -280,6 +278,7 @@ export function createEdenTreatySvelteQuery<TElysia extends AnyElysia, TSSRConte
 ): EdenTreatySvelteQuery<TElysia, TSSRContext> {
   /**
    * Root hooks are invoked by leaf nodes in the proxy.
+   * Create the utility functions once at the beginning, and have all leaves use the same one.
    */
   const rootHooks = createEdenTreatyQueryRootHooks(config)
 
@@ -358,7 +357,7 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
        * @example { param: { id: '123' }, key: 'id' }
        *
        * The `param` property is the actual argument that was passed,
-       * while they key is the string representing the placeholder.
+       * while the key is the string representing the placeholder.
        */
       const pathParam = getPathParam(args)
 
@@ -385,15 +384,7 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
         return createEdenTreatySvelteQueryProxy(rootHooks, config, pathsWithParams, allPathParams)
       }
 
-      // There is no option to pass in input from the public exposed hook,
-      // but the internal root `useMutation` hook expects input as the first argument.
-      // Add an empty element at the front representing "input".
-      if (hook === 'createMutation') {
-        args.unshift(undefined)
-      }
-
-      // The order of arguments passed to "createMutation" differs from everything else for some reason.
-      // Directly mutate the arguments so they are always uniform before being passed to a root hook.
+      // Mutate the args to ensure that it is ordered correctly for its corresponding function call.
       mutateArgs(hook, args, pathParams)
 
       /**
@@ -403,12 +394,12 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
        *
        * // The array of path segments up to this point.
        * // Note how ":id" is included, this will be replaced by the `resolveRequest` function from eden.
-       * const pathsCopy = ["nendoroid", ":id", "name"]
+       * const pathsCopy = ["nendoroid", ":id", "createQuery"]
        *
        * // Accummulated path parameters up to this point.
-       * const pathParams = [ { id: 1895 } ]
+       * const pathParams = [ writable({ id: 1895 }) ]
        *
-       * // The user provided a search query and query options.
+       * // If the provided a search query and query options, args may look like this.
        * const args = [ { location: "jp" }, { refetchOnUnmount: true } ]
        *
        * // The accummulated path parameters and search query are merged into one "input" object.
@@ -419,9 +410,14 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
        *
        * // The full function call contains three arguments:
        * // array of path segments, input, and query options.
+       *
+       * @remarks
+       * // For this example, the input has been converted to a Readable because one of the path
+       * // parameters was a Readable Svelte store.
+       *
        * rootHooks.createQuery(
        *   ["nendoroid", ":id", "name"],
-       *   { query: { location: "jp" }, params: { id: 1895 } },
+       *   derived({ query: { location: "jp" }, params: { id: 1895 } }),
        *   { refetchOnMount: false }
        * )
        * ```
@@ -437,6 +433,9 @@ export function createEdenTreatySvelteQueryProxy<T extends AnyElysia = AnyElysia
 
 export const routeDefinitionSymbol = Symbol('eden-treaty-svelte-query-route-definition')
 
+/**
+ * Get a query key by providing the proxy at any level.
+ */
 export function getQueryKey<TSchema extends Record<string, any>>(
   route: EdenTreatySvelteQueryHooksProxy<TSchema>,
   input?: TSchema extends RouteSchema ? InferRouteOptions<TSchema> : any,
@@ -446,6 +445,9 @@ export function getQueryKey<TSchema extends Record<string, any>>(
   return internalGetQueryKey(paths, input, type ?? 'any')
 }
 
+/**
+ * Get a mutation key by providing the proxy at any level.
+ */
 export function getMutationKey<TSchema extends RouteSchema>(
   route: EdenTreatySvelteQueryHooksProxy<TSchema>,
   options?: EdenQueryKeyOptions,

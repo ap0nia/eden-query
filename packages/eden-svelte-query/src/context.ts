@@ -31,14 +31,16 @@ export const EDEN_CONTEXT_KEY = Symbol('EDEN_CONTEXT')
 
 export type EdenContextPropsBase<TElysia extends AnyElysia, _TSSRContext = unknown> = {
   /**
-   * The `TRPCClient`
+   * Untyped client for making requests.
    */
   client: EdenClient<TElysia>
 
   /**
-   * @deprecated pass abortOnUnmount to `createTRPCReact` instead
-   * Abort loading query calls when unmounting a component - usually when navigating to a new page
+   * Whether to forward the `signal` from svelte-query to fetch call.
+   *
    * @default false
+   *
+   * @deprecated pass abortOnUnmount to `createTRPCReact` instead
    */
   abortOnUnmount?: boolean
 }
