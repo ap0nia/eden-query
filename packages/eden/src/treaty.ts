@@ -19,7 +19,7 @@ import type { Optional } from './utils/optional'
 import type { EdenWS } from './ws'
 
 /**
- * An eden-treaty client maps {@link AnyElysia._routes} to an RPC proxy.
+ * RPC proxy derived from {@link AnyElysia._routes} for accessing an Elysia.js API.
  */
 export type EdenTreatyClient<T extends AnyElysia> = T extends {
   _routes: infer TSchema extends Record<string, any>
@@ -28,7 +28,7 @@ export type EdenTreatyClient<T extends AnyElysia> = T extends {
   : TypeError<'Please install Elysia before using Eden'>
 
 /**
- * Recursively iterate over all keys in the {@link RouteSchema}, processing path parameters
+ * Recursively iterate over all keys in {@link AnyElyisa._routes}, processing path parameters
  * and regular path segments separately.
  *
  * Regular path parameters will be mapped to a nested object, and then intersected
@@ -92,7 +92,7 @@ type EdenTreatyHooksPathParameterHook<
 
 /**
  * When a {@link RouteSchema} is found, map it to leaves and stop recursive processing.
- * For eden-treaty, leaves are function calls that abstract the native {@link fetch} API.
+ * Leaves are function calls that abstract the native {@link fetch} API.
  *
  * Based on the HTTP request "category", e.g. "query", "mutation", "subscription", or "unknown",
  * return the corresponding leaf.
