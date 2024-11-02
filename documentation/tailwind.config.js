@@ -6,10 +6,18 @@ import daisyui from 'daisyui'
  * @type {import('tailwindcss').Config}
  */
 const config = {
-  preflight: false,
-  content: ['src/**/*.vue', 'docs/**/*.md', 'docs/.vitepress/theme/*.vue'],
+  content: [
+    'src/**/*.vue',
+    'docs/**/*.md',
+    'src/**/*.svelte',
+    'src/**/*.ts',
+    'docs/.vitepress/theme/*.vue',
+  ],
+
   darkMode: 'class',
+
   plugins: [daisyui],
+
   /**
    * @type {import('daisyui').Config}
    */
