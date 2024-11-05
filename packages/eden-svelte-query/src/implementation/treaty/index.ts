@@ -174,7 +174,7 @@ export type EdenTreatySvelteQueryPathHooks<
  * @template TPath The current path segments up to this point (excluding dynamic path parameters).
  * @template TRouteParams Keys that are considered path parameters instead of regular path segments.
  */
-type EdenTreatySvelteQueryHooksPathParameterHook<
+export type EdenTreatySvelteQueryHooksPathParameterHook<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
   TRouteParams = {},
