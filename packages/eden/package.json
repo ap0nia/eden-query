@@ -9,24 +9,25 @@
     "directory": "packages/eden"
   },
   "scripts": {
+    "build": "tsup",
     "test": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./dist/index.js",
   "types": "./src/index.ts",
   "exports": {
     ".": {
       "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "node": "./src/index.ts",
-      "default": "./src/index.ts"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
     },
     "./*": {
       "types": "./src/*.ts",
-      "import": "./src/*.ts",
-      "node": "./src/*.ts",
-      "default": "./src/*.ts"
+      "import": "./dist/*.js",
+      "require": "./dist/*.cjs",
+      "default": "./dist/*.js"
     }
   },
   "typesVersions": {
@@ -35,7 +36,7 @@
         "./src/index.ts"
       ],
       "./*": [
-        "./src/*"
+        "./src/*.ts"
       ]
     }
   },
@@ -45,6 +46,7 @@
   "devDependencies": {
     "@types/bun": "^1.1.6",
     "msw": "^2.4.4",
+    "tsup": "^8.2.3",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {
