@@ -15,6 +15,8 @@ const description =
 
 const base = ci.GITHUB_ACTIONS ? `/${repositoryName.replace('.git', '')}/` : ''
 
+console.log({ ci, base }, process.env)
+
 const includes = new Map<string, string>()
 
 const config = defineConfig({
