@@ -8,20 +8,34 @@
     "url": "https://github.com/ap0nia/eden-query",
     "directory": "packages/eden-react-query"
   },
+  "scripts": {
+    "build": "tsup"
+  },
   "type": "module",
-  "main": "src/index.ts",
+  "main": "src/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "import": "./src/index.ts",
-      "node": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
     },
     "./*": {
-      "types": "./src/*.ts",
-      "import": "./src/*.ts",
-      "node": "./src/*.ts",
-      "default": "./src/*.ts"
+      "types": "./dist/*.d.ts",
+      "import": "./dist/*.js",
+      "require": "./dist/*.cjs",
+      "default": "./dist/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./src/index.ts"
+      ],
+      "./*": [
+        "./src/*.ts"
+      ]
     }
   },
   "dependencies": {
@@ -31,6 +45,7 @@
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
+    "tsup": "^8.2.3",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {
