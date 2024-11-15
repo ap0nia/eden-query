@@ -1,5 +1,18 @@
 # @ap0nia/eden-svelte-query
 
+## 1.5.0
+
+### Minor Changes
+
+- ef7456e: feat: use tsup to bundle packages before release
+
+### Patch Changes
+
+- c9dbba8: fix: package.json exports
+- Updated dependencies [ef7456e]
+- Updated dependencies [c9dbba8]
+  - @ap0nia/eden@1.5.0
+
 ## 1.4.1
 
 ### Patch Changes
