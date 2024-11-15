@@ -13,16 +13,16 @@
   },
   "type": "module",
   "main": "src/index.js",
-  "types": "dist/index.d.ts",
+  "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./src/index.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "default": "./dist/index.js"
     },
     "./*": {
-      "types": "./dist/*.d.ts",
+      "types": "./src/*.ts",
       "import": "./dist/*.js",
       "require": "./dist/*.cjs",
       "default": "./dist/*.js"
