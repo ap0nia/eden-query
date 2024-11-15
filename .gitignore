@@ -15,6 +15,9 @@ dist/
 ## Nx cache.
 .nx/
 
+## Turborepo cache.
+.turbo
+
 ## Vitest coverage output
 coverage/
 

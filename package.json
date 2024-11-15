@@ -31,7 +31,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "changeset init && husky install",
-    "build": "nx run-many -t build",
+    "build": "turbo build --filter !@elysiajs/documentation",
     "test:coverage": "nx run-many -t test:coverage"
   },
   "devDependencies": {
@@ -60,6 +60,7 @@
     "prettier": "^3.3.3",
     "svelte": "^4.2.18",
     "svelte-eslint-parser": "^0.41.0",
+    "turbo": "^2.3.0",
     "typescript": "^5.5.4",
     "typescript-eslint": "^7.18.0",
     "vitest": "^2.0.5"
