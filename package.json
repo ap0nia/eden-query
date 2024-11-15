@@ -31,7 +31,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "changeset init && husky install",
-    "build": "turbo build --filter !@elysiajs/documentation",
+    "build": "turbo build",
     "test:coverage": "nx run-many -t test:coverage"
   },
   "devDependencies": {

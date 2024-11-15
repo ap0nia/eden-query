@@ -27,8 +27,8 @@ jobs:
       - name: 📦 Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔨 Build documentation
-        run: pnpm --filter @elysiajs/documentation build
+      - name: 🔨 Build
+        run: pnpm build
 
       - name: ⏫ Upload documentation artifacts
         uses: actions/upload-pages-artifact@v2
