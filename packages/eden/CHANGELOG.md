@@ -1,5 +1,15 @@
 # @ap0nia/eden
 
+## 1.5.0
+
+### Minor Changes
+
+- ef7456e: feat: use tsup to bundle packages before release
+
+### Patch Changes
+
+- c9dbba8: fix: package.json exports
+
 ## 1.4.1
 
 ### Patch Changes
