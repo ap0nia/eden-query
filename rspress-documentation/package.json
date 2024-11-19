@@ -1,0 +1,15 @@
+{
+  "name": "rspress-documentation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "rspress dev",
+    "build": "rspress build",
+    "preview": "rspress preview"
+  },
+  "devDependencies": {
+    "@ap0nia/rspress-plugin-twoslash": "workspace:^",
+    "rspress": "^1.37.1",
+    "svelte2tsx": "^0.7.26"
+  }
+}
