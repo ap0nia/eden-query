@@ -87,7 +87,7 @@ export function Hero() {
           <a
             className="text-white font-semibold text-lg bg-pink-400 dark:bg-pink-500 px-6 py-2.5 rounded-full"
             id="hero-get-started"
-            href="/eden-query"
+            href="/eden-query/index"
           >
             Get Started
           </a>

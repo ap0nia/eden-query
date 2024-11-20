@@ -54,6 +54,7 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.0",
     "shiki": "^1.9.0",
+    "twoslash-vue": "^0.2.12",
     "unified": "^10.1.2"
   }
 }

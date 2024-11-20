@@ -1,3 +1,5 @@
+import '../../styles/twoslash.css'
+
 import { mergeIntoObservable } from '@legendapp/state'
 import { useEffect } from 'react'
 

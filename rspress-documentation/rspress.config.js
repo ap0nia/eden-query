@@ -19,7 +19,13 @@ const config = defineConfig({
   root: 'docs',
   outDir: 'build',
   globalStyles: path.join(__dirname, 'styles/index.css'),
-  plugins: [rspressPluginTwoslash()],
+  plugins: [
+    rspressPluginTwoslash({
+      twoslashOptions: {
+        customTags: ['annotate', 'log', 'warn', 'error'],
+      },
+    }),
+  ],
   themeConfig: {
     lastUpdated: true,
   },

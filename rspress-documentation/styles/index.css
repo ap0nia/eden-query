@@ -1,5 +1,3 @@
-@import '@ap0nia/rspress-plugin-twoslash/styles/twoslash.css';
-
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
