@@ -1,1 +1,28 @@
 @import '@ap0nia/rspress-plugin-twoslash/styles/twoslash.css';
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+.gradient {
+  width: 1100px;
+  height: 1100px;
+}
+
+.gradient {
+  background: radial-gradient(ellipse at center, #d7e0ff 0%, #eaecff 35%, transparent 70%);
+}
+
+.dark .gradient {
+  background: radial-gradient(ellipse at center, #797ee199 0%, transparent 70%);
+}
+
+#hero-get-started,
+#hero-copy {
+  @apply transform hover:scale-110 focus:scale-110;
+  transition: transform 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+
+.rspress-code-content > div {
+  overflow-x: auto;
+}
