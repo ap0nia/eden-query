@@ -14,11 +14,13 @@
     "@ap0nia/rspress-plugin-twoslash": "workspace:^",
     "@tanstack/react-query": "^5.51.16",
     "@tanstack/svelte-query": "^5.51.15",
+    "clsx": "^2.1.1",
     "devalue": "^5.0.0",
     "elysia": "^1.1.19",
     "react": "^18.3.1",
     "react-router-dom": "^6.26.0",
-    "superjson": "^2.2.1"
+    "superjson": "^2.2.1",
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@ap0nia/rspress-plugin-twoslash": "workspace:^",
@@ -33,7 +35,7 @@
     "postcss": "^8.4.49",
     "postcss-load-config": "^6.0.1",
     "postcss-nesting": "^12.1.5",
-    "rspress": "^1.37.1",
+    "rspress": "^1.37.2",
     "svelte2tsx": "^0.7.26",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.6.3"

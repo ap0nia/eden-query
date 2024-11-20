@@ -2,6 +2,7 @@
 
 import {
   arrow,
+  autoUpdate,
   FloatingPortal,
   offset,
   size,
@@ -11,7 +12,7 @@ import {
 } from '@floating-ui/react'
 import { useClick } from '@floating-ui/react'
 import { useTransitionStyles } from '@floating-ui/react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 
 import { getDefaultConfig, getThemeClasses, store$ } from './config'
@@ -39,6 +40,7 @@ export function Menu(props) {
   const triggers = getDefaultConfig(theme, 'triggers', config) ?? []
 
   const { refs, floatingStyles, context, middlewareData, placement } = useFloating({
+    whileElementsMounted: autoUpdate,
     open,
     onOpenChange,
     placement: 'bottom-start',
@@ -59,16 +61,6 @@ export function Menu(props) {
       }),
     ],
   })
-
-  // Hot fix...
-  useEffect(() => {
-    const nodes = refs.floating.current?.querySelectorAll('.v-popper__inner > ul')
-
-    nodes?.forEach((node) => {
-      node.classList.add('twoslash-completion-list')
-      node.classList.remove('my-4')
-    })
-  }, [refs.floating.current])
 
   const { isMounted, styles } = useTransitionStyles(context, {
     duration: 200,

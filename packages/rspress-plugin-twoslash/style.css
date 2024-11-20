@@ -1,0 +1,64 @@
+/*
+ * Main CSS entrypoint for rspress-plugin-twoslash.
+ *
+ * Combines floating-vue, @shikijs/twoslash, @shikijs/vitepress-twoslash, and vitepress styles.
+ */
+
+@import './styles/floating-vue.css';
+@import './styles/twoslash-style-rich.css';
+@import './styles/vitepress-twoslash-style.css';
+
+/*
+ * vitepress code styles.
+ *
+ * @see https://github.com/vuejs/vitepress/blob/564907152e7d2e72deabc3d3594930a4e38b5771/src/client/theme-default/styles/components/vp-code.css
+ */
+.dark .rspress-code-content span {
+  color: var(--shiki-dark, inherit);
+}
+
+html:not(.dark) .rspress-code-content span {
+  color: var(--shiki-light, inherit);
+}
+
+/*
+ * vitepress document styles.
+ *
+ * @see https://github.com/vuejs/vitepress/blob/564907152e7d2e72deabc3d3594930a4e38b5771/src/client/theme-default/styles/components/vp-doc.css#L334
+ */
+.rspress-doc [class*='language-'] code {
+  display: block;
+
+  /* This removes top/bottom padding and is unnecessary. */
+  /* padding: 0 24px; */
+
+  /* Just need to add horizontal padding. */
+  padding-inline: 24px !important;
+
+  width: fit-content;
+  min-width: 100%;
+  line-height: var(--rp-code-line-height);
+  font-size: var(--rp-code-font-size);
+  color: var(--rp-code-block-color);
+  transition: color 0.5s;
+}
+
+/*
+ * Entirely custom styles.
+ *
+ * Mostly intended to finetune the rspress + twoslash + floating-ui integration.
+ */
+
+/*
+ * Remove the min-height from .rspress-doc when it is within a popper.
+ */
+.v-popper__inner .rspress-doc {
+  min-height: 0;
+}
+
+/*
+ * Do not display the code-button-group for any code blocks within a popper.
+ */
+.v-popper__inner [class*='code-button-group'] {
+  display: none;
+}

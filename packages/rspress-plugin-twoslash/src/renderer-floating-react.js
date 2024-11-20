@@ -162,23 +162,6 @@ function renderMarkdown(md) {
           structure,
         })
 
-        // Rspress will add padding to "code" elements that are direct children of a "pre" element.
-        // Insert a div to prevent this padding.
-        const firstChild = root.children[0]
-
-        if (firstChild?.type === 'element' && firstChild.tagName === 'pre') {
-          const children = [...firstChild.children]
-
-          firstChild.children = [
-            {
-              type: 'element',
-              tagName: 'div',
-              properties: {},
-              children,
-            },
-          ]
-        }
-
         return /** @type any */ (root)
       },
     },

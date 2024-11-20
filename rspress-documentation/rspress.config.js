@@ -6,6 +6,7 @@ import ci from 'ci-info'
 import { defineConfig } from 'rspress/config'
 
 import { rspressPluginTwoslash } from '@ap0nia/rspress-plugin-twoslash'
+import { createFileSystemTypesCache } from '@ap0nia/rspress-plugin-twoslash/cache-fs'
 
 import { repository } from '../package.json'
 
@@ -21,6 +22,7 @@ const config = defineConfig({
   globalStyles: path.join(__dirname, 'styles/index.css'),
   plugins: [
     rspressPluginTwoslash({
+      typesCache: createFileSystemTypesCache(),
       twoslashOptions: {
         customTags: ['annotate', 'log', 'warn', 'error'],
       },
@@ -31,6 +33,7 @@ const config = defineConfig({
   },
   markdown: {
     checkDeadLinks: false,
+    showLineNumbers: true,
   },
 })
 

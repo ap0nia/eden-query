@@ -1,3 +1,6 @@
+@import '@ap0nia/rspress-plugin-twoslash/style.css';
+@import '@ap0nia/rspress-plugin-twoslash/styles/line-numbers.css';
+
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
@@ -19,8 +22,4 @@
 #hero-copy {
   @apply transform hover:scale-110 focus:scale-110;
   transition: transform 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6);
-}
-
-.rspress-code-content > div {
-  overflow-x: auto;
 }

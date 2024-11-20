@@ -69,21 +69,7 @@ export function rspressPluginTwoslash(options = {}) {
   /**
    * @type import('@shikijs/rehype').RehypeShikiOptions['transformers']
    */
-  const transformers = [
-    {
-      /**
-       * Temporary monkey patch while rspress completely overrides classNames.
-       */
-      pre(node) {
-        const codeElementChild = node.children[0]
-
-        if (codeElementChild?.type === 'element') {
-          this.addClassToHast(codeElementChild, 'twoslash lsp')
-        }
-      },
-    },
-    twoslash,
-  ]
+  const transformers = [twoslash]
 
   typesCache?.init?.()
 
