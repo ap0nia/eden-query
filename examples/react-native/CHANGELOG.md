@@ -1,5 +1,12 @@
 # @examples/react-native
 
+## 1.0.4
+
+### Patch Changes
+
+- Updated dependencies [37ee3c0]
+  - @ap0nia/eden-react-query@1.6.0
+
 ## 1.0.3
 
 ### Patch Changes

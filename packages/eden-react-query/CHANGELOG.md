@@ -1,5 +1,16 @@
 # @ap0nia/eden-react-query
 
+## 1.6.0
+
+### Minor Changes
+
+- 37ee3c0: feat: generalized input types
+
+### Patch Changes
+
+- Updated dependencies [37ee3c0]
+  - @ap0nia/eden@1.6.0
+
 ## 1.5.0
 
 ### Minor Changes
