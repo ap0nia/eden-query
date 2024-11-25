@@ -15,6 +15,8 @@ const config = defineConfig({
     treaty: './src/treaty.ts',
     ws: './src/ws.ts',
   },
+  clean: true,
+  dts: true,
   sourcemap: true,
   format: ['esm', 'cjs'],
 })

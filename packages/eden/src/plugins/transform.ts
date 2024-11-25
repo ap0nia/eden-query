@@ -3,6 +3,7 @@ import { ElysiaCustomStatusResponse } from 'elysia/error'
 
 import type { EdenQueryStoreKey } from '../constraints'
 import { type DataTransformerOptions, getDataTransformer } from '../links/internal/transformer'
+import type { GenericElysiaPlugin } from './types'
 
 function isError(response: unknown): boolean {
   if (response == null) {
@@ -102,6 +103,8 @@ export function safeTransformPlugin<T extends DataTransformerOptions>(transforme
   return plugin
 }
 
-export function transformPlugin(transformer: DataTransformerOptions) {
-  return safeTransformPlugin(transformer)
+export function transformPlugin<T extends Elysia = Elysia>(
+  transformer: DataTransformerOptions,
+): GenericElysiaPlugin<T> {
+  return safeTransformPlugin(transformer) as any
 }

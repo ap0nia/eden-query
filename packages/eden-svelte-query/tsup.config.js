@@ -5,6 +5,8 @@ const config = defineConfig({
     index: './src/index.ts',
     server: './src/server.ts',
   },
+  clean: true,
+  dts: true,
   sourcemap: true,
   format: ['esm', 'cjs'],
   noExternal: ['@ap0nia'],
