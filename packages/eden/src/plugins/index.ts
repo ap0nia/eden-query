@@ -84,8 +84,8 @@ export function safeEdenPlugin<T extends EdenQueryConstraints>(config: T) {
  *   this is at your own risk, since eden allows transformers to be specified for any request,
  *   but it's not guranteed to be parsed correctly by the server...
  */
-export function edenPlugin(config: EdenQueryConstraints) {
-  return safeEdenPlugin(config)
+export function edenPlugin(config: EdenQueryConstraints): Elysia {
+  return safeEdenPlugin(config) as any
 }
 
 export * from './batch'

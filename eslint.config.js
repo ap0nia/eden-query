@@ -27,6 +27,7 @@ const config = tsEslint.config(
     rules: {
       ...tsPlugin.configs['base']?.rules,
       ...tsPlugin.configs['recommended']?.rules,
+      '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/ban-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [

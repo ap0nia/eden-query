@@ -102,6 +102,6 @@ export function safeTransformPlugin<T extends DataTransformerOptions>(transforme
   return plugin
 }
 
-export function transformPlugin(transformer: DataTransformerOptions) {
-  return safeTransformPlugin(transformer)
+export function transformPlugin(transformer: DataTransformerOptions): Elysia {
+  return safeTransformPlugin(transformer) as any
 }

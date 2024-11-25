@@ -363,6 +363,6 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
   return plugin
 }
 
-export function batchPlugin(options?: BatchPluginOptions) {
-  return safeBatchPlugin(options)
+export function batchPlugin(options?: BatchPluginOptions): Elysia {
+  return safeBatchPlugin(options) as any
 }
