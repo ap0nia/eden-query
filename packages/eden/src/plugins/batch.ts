@@ -5,6 +5,7 @@ import type { EdenQueryStoreKey } from '../constraints'
 import { parseResponse } from '../resolve'
 import { createUrl } from '../utils/create-url'
 import { set } from '../utils/set'
+import type { GenericElysiaPlugin } from './types'
 
 /**
  * Individual request data that can be extracted from a {@link Request} that contains
@@ -363,6 +364,8 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
   return plugin
 }
 
-export function batchPlugin(options?: BatchPluginOptions): Elysia {
+export function batchPlugin<T extends Elysia = Elysia>(
+  options?: BatchPluginOptions,
+): GenericElysiaPlugin<T> {
   return safeBatchPlugin(options) as any
 }
