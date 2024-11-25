@@ -7,7 +7,7 @@ const config = defineConfig({
   },
   clean: true,
   dts: true,
-  sourcemap: true,
+  sourcemap: 'inline',
   format: ['esm', 'cjs'],
   noExternal: ['@ap0nia'],
 })

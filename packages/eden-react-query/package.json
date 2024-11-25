@@ -9,7 +9,7 @@
     "directory": "packages/eden-react-query"
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsup && tsc --emitDeclarationOnly --declaration"
   },
   "type": "module",
   "main": "./dist/index.js",
