@@ -22,7 +22,7 @@ export type OperatorFunction<
 
 export type Observer<TValue = any, TError = any> = {
   next: (value: TValue) => void
-  error: (err: TError) => void
+  error: (error: TError) => void
   complete: () => void
 }
 
@@ -89,7 +89,7 @@ export class Subscribable<TValue = any, TError = any> {
   constructor(public onSubscribe: (observer: Observer<TValue, TError>) => TeardownLogic) {}
 
   subscribe(observer?: Partial<Observer<TValue, TError>>): Unsubscribable {
-    let teardownRef: TeardownLogic | null = null
+    let teardownReference: TeardownLogic | null = null
     let isDone = false
     let unsubscribed = false
     let teardownImmediately = false
@@ -97,29 +97,29 @@ export class Subscribable<TValue = any, TError = any> {
     let unsubscribe = () => {
       if (unsubscribed) return
 
-      if (teardownRef === null) {
+      if (teardownReference === null) {
         teardownImmediately = true
         return
       }
 
       unsubscribed = true
 
-      if (typeof teardownRef === 'function') {
-        teardownRef()
-      } else if (teardownRef) {
-        teardownRef.unsubscribe()
+      if (typeof teardownReference === 'function') {
+        teardownReference()
+      } else if (teardownReference) {
+        teardownReference.unsubscribe()
       }
     }
 
-    teardownRef = this.onSubscribe({
+    teardownReference = this.onSubscribe({
       next: (value) => {
         if (isDone) return
         observer?.next?.(value)
       },
-      error: (err) => {
+      error: (error) => {
         if (isDone) return
         isDone = true
-        observer?.error?.(err)
+        observer?.error?.(error)
         unsubscribe()
       },
       complete: () => {
@@ -178,6 +178,7 @@ export class Observable<TValue = any, TError = any> extends Subscribable<TValue,
   ): Observable<TValue5, TError5>
 
   pipe(...operations: OperatorFunction[]): Observable {
-    return operations.reduce(pipeReducer, this)
+    // eslint-disable-next-line unicorn/no-array-reduce
+    return operations.reduce((accumulator, element) => pipeReducer(accumulator, element), this)
   }
 }

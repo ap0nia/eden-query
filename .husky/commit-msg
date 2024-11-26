@@ -1,2 +1,2 @@
-npx --no -- commitlint --edit
+npx --no -- commitlint --edit $1
 npx --no -- devmoji --edit --config devmoji.config.cjs

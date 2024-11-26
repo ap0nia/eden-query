@@ -74,7 +74,7 @@ const defaultDataTransformer: CombinedDataTransformer = {
 }
 
 export function getDataTransformer(transformer?: DataTransformerOptions): CombinedDataTransformer {
-  if (transformer == null) {
+  if (transformer == undefined) {
     return defaultDataTransformer
   }
 

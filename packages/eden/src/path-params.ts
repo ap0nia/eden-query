@@ -13,22 +13,22 @@
  *
  * Heuristic: A path parameter function call needs exactly one object with exactly one key passed as an argument.
  */
-export function getPathParam(args: unknown[]) {
-  if (args.length !== 1) {
+export function getPathParam(arguments_: unknown[]) {
+  if (arguments_.length !== 1) {
     return
   }
 
-  const argument = args[0]
+  const argument = arguments_[0]
 
-  if (argument == null || typeof argument !== 'object') {
+  if (argument == undefined || typeof argument !== 'object') {
     return
   }
 
   const argumentKeys = Object.keys(argument)
 
-  const pathParam = argumentKeys[0]
+  const pathParameter = argumentKeys[0]
 
-  if (argumentKeys.length !== 1 || pathParam == null) {
+  if (argumentKeys.length !== 1 || pathParameter == undefined) {
     return
   }
 
@@ -56,5 +56,5 @@ export type ExtractEdenTreatyRouteParams<T> = {
  * @see https://elysiajs.com/eden/treaty/overview.html#dynamic-path
  */
 export type ExtractEdenTreatyRouteParamsInput<T> = {
-  [K in keyof T as K extends `:${infer TParam}` ? TParam : never]: string | number
+  [K in keyof T as K extends `:${infer TParameter}` ? TParameter : never]: string | number
 }

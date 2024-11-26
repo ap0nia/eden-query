@@ -62,31 +62,31 @@ async function unBatchRequests(request: Request, body?: any): Promise<BatchedReq
   // Zip batched headers with batched requests.
   for (const index in batchedHeaders.requests) {
     const current = batchedRequests[index]
-    if (current != null) {
+    if (current != undefined) {
       current.headers ??= batchedHeaders.requests[index]
     }
   }
 
   // Set headers for all requests.
-  batchedHeaders.shared.forEach((value, key) => {
-    batchedRequests.forEach((batchedRequest) => {
+  for (const [key, value] of Object.entries(batchedHeaders.shared)) {
+    for (const batchedRequest of batchedRequests) {
       if (!batchedRequest.headers?.get(key)) {
         batchedRequest.headers ??= new Headers()
         batchedRequest.headers.set(key, value)
       }
-    })
-  })
+    }
+  }
 
   // Zip batched queries with batched requests.
   for (const index in batchedQueries) {
     const current = batchedRequests[index]
-    if (current != null) {
+    if (current != undefined) {
       current.query ??= batchedQueries[index]
     }
   }
 
   // Convert body if necessary.
-  batchedRequests.forEach((request) => {
+  for (const request of batchedRequests) {
     switch (request.body_type) {
       case 'formdata': {
         const body = new FormData()
@@ -106,7 +106,7 @@ async function unBatchRequests(request: Request, body?: any): Promise<BatchedReq
         break
       }
     }
-  })
+  }
 
   return batchedRequests
 }
@@ -116,15 +116,15 @@ async function unBatchRequestFormData(request: Request): Promise<BatchedRequestD
 
   const formData = await request.formData?.()
 
-  if (formData == null) {
+  if (formData == undefined) {
     return result
   }
 
   // Unbatch basic request information.
-  formData.forEach((value, key) => {
+  for (const [key, value] of Object.entries(formData)) {
     const [id, property] = key.split('.')
 
-    if (id == null || property == null) return
+    if (id == undefined || property == undefined) continue
 
     try {
       const index = Number(id)
@@ -135,17 +135,17 @@ async function unBatchRequestFormData(request: Request): Promise<BatchedRequestD
       if (property.startsWith('body')) {
         const [_prefix, bodyKey] = property.split('.')
 
-        if (bodyKey != null) {
+        if (bodyKey != undefined) {
           definedResult.rawBody ??= {}
           definedResult.rawBody[bodyKey] = value
         }
       }
 
       result[index] = definedResult
-    } catch (e) {
-      console.error(`Failed to add request with key: ${id} to batch: `, e)
+    } catch (error) {
+      console.error(`Failed to add request with key: ${id} to batch:`, error)
     }
-  })
+  }
 
   return result
 }
@@ -157,7 +157,7 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
   for (const [key, value] of Object.entries(body)) {
     const [id, property, maybeQueryKey] = key.split('.')
 
-    if (id == null || property == null) continue
+    if (id == undefined || property == undefined) continue
 
     try {
       const index = Number(id)
@@ -168,7 +168,7 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
         definedResult.query.append(maybeQueryKey, value)
       } else if (property.startsWith('body')) {
         const [_prefix, bodyKey] = property.split('.')
-        if (bodyKey != null) {
+        if (bodyKey != undefined) {
           definedResult.rawBody ??= {}
           definedResult.rawBody[bodyKey] = value
         }
@@ -177,8 +177,8 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
       }
 
       result[index] = definedResult
-    } catch (e) {
-      console.error(`Failed to add request with key: ${id} to batch: `, e)
+    } catch (error) {
+      console.error(`Failed to add request with key: ${id} to batch:`, error)
     }
   }
 
@@ -188,22 +188,22 @@ function unBatchRequestJsonData(body: Record<string, any>): BatchedRequestData[]
 /**
  * Temporary fix to ignore these headers from the batch request.
  */
-const ignoreHeaders = ['content-type', 'content-length']
+const ignoreHeaders = new Set(['content-type', 'content-length'])
 
 function unBatchHeaders(request: Request): { requests: Headers[]; shared: Headers } {
   const requests: Headers[] = []
   const shared = new Headers()
 
-  request.headers.forEach((value, key) => {
+  for (const [key, value] of Object.entries(request.headers)) {
     const [requestId, headerName] = key.split('.')
 
-    if (Number.isInteger(requestId) && headerName != null) {
+    if (Number.isInteger(requestId) && headerName != undefined) {
       requests[Number(requestId)] ??= new Headers()
       requests[Number(requestId)]?.set(headerName, value)
-    } else if (!ignoreHeaders.includes(key)) {
+    } else if (!ignoreHeaders.has(key)) {
       shared.set(key, value)
     }
-  })
+  }
 
   return { requests, shared }
 }
@@ -216,7 +216,7 @@ function unBatchQueries(request: Request): URLSearchParams[] {
   for (const [key, value] of requestUrl.searchParams.entries()) {
     const [requestId, queryName] = key.split('.')
 
-    if (Number.isNaN(requestId) || queryName == null) continue
+    if (Number.isNaN(requestId) || queryName == undefined) continue
     result[Number(requestId)] ??= new URLSearchParams()
     result[Number(requestId)]?.append(queryName, value)
   }
@@ -266,20 +266,20 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
 
             return { request, response }
           }),
-        ).catch((e) => {
-          console.error('Error occurred while handling batched requests: ', e)
+        ).catch((error) => {
+          console.error('Error occurred while handling batched requests:', error)
           return []
         })
 
         const parsedResponses = await Promise.all(
           responses.map(async (handledRequest) => {
             if (handledRequest.status === 'rejected') {
-              console.error('Failed to handle request: ', handledRequest.reason)
+              console.error('Failed to handle request:', handledRequest.reason)
               return
             }
 
-            const result = await parseResponse(handledRequest.value.response).catch((e) => {
-              console.error('Failed to parse response: ', e)
+            const result = await parseResponse(handledRequest.value.response).catch((error) => {
+              console.error('Failed to parse response:', error)
             })
 
             return result
@@ -301,7 +301,7 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
 
           const numericRequestIndex = Number(requestIndex)
 
-          if (Number.isNaN(numericRequestIndex) || methodOrQuery == null) continue
+          if (Number.isNaN(numericRequestIndex) || methodOrQuery == undefined) continue
 
           const current: BatchedRequestData = requests[numericRequestIndex] ?? ({} as any)
 
@@ -311,7 +311,7 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
               break
             }
             case 'query': {
-              if (queryKey != null) {
+              if (queryKey != undefined) {
                 current.query ??= new URLSearchParams()
                 current.query.append(queryKey, value)
               }
@@ -335,20 +335,20 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
 
             return { request, response }
           }),
-        ).catch((e) => {
-          console.error('Error occurred while handling batched requests: ', e)
+        ).catch((error) => {
+          console.error('Error occurred while handling batched requests:', error)
           return []
         })
 
         const parsedResponses = await Promise.all(
           responses.map(async (handledRequest) => {
             if (handledRequest.status === 'rejected') {
-              console.error('Failed to handle request: ', handledRequest.reason)
+              console.error('Failed to handle request:', handledRequest.reason)
               return
             }
 
-            const result = await parseResponse(handledRequest.value.response).catch((e) => {
-              console.error('Failed to parse response: ', e)
+            const result = await parseResponse(handledRequest.value.response).catch((error) => {
+              console.error('Failed to parse response:', error)
             })
 
             return result

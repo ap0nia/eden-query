@@ -1,4 +1,4 @@
-import type Elysia from 'elysia'
+import type ElysiaCore from 'elysia'
 import type { AnyElysia } from 'elysia'
 
 import type { EdenQueryConstraints, EdenQueryStoreKey } from '../constraints'
@@ -29,8 +29,8 @@ export type EdenPluginOptions = EdenQueryConstraints
  */
 export function safeEdenPlugin<T extends EdenQueryConstraints>(config: T) {
   const plugin = <BasePath extends string>(
-    elysia: Elysia<BasePath>,
-  ): Elysia<
+    elysia: ElysiaCore<BasePath>,
+  ): ElysiaCore<
     BasePath,
     false,
     {
@@ -85,7 +85,7 @@ export function safeEdenPlugin<T extends EdenQueryConstraints>(config: T) {
  *   this is at your own risk, since eden allows transformers to be specified for any request,
  *   but it's not guranteed to be parsed correctly by the server...
  */
-export function edenPlugin<T extends Elysia = Elysia>(
+export function edenPlugin<T extends ElysiaCore = ElysiaCore>(
   config: EdenQueryConstraints,
 ): GenericElysiaPlugin<T> {
   return safeEdenPlugin(config) as any

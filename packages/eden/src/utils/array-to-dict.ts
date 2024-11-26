@@ -4,8 +4,7 @@
 export function arrayToDict(array: unknown[]) {
   const dict: Record<number, unknown> = {}
 
-  for (let index = 0; index < array.length; index++) {
-    const element = array[index]
+  for (const [index, element] of array.entries()) {
     dict[index] = element
   }
 

@@ -8,7 +8,7 @@ import {
 
 describe('getDataTransformer', () => {
   test('returns default transformer for nullish input', () => {
-    const dataTransformer = getDataTransformer(undefined)
+    const dataTransformer = getDataTransformer()
 
     expect(dataTransformer).toBeDefined()
 

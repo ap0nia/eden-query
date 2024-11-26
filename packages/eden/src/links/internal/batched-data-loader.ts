@@ -62,11 +62,15 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
   const groupItems = (items: BatchItem<TKey, TValue>[]) => {
     const groupedItems: BatchItem<TKey, TValue>[][] = [[]]
 
-    let i = 0
+    let index = 0
     let item: BatchItem<TKey, TValue> | undefined
     let lastGroup: BatchItem<TKey, TValue>[] | undefined
 
-    for (; i < items.length && (lastGroup = groupedItems.at(-1)) && (item = items[i]); ++i) {
+    for (
+      ;
+      index < items.length && (lastGroup = groupedItems.at(-1)) && (item = items[index]);
+      ++index
+    ) {
       // Item was aborted before it was dispatched.
       if (item.aborted) {
         item.reject?.(new BatchError('Aborted'))
@@ -109,6 +113,16 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
     return groupedItems
   }
 
+  const createUnitResolver =
+    (batch: Batch<TKey, TValue>) => (index: number, value: NonNullable<TValue>) => {
+      const item = batch.items[index]
+      if (item == undefined) return
+      item.resolve?.(value)
+      item.batch = null
+      item.reject = null
+      item.resolve = null
+    }
+
   const dispatch = () => {
     const groupedItems = groupItems(pendingItems)
 
@@ -124,16 +138,7 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
         item.batch = batch
       }
 
-      const unitResolver = (index: number, value: NonNullable<TValue>) => {
-        const item = batch.items[index]
-
-        if (item == null) return
-
-        item.resolve?.(value)
-        item.batch = null
-        item.reject = null
-        item.resolve = null
-      }
+      const unitResolver = createUnitResolver(batch)
 
       const { promise, cancel } = loader.fetch(
         batch.items.map((item) => item.key),
@@ -144,10 +149,9 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
 
       promise
         .then((result) => {
-          for (let i = 0; i < result.length; i++) {
-            const value = result[i]
-            if (value != null) {
-              unitResolver(i, value)
+          for (const [index, value] of result.entries()) {
+            if (value != undefined) {
+              unitResolver(index, value)
             }
           }
 
@@ -156,9 +160,9 @@ export function batchedDataLoader<TKey, TValue>(loader: BatchLoader<TKey, TValue
             item.batch = null
           }
         })
-        .catch((cause) => {
+        .catch((error) => {
           for (const item of batch.items) {
-            item.reject?.(cause)
+            item.reject?.(error)
             item.batch = null
           }
         })

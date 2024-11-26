@@ -36,30 +36,30 @@ export function share<TValue, TError>(
   _options?: ShareOptions,
 ): MonoTypeOperatorFunction<TValue, TError> {
   return (source) => {
-    let refCount = 0
+    let referenceCount = 0
 
     let subscription: Unsubscribable | null = null
 
     const observers: Partial<Observer<TValue, TError>>[] = []
 
     const startIfNeeded = () => {
-      if (subscription != null) return
+      if (subscription != undefined) return
 
       // Make shallow copy of observers in case they unsubscribe during the loop.
 
       subscription = source.subscribe({
         next: (value) => {
-          for (const observer of [...observers]) {
+          for (const observer of observers) {
             observer.next?.(value)
           }
         },
         error: (error) => {
-          for (const observer of [...observers]) {
+          for (const observer of observers) {
             observer.error?.(error)
           }
         },
         complete: () => {
-          for (const observer of [...observers]) {
+          for (const observer of observers) {
             observer.complete?.()
           }
         },
@@ -67,7 +67,7 @@ export function share<TValue, TError>(
     }
 
     const resetIfNeeded = () => {
-      if (refCount === 0 && subscription != null) {
+      if (referenceCount === 0 && subscription != undefined) {
         const _sub = subscription
         subscription = null
         _sub.unsubscribe()
@@ -75,7 +75,7 @@ export function share<TValue, TError>(
     }
 
     return new Observable((observer) => {
-      refCount++
+      referenceCount++
 
       observers.push(observer)
 
@@ -83,13 +83,13 @@ export function share<TValue, TError>(
 
       return {
         unsubscribe: () => {
-          refCount--
+          referenceCount--
 
           resetIfNeeded()
 
           const index = observers.findIndex((observer) => observer === observer)
 
-          if (index >= 0) {
+          if (index !== -1) {
             observers.splice(index, 1)
           }
         },

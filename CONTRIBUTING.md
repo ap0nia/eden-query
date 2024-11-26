@@ -18,16 +18,13 @@ In order to develop this project, a JavaScript runtime such as Node.js, Deno, or
 
 - [nvm](https://github.com/nvm-sh/nvm) allows you to manage multiple Node.js versions.
 - [fnm](https://github.com/Schniz/fnm) allows you to manage multiple Node.js versions.
-- [deno](https://deno.com/) is a simple and secure runtime.
-- [bun](https://bun.sh) is a blazingly fast runtime.
 
 #### Package Manager
 
 This project primarily uses [`pnpm-workspaces`](https://pnpm.io/workspaces) to manage packages
-in this monorepository. Alternatively, [`bun`](https://bun.sh) can also be used.
+in this monorepository.
 
 - [pnpm](https://pnpm.io)
-- [bun](https://bun.sh)
 
 1. Clone this repository and start working in the project's root directory.
 
@@ -41,9 +38,6 @@ cd eden-query
 ```sh
 # pnpm
 pnpm install
-
-# bun
-bun install
 ```
 
 3. Try building the packages.

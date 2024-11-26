@@ -12,12 +12,12 @@ import type {
 } from './links/internal/operation'
 import { share } from './links/internal/operators'
 import type { EdenResponse } from './request'
-import type { EdenRequestParams } from './resolve'
+import type { EdenRequestParams as EdenRequestParameters } from './resolve'
 
 export type EdenSubscriptionObserver<TValue, TError> = {
   onStarted: () => void
   onData: (value: TValue) => void
-  onError: (err: TError) => void
+  onError: (error: TError) => void
   onStopped: () => void
   onComplete: () => void
 }
@@ -29,7 +29,7 @@ export type EdenCreateClient<T extends AnyElysia = AnyElysia> = (
 export type EdenClientInternalRequestOptions<T extends AnyElysia = any> = {
   type: OperationType
   context?: OperationContext
-  params: EdenRequestParams<T>
+  params: EdenRequestParameters<T>
 }
 
 export type EdenClientPromisifyRequestOptions = EdenClientInternalRequestOptions & {
@@ -74,16 +74,16 @@ export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
     options: EdenClientPromisifyRequestOptions,
   ): Promise<TOutput> {
     // Forward the signal
-    if (options.signal != null) {
+    if (options.signal != undefined) {
       options.params.fetch ??= {}
       options.params.fetch.signal = options.signal
     }
 
     const signal = options.params.fetch?.signal
 
-    const req$ = this.$request<TInput, TOutput>(options)
+    const request$ = this.$request<TInput, TOutput>(options)
 
-    const { promise, abort } = promisifyObservable<TOutput>(req$ as any)
+    const { promise, abort } = promisifyObservable<TOutput>(request$ as any)
 
     const abortablePromise = new Promise<TOutput>((resolve, reject) => {
       signal?.addEventListener('abort', abort)
@@ -93,32 +93,32 @@ export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
     return abortablePromise
   }
 
-  public query(params: EdenRequestParams, options?: EdenClientRequestOptions) {
+  public query(parameters: EdenRequestParameters, options?: EdenClientRequestOptions) {
     return this.promisifyRequest<any, EdenResponse>({
       type: 'query',
-      params,
+      params: parameters,
       context: options?.context,
       signal: options?.signal,
     })
   }
 
-  public mutation(params: EdenRequestParams, options?: EdenClientRequestOptions) {
+  public mutation(parameters: EdenRequestParameters, options?: EdenClientRequestOptions) {
     return this.promisifyRequest({
       type: 'mutation',
-      params,
+      params: parameters,
       context: options?.context,
       signal: options?.signal,
     })
   }
 
   public subscription(
-    params: EdenRequestParams<TElysia>,
+    parameters: EdenRequestParameters<TElysia>,
     options?: Partial<EdenSubscriptionObserver<unknown, EdenClientError<TElysia>>> &
       EdenClientRequestOptions,
   ): Unsubscribable {
     const observable = this.$request({
       type: 'subscription',
-      params,
+      params: parameters,
       context: options?.context,
     })
 
@@ -132,8 +132,8 @@ export class EdenClient<TElysia extends AnyElysia = AnyElysia> {
           options?.onData?.(envelope.data)
         }
       },
-      error: (err) => {
-        options?.onError?.(err)
+      error: (error) => {
+        options?.onError?.(error)
       },
       complete: () => {
         options?.onComplete?.()

@@ -5,6 +5,7 @@ import { OperationError, type OperationLink } from '../../../src/links/internal/
 
 describe('createChain', () => {
   test('throws error if the last link calls next', () => {
+    // eslint-disable-next-line unicorn/consistent-function-scoping
     const link: OperationLink = ({ operation, next }) => {
       return next(operation)
     }

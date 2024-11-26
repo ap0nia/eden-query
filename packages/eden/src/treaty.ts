@@ -7,12 +7,12 @@ import type { InferRouteBody, InferRouteOptions, InferRouteResponse } from './in
 import { httpLink, type HTTPLinkOptions } from './links'
 import { parsePathsAndMethod } from './path'
 import {
-  type ExtractEdenTreatyRouteParams,
-  type ExtractEdenTreatyRouteParamsInput,
-  getPathParam,
+  type ExtractEdenTreatyRouteParams as ExtractEdenTreatyRouteParameters,
+  type ExtractEdenTreatyRouteParamsInput as ExtractEdenTreatyRouteParametersInput,
+  getPathParam as getPathParameter,
 } from './path-params'
 import type { EdenRequestOptions } from './request'
-import type { EdenRequestParams } from './resolve'
+import type { EdenRequestParams as EdenRequestParameters } from './resolve'
 import type { EmptyToVoid } from './utils/empty-to-void'
 import { isGetOrHeadMethod, isHttpMethod } from './utils/http'
 import type { Optional } from './utils/optional'
@@ -41,9 +41,9 @@ export type EdenTreatyClient<T extends AnyElysia> = T extends {
 export type EdenTreatyHooksProxy<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
-  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
-> = EdenTreatyPathHooks<TSchema, TPath, TRouteParams> &
-  EdenTreatyHooksPathParameterHook<TSchema, TPath, TRouteParams>
+  TRouteParameters = ExtractEdenTreatyRouteParameters<TSchema>,
+> = EdenTreatyPathHooks<TSchema, TPath, TRouteParameters> &
+  EdenTreatyHooksPathParameterHook<TSchema, TPath, TRouteParameters>
 
 /**
  * Recursively handle regular path segments (i.e. NOT path parameters).
@@ -59,9 +59,9 @@ export type EdenTreatyHooksProxy<
 type EdenTreatyPathHooks<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
-  TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
+  TRouteParameters = ExtractEdenTreatyRouteParameters<TSchema>,
 > = {
-  [K in Exclude<keyof TSchema, keyof TRouteParams>]: TSchema[K] extends RouteSchema
+  [K in Exclude<keyof TSchema, keyof TRouteParameters>]: TSchema[K] extends RouteSchema
     ? EdenTreatyQueryRouteLeaf<TSchema[K], K>
     : EdenTreatyHooksProxy<TSchema[K], [...TPath, K]>
 }
@@ -83,12 +83,12 @@ type EdenTreatyPathHooks<
 type EdenTreatyHooksPathParameterHook<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
-  TRouteParams = {},
-> = {} extends TRouteParams
+  TRouteParameters = {},
+> = {} extends TRouteParameters
   ? {}
   : (
-      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
-    ) => EdenTreatyHooksProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>
+      parameters: ExtractEdenTreatyRouteParametersInput<TRouteParameters>,
+    ) => EdenTreatyHooksProxy<TSchema[Extract<keyof TRouteParameters, keyof TSchema>], TPath>
 
 /**
  * When a {@link RouteSchema} is found, map it to leaves and stop recursive processing.
@@ -160,7 +160,7 @@ export function createEdenTreatyProxy<T extends AnyElysia>(
   client: EdenClient<T>,
   config?: EdenRequestOptions<T>,
   paths: string[] = [],
-  pathParams: Record<string, any>[] = [],
+  pathParameters: Record<string, any>[] = [],
 ) {
   const edenTreatyProxy = new Proxy(() => {}, {
     get: (_target, path: string, _receiver): any => {
@@ -169,36 +169,36 @@ export function createEdenTreatyProxy<T extends AnyElysia>(
       const nextPaths = path === 'index' ? [...paths] : [...paths, path]
 
       //  Return a nested proxy that has the new paths.
-      return createEdenTreatyProxy(client, config, nextPaths, pathParams)
+      return createEdenTreatyProxy(client, config, nextPaths, pathParameters)
     },
-    apply: (_target, _thisArg, args) => {
+    apply: (_target, _thisArgument, arguments_) => {
       // Parse the information from the paths array up to this point.
       const { path, method } = parsePathsAndMethod(paths)
 
       // Determine if the current args could be specifying dynamic path parameters.
-      const pathParam = getPathParam(args)
+      const pathParameter = getPathParameter(arguments_)
 
       // If it is a valid path parameter argument and the HTTP method is not recognized,
       // then return a nested proxy that includes the path parameter replacement.
-      if (pathParam?.key != null && !isHttpMethod(method)) {
-        const allPathParams = [...pathParams, pathParam.param]
-        const pathsWithParams = [...paths, `:${pathParam.key}`]
-        return createEdenTreatyProxy(client, config, pathsWithParams, allPathParams)
+      if (pathParameter?.key != undefined && !isHttpMethod(method)) {
+        const allPathParameters = [...pathParameters, pathParameter.param]
+        const pathsWithParameters = [...paths, `:${pathParameter.key}`]
+        return createEdenTreatyProxy(client, config, pathsWithParameters, allPathParameters)
       }
 
       // Otherwise, assume that this is intended to be a request and handle it.
 
-      let options: any = undefined
-      let body: any = undefined
+      let options: any
+      let body: any
 
       if (isGetOrHeadMethod(method)) {
-        options = args[0]
+        options = arguments_[0]
       } else {
-        body = args[0]
-        options = args[1]
+        body = arguments_[0]
+        options = arguments_[1]
       }
 
-      const params: EdenRequestParams = {
+      const parameters: EdenRequestParameters = {
         body,
         options,
         path,
@@ -206,7 +206,7 @@ export function createEdenTreatyProxy<T extends AnyElysia>(
         ...config,
       }
 
-      return client.query(params)
+      return client.query(parameters)
     },
   })
 

@@ -49,5 +49,6 @@
 
     "noErrorTruncation": false
   },
+  "typeRoots": ["./node_modules/@types", "./src/types"],
   "exclude": ["**/coverage"]
 }

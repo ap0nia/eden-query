@@ -1,7 +1,7 @@
 import type { EdenConfig as EdenRequestOptions } from '../../config'
 import type { HTTPLinkBaseOptions } from '../../http'
 import type { EdenResponse } from '../../request'
-import { type EdenRequestParams, resolveEdenRequest } from '../../resolve'
+import { type EdenRequestParams as EdenRequestParameters, resolveEdenRequest } from '../../resolve'
 import type { Noop } from '../../utils/noop'
 import type { Operation } from './operation'
 
@@ -24,7 +24,7 @@ export const universalRequester: Requester = (options) => {
     AbortController,
     methodOverride,
     params,
-    ...defaultParams
+    ...defaultParameters
   } = options
 
   const abortController = AbortController ? new AbortController() : null
@@ -42,26 +42,26 @@ export const universalRequester: Requester = (options) => {
    *
    * Deep merge fetch, headers, onRequest, onResponse ?
    */
-  const resolvedParams: EdenRequestParams = { ...defaultParams, ...params }
+  const resolvedParameters: EdenRequestParameters = { ...defaultParameters, ...params }
 
   if (options.params.fetch?.signal) {
     options.params.fetch.signal.addEventListener('abort', cancel)
-    resolvedParams.fetch = { ...resolvedParams.fetch, signal: abortController?.signal }
+    resolvedParameters.fetch = { ...resolvedParameters.fetch, signal: abortController?.signal }
   }
 
-  if (methodOverride != null) {
-    resolvedParams.method = methodOverride
+  if (methodOverride != undefined) {
+    resolvedParameters.method = methodOverride
   }
 
   const promise = new Promise<EdenResponse>((resolve, reject) => {
-    resolveEdenRequest(resolvedParams)
+    resolveEdenRequest(resolvedParameters)
       .then((response) => {
         done = true
         resolve(response as EdenResponse)
       })
-      .catch((err) => {
+      .catch((error) => {
         done = true
-        reject(err)
+        reject(error)
       })
   })
 

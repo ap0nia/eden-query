@@ -49,7 +49,7 @@ export function createEdenQueryKey(paths: string[], args: any, type: EdenQueryTy
    * Only sometimes method, i.e. since invalidations can be partial and not include it.
    * @example 'get'
    */
-  const method = pathsCopy[pathsCopy.length - 1]
+  const method = pathsCopy.at(-1)
 
   if (isHttpMethod(method)) {
     pathsCopy.pop()

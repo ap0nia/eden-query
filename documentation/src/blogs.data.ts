@@ -39,7 +39,7 @@ const loader = defineLoader({
 
       const relativePath = slash(path.relative(resolvedBlogsDirectory, file))
 
-      let src = fs.readFileSync(realPath, 'utf-8')
+      let src = fs.readFileSync(realPath, 'utf8')
 
       src = processIncludes(resolvedSrcDirectory, src, file, includes)
 

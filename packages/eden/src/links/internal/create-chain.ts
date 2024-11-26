@@ -20,7 +20,7 @@ export function createChain<TElysia extends AnyElysia, TInput = unknown, TOutput
     const execute = (index = 0, operation = options.operation) => {
       const next = options.links[index]
 
-      if (next == null) {
+      if (next == undefined) {
         throw new OperationError('No more links to execute - did you forget to add an ending link?')
       }
 

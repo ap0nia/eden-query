@@ -80,11 +80,7 @@ export class EdenWS<T extends InputSchema<any> = {}> {
    * Send (strongly-typed) message(s) over the websocket connection.
    */
   send = async (data: MaybeArray<T['body']>) => {
-    if (Array.isArray(data)) {
-      await this.sendMany(data)
-    } else {
-      await this.sendSingle(data)
-    }
+    await (Array.isArray(data) ? this.sendMany(data) : this.sendSingle(data))
     return this
   }
 
@@ -92,7 +88,7 @@ export class EdenWS<T extends InputSchema<any> = {}> {
    * Send a single (strongly-typed) message.
    */
   sendMany = async (data: T['body'][]) => {
-    await Promise.allSettled(data.map(this.sendSingle))
+    await Promise.allSettled(data.map((element) => this.sendSingle(element)))
     return this
   }
 
@@ -135,7 +131,7 @@ export class EdenWS<T extends InputSchema<any> = {}> {
    */
   off<K extends keyof WebSocketEventMap>(
     type: K,
-    listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
+    listener: (this: WebSocket, event_: WebSocketEventMap[K]) => any,
     options?: boolean | EventListenerOptions,
   ) {
     this.removeEventListener(type, listener, options)
@@ -170,7 +166,7 @@ export class EdenWS<T extends InputSchema<any> = {}> {
    */
   removeEventListener<K extends keyof WebSocketEventMap>(
     type: K,
-    listener: (this: WebSocket, ev: WebSocketEventMap[K]) => any,
+    listener: (this: WebSocket, event_: WebSocketEventMap[K]) => any,
     options?: boolean | EventListenerOptions,
   ) {
     this.ws.removeEventListener(type, listener, options)
@@ -189,11 +185,11 @@ export class EdenWS<T extends InputSchema<any> = {}> {
 
     try {
       transformed = await serialize?.(data)
-    } catch (_err) {
+    } catch {
       // noop
     }
 
-    if (transformed == null) {
+    if (transformed == undefined) {
       transformed ??= typeof data === 'object' ? JSON.stringify(data) : data.toString()
     }
 
@@ -208,7 +204,7 @@ export class EdenWS<T extends InputSchema<any> = {}> {
   transformReceived = async (event: MessageEvent) => {
     const deserialize = this.transformer?.output.deserialize
 
-    if (deserialize == null) return
+    if (deserialize == undefined) return
 
     try {
       let messageString = event.data
@@ -219,7 +215,7 @@ export class EdenWS<T extends InputSchema<any> = {}> {
 
       const transformed = await deserialize(messageString)
       return transformed
-    } catch (_err) {
+    } catch {
       return
     }
   }

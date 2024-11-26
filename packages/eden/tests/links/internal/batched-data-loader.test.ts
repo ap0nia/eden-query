@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-array-callback-reference */
 import { describe, expect, test, vi } from 'vitest'
 
 import { batchedDataLoader, BatchError } from '../../../src/links/internal/batched-data-loader'
@@ -21,8 +22,8 @@ describe('batchedDataLoader', () => {
 
     const results = values.map(dataloader.load)
 
-    for (let i = 0; i < values.length; ++i) {
-      await expect(results[i]?.promise).resolves.toBe(values[i])
+    for (const [i, value] of values.entries()) {
+      await expect(results[i]?.promise).resolves.toBe(value)
     }
 
     // Each load request needs to be validated.
@@ -92,7 +93,7 @@ describe('batchedDataLoader', () => {
     vi.advanceTimersByTime(50)
 
     // Cancel the items before they resolve.
-    results.forEach((result) => result.cancel())
+    for (const result of results) result.cancel()
 
     // At this point, the items would have resolved normally, but they were rejected.
     vi.advanceTimersByTime(50)
@@ -282,7 +283,7 @@ describe('batchedDataLoader', () => {
     const settled = Promise.allSettled(results.map((result) => result.promise))
 
     // Cancel the items before they resolve.
-    results.forEach((result) => result.cancel())
+    for (const result of results) result.cancel()
 
     // During this time, all the items will be grouped, but not resolved.
     vi.advanceTimersByTime(100)

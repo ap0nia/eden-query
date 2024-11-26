@@ -1,18 +1,18 @@
 /**
  * Given a dot-concatenated string path, deeply set a property, filling in any missing objects along the way.
  */
-export function set<T>(obj: unknown, key: PropertyKey, value: unknown): T {
-  if (obj == null) {
+export function set<T>(object: unknown, key: PropertyKey, value: unknown): T {
+  if (object == undefined) {
     return value as any
   }
 
   if (typeof key === 'number' || typeof key === 'symbol') {
-    obj[key as keyof typeof obj] = value as never
-    return obj[key as keyof typeof obj] as T
+    object[key as keyof typeof object] = value as never
+    return object[key as keyof typeof object] as T
   }
 
   const keyArray = key
-    .replace(/["|']|\]/g, '')
+    .replaceAll(/["|']|\]/g, '')
     .split(/\.|\[/)
     .filter(Boolean)
 
@@ -20,6 +20,7 @@ export function set<T>(obj: unknown, key: PropertyKey, value: unknown): T {
 
   const lastKey = keyArray[lastIndex]
 
+  // eslint-disable-next-line unicorn/no-array-reduce
   const result = keyArray.reduce((currentResult, currentKey, index) => {
     if (index === lastIndex) {
       currentResult[currentKey as keyof typeof currentResult] = value as never
@@ -27,11 +28,11 @@ export function set<T>(obj: unknown, key: PropertyKey, value: unknown): T {
     }
 
     currentResult[currentKey as keyof typeof currentResult] ??= (
-      isNaN(keyArray[index + 1] as any) ? {} : []
+      Number.isNaN(keyArray[index + 1] as any) ? {} : []
     ) as never
 
     return currentResult[currentKey as keyof typeof currentResult]
-  }, obj)
+  }, object)
 
   return result[lastKey as keyof typeof result] as T
 }
