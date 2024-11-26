@@ -23,5 +23,5 @@ export const load: PageServerLoad = async (event) => {
 
   const result = await utils.api.index.get.fetch({})
 
-  console.log('SSR result: ', result)
+  console.log('SSR result:', result)
 }

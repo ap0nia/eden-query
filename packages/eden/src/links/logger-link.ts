@@ -6,11 +6,11 @@ import type { EdenLink, Operation, OperationResultEnvelope } from './internal/op
 import { tap } from './internal/operators'
 
 type ConsoleEsque = {
-  log: (...args: any[]) => void
-  error: (...args: any[]) => void
+  log: (...arguments_: any[]) => void
+  error: (...arguments_: any[]) => void
 }
 
-type EnableFnOptions =
+type EnableFunctionOptions =
   | {
       direction: 'down'
       result: OperationResultEnvelope<unknown>
@@ -19,9 +19,9 @@ type EnableFnOptions =
       direction: 'up'
     })
 
-type EnabledFn = (opts: EnableFnOptions) => boolean
+type EnabledFunction = (options: EnableFunctionOptions) => boolean
 
-type LoggerLinkFnOptions = Operation &
+type LoggerLinkFunctionOptions = Operation &
   (
     | {
         /**
@@ -39,14 +39,14 @@ type LoggerLinkFnOptions = Operation &
       }
   )
 
-type LoggerLinkFn = (opts: LoggerLinkFnOptions) => void
+type LoggerLinkFunction = (options: LoggerLinkFunctionOptions) => void
 
 type ColorMode = 'ansi' | 'css' | 'none'
 
 export interface LoggerLinkOptions {
-  logger?: LoggerLinkFn
+  logger?: LoggerLinkFunction
 
-  enabled?: EnabledFn
+  enabled?: EnabledFunction
 
   /**
    * Used in the built-in defaultLogger
@@ -74,41 +74,41 @@ const palettes = {
   ansi: {
     regular: {
       // Cyan background, black and white text respectively
-      query: ['\x1b[30;46m', '\x1b[97;46m'],
+      query: ['\u001B[30;46m', '\u001B[97;46m'],
 
       // Magenta background, black and white text respectively
-      mutation: ['\x1b[30;45m', '\x1b[97;45m'],
+      mutation: ['\u001B[30;45m', '\u001B[97;45m'],
 
       // Green background, black and white text respectively
-      subscription: ['\x1b[30;42m', '\x1b[97;42m'],
+      subscription: ['\u001B[30;42m', '\u001B[97;42m'],
     },
     bold: {
-      query: ['\x1b[1;30;46m', '\x1b[1;97;46m'],
-      mutation: ['\x1b[1;30;45m', '\x1b[1;97;45m'],
-      subscription: ['\x1b[1;30;42m', '\x1b[1;97;42m'],
+      query: ['\u001B[1;30;46m', '\u001B[1;97;46m'],
+      mutation: ['\u001B[1;30;45m', '\u001B[1;97;45m'],
+      subscription: ['\u001B[1;30;42m', '\u001B[1;97;42m'],
     },
   },
 } as const
 
-export type ExtendedLoggerFnOptions = LoggerLinkFnOptions & {
+export type ExtendedLoggerFnOptions = LoggerLinkFunctionOptions & {
   colorMode: ColorMode
   withContext?: boolean
 }
 
-function constructPartsAndArgs(opts: ExtendedLoggerFnOptions) {
-  const { direction, type, withContext, id, params } = opts
+function constructPartsAndArguments(options: ExtendedLoggerFnOptions) {
+  const { direction, type, withContext, id, params } = options
 
   const parts: string[] = []
-  const args: any[] = []
+  const arguments_: any[] = []
 
   const path = params.path ?? ''
 
-  if (opts.colorMode === 'none') {
+  if (options.colorMode === 'none') {
     parts.push(direction === 'up' ? '>>' : '<<', type, `#${id}`, path)
-  } else if (opts.colorMode === 'ansi') {
+  } else if (options.colorMode === 'ansi') {
     const [lightRegular, darkRegular] = palettes.ansi.regular[type]
     const [lightBold, darkBold] = palettes.ansi.bold[type]
-    const reset = '\x1b[0m'
+    const reset = '\u001B[0m'
 
     parts.push(
       direction === 'up' ? lightRegular : darkRegular,
@@ -129,21 +129,21 @@ function constructPartsAndArgs(opts: ExtendedLoggerFnOptions) {
   `
 
     parts.push('%c', direction === 'up' ? '>>' : '<<', type, `#${id}`, `%c${path}%c`, '%O')
-    args.push(css, `${css}; font-weight: bold;`, `${css}; font-weight: normal;`)
+    arguments_.push(css, `${css}; font-weight: bold;`, `${css}; font-weight: normal;`)
   }
 
   if (direction === 'up') {
-    args.push(withContext ? { params, context: opts.context } : { params })
+    arguments_.push(withContext ? { params, context: options.context } : { params })
   } else {
-    args.push({
+    arguments_.push({
       params,
-      result: opts.result,
-      elapsedMs: opts.elapsedMs,
-      ...(withContext && { context: opts.context }),
+      result: options.result,
+      elapsedMs: options.elapsedMs,
+      ...(withContext && { context: options.context }),
     })
   }
 
-  return { parts, args }
+  return { parts, args: arguments_ }
 }
 
 export type LoggerOptions = {
@@ -155,22 +155,28 @@ export type LoggerOptions = {
 /**
  * Maybe this should be moved to it's own package?
  */
-function defaultLogger(options: LoggerOptions): LoggerLinkFn {
+function defaultLogger(options: LoggerOptions): LoggerLinkFunction {
   const { c = console, colorMode = 'css', withContext } = options
 
-  return (props) => {
-    const params = props.params
+  return (properties) => {
+    const parameters = properties.params
 
-    const { parts, args } = constructPartsAndArgs({ ...props, colorMode, params, withContext })
+    const { parts, args } = constructPartsAndArguments({
+      ...properties,
+      colorMode,
+      params: parameters,
+      withContext,
+    })
 
-    const fn: 'error' | 'log' =
-      props.direction === 'down' &&
-      props.result &&
-      (props.result instanceof Error || 'error' in props.result)
+    const function_: 'error' | 'log' =
+      properties.direction === 'down' &&
+      properties.result &&
+      (properties.result instanceof Error || 'error' in properties.result)
         ? 'error'
         : 'log'
 
-    c[fn].apply(null, [parts.join(' ')].concat(args))
+    // eslint-disable-next-line unicorn/prefer-reflect-apply
+    c[function_].apply(null, [parts.join(' '), ...args])
   }
 }
 
@@ -180,7 +186,7 @@ function defaultLogger(options: LoggerOptions): LoggerLinkFn {
 export function loggerLink<T extends AnyElysia>(options?: LoggerLinkOptions): EdenLink<T> {
   const enabled = options?.enabled ?? constNoop(true)
 
-  const colorMode = options?.colorMode ?? (typeof window === 'undefined' ? 'ansi' : 'css')
+  const colorMode = options?.colorMode ?? (typeof globalThis === 'undefined' ? 'ansi' : 'css')
 
   const withContext = options?.withContext ?? colorMode === 'css'
 

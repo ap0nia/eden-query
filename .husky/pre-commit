@@ -1,1 +1,2 @@
 npx --no -- lint-staged
+npx ts:check

@@ -1,6 +1,6 @@
 import type { AnyElysia } from 'elysia'
 
-import type { EdenRequestParams } from '../../resolve'
+import type { EdenRequestParams as EdenRequestParameters } from '../../resolve'
 import type { Observable, Observer } from './observable'
 
 export type OperationType = 'query' | 'mutation' | 'subscription'
@@ -10,7 +10,7 @@ export interface OperationContext extends Record<string, unknown> {}
 export type Operation<T extends AnyElysia = any> = {
   id: number
   type: OperationType
-  params: EdenRequestParams<T>
+  params: EdenRequestParameters<T>
   context: OperationContext
 }
 
@@ -53,7 +53,7 @@ export type EdenResultMessage<T> =
 export type EdenSuccessResponse<T> = { data: T; type?: 'data' }
 
 export type EdenLink<T extends AnyElysia = any, TMeta = {}> = ((
-  opts: EdenClientRuntime,
+  options: EdenClientRuntime,
 ) => OperationLink<T>) &
   TMeta
 

@@ -72,7 +72,7 @@ export function mutateArgs(
 
   const isInputStore = isStore(input)
 
-  if (!isInputStore && !params.length) {
+  if (!isInputStore && params.length === 0) {
     return args
   }
 

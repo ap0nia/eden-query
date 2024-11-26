@@ -5,5 +5,5 @@ export const load: PageLoad = async (event) => {
 
   const result = await eden.api.index.get.fetch({})
 
-  console.log('load result: ', result)
+  console.log('load result:', result)
 }

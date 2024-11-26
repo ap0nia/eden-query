@@ -110,8 +110,8 @@ describe('generateGetBatchParams', () => {
 
     const urlSearchParams = new URLSearchParams(information.query)
 
-    for (let i = 0; i < queries.length; ++i) {
-      const pair = [`${i}.query.hello`, queries[i]?.hello]
+    for (const [i, query] of queries.entries()) {
+      const pair = [`${i}.query.hello`, query?.hello]
 
       expect(urlSearchParams).toContainEqual(pair)
     }
@@ -158,9 +158,7 @@ describe('generateGetBatchParams', () => {
 
     const urlSearchParams = new URLSearchParams(information.query)
 
-    for (let i = 0; i < params.length; ++i) {
-      const current = params[i]
-
+    for (const [i, current] of params.entries()) {
       if (current == null) continue
 
       let finalPath = current.path ?? ''
@@ -286,8 +284,8 @@ describe('generatePostBatchParams', () => {
 
     const information = generatePostBatchRequestInformation(operations)
 
-    for (let i = 0; i < queries.length; ++i) {
-      const pair = [`${i}.query.hello`, queries[i]?.hello]
+    for (const [i, query] of queries.entries()) {
+      const pair = [`${i}.query.hello`, query?.hello]
 
       expect(information.body).toContainEqual(pair)
     }
@@ -332,9 +330,7 @@ describe('generatePostBatchParams', () => {
 
     const information = generatePostBatchRequestInformation(operations)
 
-    for (let i = 0; i < params.length; ++i) {
-      const current = params[i]
-
+    for (const [i, current] of params.entries()) {
       if (current == null) continue
 
       let finalPath = current.path ?? ''

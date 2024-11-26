@@ -19,8 +19,8 @@ function createNewFile(v: File) {
   return new Promise<File>((resolve) => {
     const reader = new FileReader()
 
-    reader.onload = () => {
-      const filebits = reader.result != null ? [reader.result] : []
+    reader.addEventListener('load', () => {
+      const filebits = reader.result == undefined ? [] : [reader.result]
       const name = v.name
       const lastModified = v.lastModified
       const type = v.type
@@ -28,8 +28,9 @@ function createNewFile(v: File) {
       const file = new File(filebits, name, { lastModified, type })
 
       resolve(file)
-    }
+    })
 
+    // eslint-disable-next-line unicorn/prefer-blob-reading-methods
     reader.readAsArrayBuffer(v)
   })
 }
@@ -42,9 +43,7 @@ async function processHeaders(
 ): Promise<Record<string, string>> {
   if (Array.isArray(configHeaders)) {
     for (const value of configHeaders)
-      if (!Array.isArray(value)) {
-        headers = await processHeaders(value, path, options, headers)
-      } else {
+      if (Array.isArray(value)) {
         const key = value[0]
         if (typeof key === 'string') {
           headers[key.toLowerCase()] = value[1] as string
@@ -55,6 +54,8 @@ async function processHeaders(
             }
           }
         }
+      } else {
+        headers = await processHeaders(value, path, options, headers)
       }
 
     return headers
@@ -81,9 +82,9 @@ async function processHeaders(
 
     case 'object': {
       if (configHeaders instanceof Headers) {
-        configHeaders.forEach((value, key) => {
+        for (const [key, value] of Object.entries(configHeaders)) {
           headers[key.toLowerCase()] = value
-        })
+        }
 
         return headers
       }
@@ -139,7 +140,7 @@ function buildQueryString(query?: any) {
     } else if (typeof value === 'object') {
       const stringifiedValue = JSON.stringify(value)
       q += (q ? '&' : '?') + `${encodeURIComponent(key)}=${encodeURIComponent(stringifiedValue)}`
-    } else if (value != null) {
+    } else if (value != undefined) {
       q += (q ? '&' : '?') + `${encodeURIComponent(key)}=${encodeURIComponent(`${value}`)}`
     }
   }
@@ -149,19 +150,21 @@ function buildQueryString(query?: any) {
 
 export async function parseResponse<T extends AnyElysia = AnyElysia, TRaw extends boolean = false>(
   response: Response,
-  params?: EdenRequestParams<T, TRaw>,
+  parameters?: EdenRequestParams<T, TRaw>,
 ) {
-  if (params?.onResponse != null) {
-    const onResponse = Array.isArray(params.onResponse) ? params.onResponse : [params.onResponse]
+  if (parameters?.onResponse != undefined) {
+    const onResponse = Array.isArray(parameters.onResponse)
+      ? parameters.onResponse
+      : [parameters.onResponse]
 
     for (const value of onResponse) {
       try {
         const data = await value(response.clone())
-        if (data != null) {
+        if (data != undefined) {
           return { data, error: null, status: response.status }
         }
-      } catch (err) {
-        const error = err instanceof EdenFetchError ? err : new EdenFetchError(422, err)
+      } catch (error_) {
+        const error = error_ instanceof EdenFetchError ? error_ : new EdenFetchError(422, error_)
         return { data: null, error, status: response.status }
       }
     }
@@ -178,11 +181,11 @@ export async function parseResponse<T extends AnyElysia = AnyElysia, TRaw extend
     case 'application/json': {
       data = await response.json()
 
-      const transformer = getDataTransformer(params?.transformer)
+      const transformer = getDataTransformer(parameters?.transformer)
 
       const deserialize = transformer?.output.deserialize
 
-      if (deserialize != null) {
+      if (deserialize != undefined) {
         data = deserialize(data)
       }
 
@@ -195,13 +198,13 @@ export async function parseResponse<T extends AnyElysia = AnyElysia, TRaw extend
     }
 
     case 'multipart/form-data': {
-      const temp = await response.formData()
+      const temporary = await response.formData()
 
       data = {}
 
-      temp.forEach((value, key) => {
+      for (const [key, value] of Object.entries(temporary)) {
         data[key] = value
-      })
+      }
 
       break
     }
@@ -262,25 +265,25 @@ export type EdenRequestParams<
 export async function resolveEdenRequest<
   T extends AnyElysia = AnyElysia,
   TRaw extends boolean = false,
->(params: EdenRequestParams<T, TRaw>): Promise<EdenResponse<TRaw> | EdenWS> {
-  let path = params.path ?? ''
+>(parameters: EdenRequestParams<T, TRaw>): Promise<EdenResponse<TRaw> | EdenWS> {
+  let path = parameters.path ?? ''
 
-  if (params.options?.params != null) {
-    Object.entries(params.options.params).forEach(([key, value]) => {
-      if (value != null) {
+  if (parameters.options?.params != undefined) {
+    for (const [key, value] of Object.entries(parameters.options.params)) {
+      if (value != undefined) {
         path = path.replace(`:${key}`, String(value))
       }
-    })
+    }
   }
 
-  const isGetOrHead = isGetOrHeadMethod(params.method)
+  const isGetOrHead = isGetOrHeadMethod(parameters.method)
 
-  const headers = await processHeaders(params.headers, path, params.options?.headers)
+  const headers = await processHeaders(parameters.headers, path, parameters.options?.headers)
 
-  let q = buildQueryString(params.options?.query)
+  let q = buildQueryString(parameters.options?.query)
 
-  if (params.method === 'subscribe') {
-    const domain = typeof params.domain === 'string' ? params.domain : DEMO_DOMAIN
+  if (parameters.method === 'subscribe') {
+    const domain = typeof parameters.domain === 'string' ? parameters.domain : DEMO_DOMAIN
 
     const protocol = domain.startsWith('https://')
       ? 'wss://'
@@ -298,34 +301,36 @@ export async function resolveEdenRequest<
   }
 
   let fetchInit = {
-    method: params.method?.toUpperCase(),
-    body: params.body as any,
-    ...params.fetch,
+    method: parameters.method?.toUpperCase(),
+    body: parameters.body as any,
+    ...parameters.fetch,
     headers,
   } satisfies FetchRequestInit
 
   fetchInit.headers = {
     ...headers,
-    ...(await processHeaders(params.options?.headers, path, fetchInit)),
+    ...(await processHeaders(parameters.options?.headers, path, fetchInit)),
   }
 
   if (isGetOrHead) {
     delete fetchInit.body
   }
 
-  if (params.onRequest) {
-    const onRequest = Array.isArray(params.onRequest) ? params.onRequest : [params.onRequest]
+  if (parameters.onRequest) {
+    const onRequest = Array.isArray(parameters.onRequest)
+      ? parameters.onRequest
+      : [parameters.onRequest]
 
     for (const value of onRequest) {
-      const temp = await value(path, fetchInit)
+      const temporary = await value(path, fetchInit)
 
-      if (typeof temp === 'object')
+      if (typeof temporary === 'object')
         fetchInit = {
           ...fetchInit,
-          ...temp,
+          ...temporary,
           headers: {
             ...fetchInit.headers,
-            ...(await processHeaders(temp?.headers, path, fetchInit)),
+            ...(await processHeaders(temporary?.headers, path, fetchInit)),
           },
         }
     }
@@ -337,9 +342,9 @@ export async function resolveEdenRequest<
   }
 
   // Don't handle raw FormData if given.
-  if (FormData != null && params.body instanceof FormData) {
+  if (FormData != undefined && parameters.body instanceof FormData) {
     // noop
-  } else if (hasFile(params.body as any)) {
+  } else if (hasFile(parameters.body as any)) {
     const formData = new FormData()
 
     // FormData is 1 level deep
@@ -357,15 +362,15 @@ export async function resolveEdenRequest<
       }
 
       if (field instanceof FileList) {
-        for (let i = 0; i < field.length; i++)
-          formData.append(key as any, await createNewFile((field as any)[i]))
+        for (let index = 0; index < field.length; index++)
+          formData.append(key as any, await createNewFile((field as any)[index]))
 
         continue
       }
 
       if (Array.isArray(field)) {
-        for (let i = 0; i < field.length; i++) {
-          const value = (field as any)[i]
+        for (let index = 0; index < field.length; index++) {
+          const value = (field as any)[index]
 
           formData.append(key as any, value instanceof File ? await createNewFile(value) : value)
         }
@@ -379,15 +384,15 @@ export async function resolveEdenRequest<
     // We don't do this because we need to let the browser set the content type with the correct boundary
     // fetchInit.headers['content-type'] = 'multipart/form-data'
     fetchInit.body = formData
-  } else if (typeof params.body === 'object') {
+  } else if (typeof parameters.body === 'object') {
     fetchInit.headers['content-type'] = 'application/json'
 
-    const transformer = getDataTransformer(params.transformer)
+    const transformer = getDataTransformer(parameters.transformer)
 
-    const body = transformer ? transformer.input.serialize(params.body) : params.body
+    const body = transformer ? transformer.input.serialize(parameters.body) : parameters.body
 
     fetchInit.body = JSON.stringify(body)
-  } else if (params.body !== null) {
+  } else if (parameters.body !== null) {
     fetchInit.headers['content-type'] = 'text/plain'
   }
 
@@ -395,40 +400,46 @@ export async function resolveEdenRequest<
     delete fetchInit.body
   }
 
-  if (params.onRequest) {
-    const onRequest = Array.isArray(params.onRequest) ? params.onRequest : [params.onRequest]
+  if (parameters.onRequest) {
+    const onRequest = Array.isArray(parameters.onRequest)
+      ? parameters.onRequest
+      : [parameters.onRequest]
 
     for (const value of onRequest) {
-      const temp = await value(path, fetchInit)
+      const temporary = await value(path, fetchInit)
 
-      if (typeof temp === 'object')
+      if (typeof temporary === 'object')
         fetchInit = {
           ...fetchInit,
-          ...temp,
+          ...temporary,
           headers: {
             ...fetchInit.headers,
-            ...(await processHeaders(temp?.headers, path, fetchInit)),
+            ...(await processHeaders(temporary?.headers, path, fetchInit)),
           } as Record<string, string>,
         }
     }
   }
 
-  const domain = typeof params.domain === 'string' ? params.domain : ''
+  const domain = typeof parameters.domain === 'string' ? parameters.domain : ''
 
   const url = domain + path + q
 
-  const elysia = typeof params.domain === 'string' ? undefined : params.domain
+  const elysia = typeof parameters.domain === 'string' ? undefined : parameters.domain
 
-  const fetcher = params.fetcher ?? globalThis.fetch
+  const fetcher = parameters.fetcher ?? globalThis.fetch
 
   const response = await (elysia?.handle(new Request(url, fetchInit)) ?? fetcher(url, fetchInit))
 
-  const edenResponse = await parseResponse(response, params)
+  const edenResponse = await parseResponse(response, parameters)
 
   if (edenResponse.data !== null) {
     return {
       ...edenResponse,
-      ...(params.raw && { response, headers: response.headers, statusText: response.statusText }),
+      ...(parameters.raw && {
+        response,
+        headers: response.headers,
+        statusText: response.statusText,
+      }),
     } as EdenResponse
   }
 
@@ -439,6 +450,6 @@ export async function resolveEdenRequest<
 
   return {
     ...edenResponse,
-    ...(params.raw && { response, headers: response.headers, statusText: response.statusText }),
+    ...(parameters.raw && { response, headers: response.headers, statusText: response.statusText }),
   } as EdenResponse
 }

@@ -9,7 +9,9 @@
     "directory": "packages/eden-svelte-query"
   },
   "scripts": {
-    "build": "tsup && tsc --emitDeclarationOnly --declaration"
+    "build": "tsup && tsc --emitDeclarationOnly --declaration",
+    "lint:ts": "tsc --noEmit",
+    "lint:eslint": "eslint --quiet --fix ."
   },
   "type": "module",
   "main": "./dist/index.js",
@@ -40,16 +42,16 @@
   },
   "dependencies": {
     "@ap0nia/eden": "workspace:^",
-    "@tanstack/svelte-query": "^5.51.15",
-    "elysia": "1.1.19"
+    "@tanstack/svelte-query": "^5.61.4",
+    "elysia": "1.1.25"
   },
   "devDependencies": {
-    "tsup": "^8.2.4",
-    "typescript": "^5.5.4"
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "@tanstack/svelte-query": "^5.51.15",
-    "elysia": "1.1.19"
+    "@tanstack/svelte-query": "^5.61.4",
+    "elysia": "1.1.25"
   },
   "publishConfig": {
     "access": "public"

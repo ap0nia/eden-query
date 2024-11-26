@@ -30,7 +30,7 @@ export function hasWorkspacePackageJSON(root: string): boolean {
     return false
   }
 
-  const content = JSON.parse(fs.readFileSync(currentDirectoryPackageJson, 'utf-8')) || {}
+  const content = JSON.parse(fs.readFileSync(currentDirectoryPackageJson, 'utf8')) || {}
   return !!content.workspaces
 }
 

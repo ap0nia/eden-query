@@ -1,21 +1,20 @@
-import { Elysia } from 'elysia'
-import { ElysiaCustomStatusResponse } from 'elysia/error'
+import { Elysia, error as ElysiaError } from 'elysia'
 
 import type { EdenQueryStoreKey } from '../constraints'
 import { type DataTransformerOptions, getDataTransformer } from '../links/internal/transformer'
 import type { GenericElysiaPlugin } from './types'
 
 function isError(response: unknown): boolean {
-  if (response == null) {
+  if (response == undefined) {
     return false
   }
 
-  if (response instanceof ElysiaCustomStatusResponse) {
+  if (response instanceof ElysiaError) {
     return true
   }
 
   // For some reason, instanceof does not reliably detect if it is the right instance...
-  if (response.constructor.name === ElysiaCustomStatusResponse.name) {
+  if (response.constructor.name === ElysiaError.name) {
     return true
   }
 
@@ -51,7 +50,7 @@ export function safeTransformPlugin<T extends DataTransformerOptions>(transforme
     /**
      * No transformer provided or found...
      */
-    if (resolvedTransformer == null) {
+    if (resolvedTransformer == undefined) {
       return elysia as any
     }
 

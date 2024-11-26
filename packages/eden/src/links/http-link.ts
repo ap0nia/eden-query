@@ -35,40 +35,50 @@ export type HTTPLinkOptions<
 
 export type HTTPLinkFactory = <T extends AnyElysia>(options?: HTTPLinkOptions<T>) => EdenLink<T>
 
+function resolveOperationFn(linkOptions: any) {
+  return (
+    factoryOptions: HTTPLinkFactoryOptions,
+    operation: Operation,
+    observer: Observer<any, any>,
+  ) => {
+    const { fetch, domain, AbortController, methodOverride, ...defaultParameters } = linkOptions
+
+    const { id, context, type, params } = operation
+
+    const options = {
+      fetch,
+      AbortController: getAbortController(AbortController),
+      methodOverride,
+      id,
+      context,
+      type,
+      params: { ...defaultParameters, domain, ...params },
+    }
+
+    const { promise, cancel } = factoryOptions.requester(options)
+
+    promise
+      .then((result) => {
+        observer.next(result)
+        observer.complete()
+      })
+      .catch((error) => {
+        observer.error(error)
+      })
+
+    return cancel
+  }
+}
+
 export function httpLinkFactory(factoryOptions: HTTPLinkFactoryOptions): HTTPLinkFactory {
   const factory: HTTPLinkFactory = (linkOptions = {} as any) => {
     const link: EdenLink = (_runtime) => {
-      const resolveOperation = (operation: Operation, observer: Observer<any, any>) => {
-        const { fetch, domain, AbortController, methodOverride, ...defaultParams } = linkOptions
-
-        const { id, context, type, params } = operation
-
-        const options = {
-          fetch,
-          AbortController: getAbortController(AbortController),
-          methodOverride,
-          id,
-          context,
-          type,
-          params: { ...defaultParams, domain, ...params },
-        }
-
-        const { promise, cancel } = factoryOptions.requester(options)
-
-        promise
-          .then((result) => {
-            observer.next(result)
-            observer.complete()
-          })
-          .catch((cause) => {
-            observer.error(cause)
-          })
-
-        return cancel
-      }
+      const resolveOperation = resolveOperationFn(linkOptions)
 
       const operationLink: OperationLink = ({ operation }) => {
-        const observable = new Observable(resolveOperation.bind(undefined, operation))
+        const observable = new Observable(
+          resolveOperation.bind(undefined, factoryOptions, operation),
+        )
         return observable
       }
 

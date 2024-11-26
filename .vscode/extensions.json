@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "christian-kohler.npm-intellisense",
+    "nicoespeon.abracadabra",
+    "svelte.svelte-vscode"
+  ]
+}

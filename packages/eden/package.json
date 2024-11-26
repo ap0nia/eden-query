@@ -11,7 +11,9 @@
   "scripts": {
     "build": "tsup && tsc --emitDeclarationOnly --declaration",
     "test": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint:ts": "tsc --noEmit",
+    "lint:eslint": "eslint --quiet --fix ."
   },
   "type": "module",
   "main": "./dist/index.js",
@@ -41,16 +43,16 @@
     }
   },
   "dependencies": {
-    "elysia": "1.1.19"
+    "elysia": "1.1.25"
   },
   "devDependencies": {
-    "@types/bun": "^1.1.6",
-    "msw": "^2.4.4",
-    "tsup": "^8.2.3",
-    "typescript": "^5.5.4"
+    "@types/bun": "^1.1.14",
+    "msw": "^2.6.6",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
   },
   "peerDependencies": {
-    "elysia": "1.1.19"
+    "elysia": "1.1.25"
   },
   "publishConfig": {
     "access": "public"

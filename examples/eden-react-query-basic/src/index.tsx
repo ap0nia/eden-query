@@ -15,8 +15,8 @@ import { App } from './app'
  */
 const ROOT_ELEMENT_ID = 'root'
 
-function ensureRootElement(id: string): HTMLElement {
-  let element = document.getElementById(id)
+function ensureRootElement(id: string): Element {
+  let element = document.querySelector(`#${id}`)
 
   if (element == null) {
     console.error('Please create a root element in the template...')

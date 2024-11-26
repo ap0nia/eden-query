@@ -165,7 +165,9 @@ describe('share', () => {
 
     const shared = createShared(subscribable)
 
-    const subscriptions = Array.from(Array(5).keys()).map(shared.subscribe.bind(shared, observer))
+    const subscriptions = [...Array.from({ length: 5 }).keys()].map(
+      shared.subscribe.bind(shared, observer),
+    )
 
     vi.advanceTimersByTime(1000)
 
@@ -177,7 +179,7 @@ describe('share', () => {
     expect(error).toHaveBeenCalledTimes(subscriptions.length)
     expect(error).toHaveBeenLastCalledWith(value)
 
-    subscriptions.forEach((s) => s.unsubscribe())
+    for (const s of subscriptions) s.unsubscribe()
 
     vi.useRealTimers()
   })
@@ -203,13 +205,15 @@ describe('share', () => {
 
     const shared = createShared(subscribable)
 
-    const subscriptions = Array.from(Array(5).keys()).map(shared.subscribe.bind(shared, observer))
+    const subscriptions = [...Array.from({ length: 5 }).keys()].map(
+      shared.subscribe.bind(shared, observer),
+    )
 
     vi.advanceTimersByTime(1000)
 
     expect(complete).toHaveBeenCalledTimes(subscriptions.length)
 
-    subscriptions.forEach((s) => s.unsubscribe())
+    for (const s of subscriptions) s.unsubscribe()
 
     vi.useRealTimers()
   })

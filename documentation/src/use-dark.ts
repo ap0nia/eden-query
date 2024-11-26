@@ -7,11 +7,11 @@ export default function useDark() {
     isDark.value = document.documentElement.classList.contains('dark')
 
     const attrObserver = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName !== 'class') return
+      for (const mutation of mutations) {
+        if (mutation.attributeName !== 'class') continue
 
         isDark.value = document.documentElement.classList.contains('dark')
-      })
+      }
     })
 
     attrObserver.observe(document.documentElement, { attributes: true })

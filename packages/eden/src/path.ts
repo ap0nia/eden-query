@@ -60,7 +60,7 @@ export function parsePathsAndMethod(paths: string[] | readonly string[]): Parsed
    * In the GET request, the last item is the method and can be safely popped.
    * In the invalidation, the last item is actually part of the path, so it needs to be preserved.
    */
-  const lastSegment = paths[paths.length - 1]
+  const lastSegment = paths.at(-1)
 
   const lastSegmentIsHttpMethod = isHttpMethod(lastSegment)
 

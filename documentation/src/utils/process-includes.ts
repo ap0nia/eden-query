@@ -1,8 +1,8 @@
 import fs from 'node:fs'
+import path from 'node:path'
 
 import brush from '@griseo.js/brush'
 import matter from 'gray-matter'
-import path from 'path'
 
 import { findRegion } from './markdown-snippet'
 import { slash } from './slash'
@@ -20,8 +20,8 @@ export function processIncludes(
   const regionRE = /(#[\w-]+)/
   const rangeRE = /\{(\d*),(\d*)\}$/
 
-  return src.replace(includesRE, (m: string, m1: string) => {
-    if (!m1.length) return m
+  return src.replaceAll(includesRE, (m: string, m1: string) => {
+    if (m1.length === 0) return m
 
     const range = m1.match(rangeRE)
     const region = m1.match(regionRE)
@@ -39,7 +39,7 @@ export function processIncludes(
       const includePath = atPresent
         ? path.join(srcDir, m1.slice(m1[1] === '/' ? 2 : 1))
         : path.join(path.dirname(file), m1)
-      let content = fs.readFileSync(includePath, 'utf-8')
+      let content = fs.readFileSync(includePath, 'utf8')
 
       if (region) {
         const [regionName] = region
@@ -53,8 +53,8 @@ export function processIncludes(
         const lines = content.split(/\r?\n/)
         content = lines
           .slice(
-            startLine ? parseInt(startLine, 10) - 1 : undefined,
-            endLine ? parseInt(endLine, 10) : undefined,
+            startLine ? Number.parseInt(startLine, 10) - 1 : undefined,
+            endLine ? Number.parseInt(endLine, 10) : undefined,
           )
           .join('\n')
       }
@@ -68,7 +68,7 @@ export function processIncludes(
       return processIncludes(srcDir, content, includePath, includes)
 
       //
-    } catch (error) {
+    } catch {
       if (process.env['DEBUG']) {
         process.stderr.write(brush.yellow(`\nInclude file not found: ${m1}`))
       }

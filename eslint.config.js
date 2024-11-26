@@ -9,24 +9,28 @@ import svelte from 'eslint-plugin-svelte'
 import globals from 'globals'
 import svelteParser from 'svelte-eslint-parser'
 import tsEslint from 'typescript-eslint'
+import eslintPluginUnicorn from 'eslint-plugin-unicorn'
+// @ts-ignore
+import importPlugin from 'eslint-plugin-import'
 
 const config = tsEslint.config(
   eslint.configs.recommended,
+  tsEslint.configs.recommended,
+  importPlugin.flatConfigs.recommended,
+  importPlugin.configs.typescript,
+  eslintPluginUnicorn.configs['flat/recommended'],
   {
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-    },
     languageOptions: {
-      parser: tsParser,
+      globals: globals.builtin,
       parserOptions: {
         project: ['./tsconfig.json'],
         parser: '@typescript-eslint/parser',
         extraFileExtensions: ['.svelte'],
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     rules: {
-      ...tsPlugin.configs['base']?.rules,
-      ...tsPlugin.configs['recommended']?.rules,
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/ban-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -38,6 +42,14 @@ const config = tsEslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
+      'unicorn/prevent-abbreviations': 'off',
+      'unicorn/no-null': 'off',
+      'unicorn/prefer-array-some': 'off',
+      'unicorn/prefer-global-this': 'off',
+      'unicorn/no-useless-undefined': 'warn',
+      'import/no-unresolved': 'off', // TODO: currently it has false positives
+      'unicorn/filename-case': 'warn',
+      'unicorn/prefer-set-has': 'off',
     },
   },
   {
@@ -106,6 +118,7 @@ const config = tsEslint.config(
       '**/cdk.out/**',
       '**/node_modules/**',
       '**/coverage',
+      '**/dist/**',
     ],
   },
 )

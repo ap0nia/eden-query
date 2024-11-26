@@ -14,7 +14,8 @@ export function hasFile(object?: Record<string, any>): boolean {
   for (const key in object) {
     if (isFile(object[key])) return true
 
-    if (Array.isArray(object[key]) && (object[key] as unknown[]).find(isFile)) return true
+    if (Array.isArray(object[key]) && (object[key] as unknown[]).find((element) => isFile(element)))
+      return true
   }
 
   return false

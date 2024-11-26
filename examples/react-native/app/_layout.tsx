@@ -15,7 +15,7 @@ import { useColorScheme } from '@/hooks/useColorScheme'
 SplashScreen.preventAutoHideAsync()
 
 function getAuthCookie() {
-  return undefined
+  return
 }
 
 export default function RootLayout() {

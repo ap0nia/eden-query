@@ -6,7 +6,7 @@ import type { TypeError } from '../errors'
 import type { HTTPHeaders } from '../http'
 import type { BatchPluginOptions } from '../plugins'
 import { type EdenRequestOptions, type EdenResponse } from '../request'
-import { type EdenRequestParams, resolveEdenRequest } from '../resolve'
+import { type EdenRequestParams as EdenRequestParameters, resolveEdenRequest } from '../resolve'
 import { notNull } from '../utils/null'
 import type { NonEmptyArray } from '../utils/types'
 import { httpLinkFactory } from './http-link'
@@ -76,27 +76,27 @@ export function generateGetBatchRequestInformation(operations: Operation[]) {
 
   const headers = new Headers()
 
-  operations.forEach((operation, index) => {
+  for (const [index, operation] of operations.entries()) {
     let operationPath = operation.params.path ?? ''
 
     // Handle path params.
     for (const key in operation.params.options?.params) {
       const placeholder = `:${key}`
-      const param = operation.params.options.params[key as never]
-      if (param != null) {
-        operationPath = operationPath.replace(placeholder, param)
+      const parameter = operation.params.options.params[key as never]
+      if (parameter != undefined) {
+        operationPath = operationPath.replace(placeholder, parameter)
       }
     }
 
     query[`${index}.path`] = operationPath
 
-    if (operation.params.method != null) {
+    if (operation.params.method != undefined) {
       query[`${index}.method`] = operation.params.method
     }
 
     for (const key in operation.params.options?.query) {
       const value = operation.params.options.query[key as never]
-      if (value != null) {
+      if (value != undefined) {
         query[`${index}.query.${key}`] = value
       }
     }
@@ -120,11 +120,11 @@ export function generateGetBatchRequestInformation(operations: Operation[]) {
 
     for (const key in resolvedHeaders) {
       const header = resolvedHeaders[key as never]
-      if (header != null) {
+      if (header != undefined) {
         headers.append(key, header)
       }
     }
-  })
+  }
 
   return { body: null, query, headers }
 }
@@ -157,20 +157,20 @@ export function generatePostBatchRequestInformation(
 
   const headers = new Headers()
 
-  operations.forEach((operation, index) => {
+  for (const [index, operation] of operations.entries()) {
     let operationPath = operation.params.path ?? ''
 
     // Specify method of the request.
-    if (operation.params.method != null) {
+    if (operation.params.method != undefined) {
       body.append(`${index}.method`, operation.params.method)
     }
 
     // Handle path parameters.
     for (const key in operation.params.options?.params) {
       const placeholder = `:${key}`
-      const param = operation.params.options.params[key as never]
-      if (param != null) {
-        operationPath = operationPath.replace(placeholder, param)
+      const parameter = operation.params.options.params[key as never]
+      if (parameter != undefined) {
+        operationPath = operationPath.replace(placeholder, parameter)
       }
     }
 
@@ -181,7 +181,7 @@ export function generatePostBatchRequestInformation(
     for (const key in operation.params.options?.query) {
       const value = operation.params.options.query[key as never]
 
-      if (value != null) {
+      if (value != undefined) {
         body.append(`${index}.query.${key}`, value)
       }
     }
@@ -205,14 +205,14 @@ export function generatePostBatchRequestInformation(
 
     for (const key in resolvedHeaders) {
       const header = resolvedHeaders[key as never]
-      if (header != null) {
+      if (header != undefined) {
         headers.append(key, header)
       }
     }
 
     // Handle body.
 
-    if (operation.params?.body == null) return
+    if (operation.params?.body == undefined) continue
 
     const rawTransformer = options?.transformer ?? operation.params.transformer
 
@@ -221,13 +221,13 @@ export function generatePostBatchRequestInformation(
     if (operation.params.body instanceof FormData) {
       body.append(`${index}.body_type`, 'formdata')
 
-      operation.params.body.forEach((value, key) => {
+      for (const [key, value] of Object.entries(operation.params.body)) {
         const serialized = transformer.input.serialize(value)
 
         // FormData is special and can handle additional data types, like Files.
         // So we will not JSON.stringify the serialized result.
         body.set(`${index}.body.${key}`, serialized)
-      })
+      }
     } else {
       body.append(`${index}.body_type`, 'json')
 
@@ -236,7 +236,7 @@ export function generatePostBatchRequestInformation(
 
       body.set(`${index}.body`, stringified)
     }
-  })
+  }
 
   return { body, query: {}, headers }
 }
@@ -260,11 +260,11 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
 
         const requestInformation = generateGetBatchRequestInformation(batchOps)
 
-        const searchParams = new URLSearchParams(requestInformation.query)
+        const searchParameters = new URLSearchParams(requestInformation.query)
 
         const path = endpoint ?? BATCH_ENDPOINT
 
-        const url = `${path}${searchParams.size ? '?' : ''}${searchParams}`
+        const url = `${path}${searchParameters.size > 0 ? '?' : ''}${searchParameters}`
 
         return url.length <= maxURLLength
       },
@@ -272,7 +272,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
         if (batchOps.length === 1) {
           const [firstOperation] = batchOps
 
-          if (firstOperation != null) {
+          if (firstOperation != undefined) {
             const requesterOptions: RequesterOptions = {
               transformer,
               ...requestOptions,
@@ -280,7 +280,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
             }
 
             // Forward domain.
-            if (domain != null) {
+            if (domain != undefined) {
               requesterOptions.params = { ...requesterOptions.params, domain }
             }
 
@@ -294,15 +294,17 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
           }
         }
 
-        const signals = batchOps.map((b) => b.params.fetch?.signal).filter(notNull)
+        const signals = batchOps
+          .map((b) => b.params.fetch?.signal)
+          .filter((element) => notNull(element))
 
-        const abortController = signals.length ? new AbortController() : null
+        const abortController = signals.length > 0 ? new AbortController() : null
 
-        signals.forEach((signal) => {
+        for (const signal of signals) {
           signal.addEventListener('abort', () => {
             abortController?.abort()
           })
-        })
+        }
 
         const cancel = () => {
           abortController?.abort()
@@ -327,7 +329,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
         const path = endpoint ?? BATCH_ENDPOINT
 
         const defaultHeaders =
-          headers == null
+          headers == undefined
             ? undefined
             : typeof headers === 'function'
               ? headers(batchOps as NonEmptyArray<Operation>)
@@ -341,12 +343,12 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
 
           for (const key in defaultHeaders) {
             const header = defaultHeaders[key as never]
-            if (header != null) {
+            if (header != undefined) {
               information.headers.append(key, header)
             }
           }
 
-          const resolvedParams: EdenRequestParams<any, true> = {
+          const resolvedParameters: EdenRequestParameters<any, true> = {
             domain,
             transformer,
             path,
@@ -358,12 +360,12 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
             raw: true,
           }
 
-          if (signals.length) {
-            resolvedParams.fetch ??= {}
-            resolvedParams.fetch.signal = abortController?.signal
+          if (signals.length > 0) {
+            resolvedParameters.fetch ??= {}
+            resolvedParameters.fetch.signal = abortController?.signal
           }
 
-          const result = await resolveEdenRequest(resolvedParams)
+          const result = await resolveEdenRequest(resolvedParameters)
 
           /**
            * result.data should be an array of JSON data from each request in the batch.
@@ -391,7 +393,7 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
           const transformedResponses = batchedData.map((batchedResult, index) => {
             // The raw data from each request has not be de-serialized yet.
             // De-serialize it so every entry is the finalized result.
-            if (resolvedTransformer != null && batchedResult.data != null) {
+            if (resolvedTransformer != undefined && batchedResult.data != undefined) {
               batchedResult.data = resolvedTransformer.output.deserialize(batchedResult.data)
             }
 
@@ -412,23 +414,23 @@ function createBatchRequester(options: HttpBatchLinkOptions = {}): Requester {
                * '0.set-cookie': 'abc' should be a header only for request 0.
                * 'set-cookie': should be a header for all the batched requests.
                */
-              result.headers.forEach((value, key) => {
+              for (const [key, value] of Object.entries(result.headers)) {
                 const [prefix, name] = key.split('.')
 
-                if (Number(prefix) === index && name != null) {
+                if (Number(prefix) === index && name != undefined) {
                   headers.set(name, value)
                 } else {
                   headers.set(key, value)
                 }
-              })
+              }
 
               /**
                * TODO: how to guarantee that this value is the correct body?
                */
               const body =
-                resolvedTransformer != null
-                  ? resolvedTransformer.output.serialize(batchedResult.data)
-                  : JSON.stringify(batchedResult.data)
+                resolvedTransformer == undefined
+                  ? JSON.stringify(batchedResult.data)
+                  : resolvedTransformer.output.serialize(batchedResult.data)
 
               /**
                * Create a new response using the re-serialized body.
