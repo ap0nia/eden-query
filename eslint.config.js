@@ -1,8 +1,5 @@
 // @ts-check
 
-import eslint from '@eslint/js'
-import tsPlugin from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser'
 import prettier from 'eslint-config-prettier'
 import simpleImport from 'eslint-plugin-simple-import-sort'
 import svelte from 'eslint-plugin-svelte'
@@ -10,23 +7,76 @@ import globals from 'globals'
 import svelteParser from 'svelte-eslint-parser'
 import tsEslint from 'typescript-eslint'
 
-const config = tsEslint.config(
-  eslint.configs.recommended,
+import eslint from '@eslint/js'
+
+/**
+ * ESLint uses minimatch patterns to determine which files to apply rules to.
+ *
+ * @see https://eslint.org/docs/latest/use/configure/configuration-files#specifying-files-and-ignores
+ * @see https://github.com/isaacs/minimatch?tab=readme-ov-file#features
+ */
+const FILE_PATTERNS = {
+  // Source code.
+  TYPESCRIPT: '**/*.ts',
+  JAVASCRIPT: '**/*.js',
+  JAVASCRIPT_XML: '**/*.jsx',
+  TYPESCRIPT_XML: '**/*.tsx',
+  SVELTE: '**/*.svelte',
+
+  // Project files.
+  NODE_MODULES: '**/node_modules/**',
+  BUILD_OUTPUT: 'build/**',
+  SVELTEKIT_OUTPUT: '**/.svelte-kit/**',
+  CONFIG_JS: '**/*.config.js',
+  CONFIG_COMMON_JS: '**/*.config.cjs',
+  CONFIG_ECMASCRIPT_JS: '**/*.config.mjs',
+}
+
+/**
+ * Enforce import/export order in all source code.
+ *
+ * Errors/warnings from this plugin are fixable with `--fix`.
+ * For example `eslint --fix` will automatically sort all imports/exports.
+ */
+const importSortConfigs = tsEslint.config({
+  files: [
+    FILE_PATTERNS.TYPESCRIPT,
+    FILE_PATTERNS.TYPESCRIPT_XML,
+    FILE_PATTERNS.JAVASCRIPT,
+    FILE_PATTERNS.JAVASCRIPT_XML,
+    FILE_PATTERNS.SVELTE,
+  ],
+  plugins: {
+    'simple-import-sort': simpleImport,
+  },
+  rules: {
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+  },
+})
+
+/**
+ * Configuration that applies to all TypeScript files.
+ */
+const typescriptConfigs = tsEslint.config(
+  tsEslint.configs['base'],
+  ...tsEslint.configs['recommended'],
   {
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-    },
+    files: [
+      FILE_PATTERNS.TYPESCRIPT,
+      FILE_PATTERNS.TYPESCRIPT_XML,
+      FILE_PATTERNS.JAVASCRIPT,
+      FILE_PATTERNS.JAVASCRIPT_XML,
+      FILE_PATTERNS.SVELTE,
+    ],
     languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: ['./tsconfig.json'],
-        parser: '@typescript-eslint/parser',
-        extraFileExtensions: ['.svelte'],
+      globals: {
+        ...globals.builtin,
+        ...globals.browser,
+        ...globals.node,
       },
     },
     rules: {
-      ...tsPlugin.configs['base']?.rules,
-      ...tsPlugin.configs['recommended']?.rules,
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/ban-types': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
@@ -40,74 +90,62 @@ const config = tsEslint.config(
       ],
     },
   },
-  {
-    plugins: {
-      'simple-import-sort': simpleImport,
+)
+
+/**
+ */
+const svelteConfigs = tsEslint.config({
+  files: [FILE_PATTERNS.SVELTE],
+  plugins: { svelte },
+  processor: svelte.processors.svelte,
+  languageOptions: {
+    parser: svelteParser,
+    parserOptions: {
+      project: ['./tsconfig.json'],
+      parser: '@typescript-eslint/parser',
+      extraFileExtensions: ['.svelte'],
     },
-    rules: {
-      'simple-import-sort/imports': 'error',
-      'simple-import-sort/exports': 'error',
-    },
-  },
-  {
-    ignores: ['**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts}'],
-    plugins: {
-      svelte: /** @type {any} */ (svelte),
-    },
-    processor: svelte.processors.svelte,
-    languageOptions: {
-      parser: svelteParser,
-      parserOptions: {
-        project: ['./tsconfig.json'],
-        parser: '@typescript-eslint/parser',
-        extraFileExtensions: ['.svelte'],
-      },
-    },
-    rules: {
-      .../** @type {any} */ (svelte.configs.base).rules,
-      .../** @type {import('eslint').Linter.RulesRecord} */ (svelte.configs.recommended.rules),
-      'no-inner-declarations': 'off',
-    },
-  },
-  prettier,
-  {
-    files: ['**/*.{js,jsx,cjs,mjs,ts,tsx,cts,mts,svelte}'],
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-        ...globals.node,
-        grecaptcha: false,
-      },
-    },
-  },
-  {
-    files: ['**/*.svelte'],
-    languageOptions: {
-      globals: {
-        $$Generic: false,
-      },
-    },
-  },
-  {
-    files: ['**/*.{ts,tsx,cts,mts}'],
-    rules: {
+    globals: {
       /**
-       * ESLint can't detect global namespaces.
+       * Generic type recognized by Svelte.
        */
-      'no-undef': 'off',
+      $$Generic: false,
     },
   },
-  {
-    ignores: [
-      '**/*.config.js',
-      '**/.svelte-kit/**',
-      '**/.vitepress/**',
-      '**/build/**',
-      '**/cdk.out/**',
-      '**/node_modules/**',
-      '**/coverage',
-    ],
+  rules: {
+    ...svelte.configs.base.rules,
+    ...svelte.configs.recommended.rules,
+    'no-inner-declarations': 'off',
+
+    // Sometimes, a variable is assigned to itself in a Svelte file to update state.
+    'no-self-assign': 'off',
   },
+})
+
+/**
+ * File patterns to ignore.
+ */
+const ignoresConfig = tsEslint.config({
+  ignores: [
+    FILE_PATTERNS.CONFIG_JS,
+    FILE_PATTERNS.CONFIG_COMMON_JS,
+    FILE_PATTERNS.CONFIG_ECMASCRIPT_JS,
+    FILE_PATTERNS.NODE_MODULES,
+    FILE_PATTERNS.SVELTEKIT_OUTPUT,
+    FILE_PATTERNS.BUILD_OUTPUT,
+  ],
+})
+
+const config = tsEslint.config(
+  prettier,
+  eslint.configs.recommended,
+  tsEslint.configs.eslintRecommended,
+  ...tsEslint.configs.recommended,
+  ...importSortConfigs,
+  ...typescriptConfigs,
+  ...svelteConfigs,
+  ...svelteConfigs,
+  ...ignoresConfig,
 )
 
 export default config
