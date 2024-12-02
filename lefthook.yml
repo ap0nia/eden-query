@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://json.schemastore.org/lefthook.json
+---
+pre-commit:
+  commands:
+    format-miscellaneous:
+      glob: '*.{css,json,yml,yaml}'
+      run: pnpm prettier --write {staged_files}
+      stage_fixed: true
+    format:
+      glob: '*.{svelte,js,jsx,ts,tsx}'
+      run: pnpm prettier --write {staged_files}
+      stage_fixed: true
+    lint:
+      glob: '*.{svelte,js,jsx,ts,tsx}'
+      run: pnpm eslint --fix {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx --no -- commitlint --edit $1
+    devmoji:
+      run: npx --no -- devmoji --edit --config devmoji.config.cjs
