@@ -30,7 +30,7 @@
   ],
   "type": "module",
   "scripts": {
-    "postinstall": "changeset init && husky install",
+    "postinstall": "changeset init && lefthook install",
     "build": "turbo build",
     "test:coverage": "nx run-many -t test:coverage"
   },
@@ -41,7 +41,6 @@
     "@eslint/js": "^9.8.0",
     "@types/eslint-config-prettier": "^6.11.3",
     "@types/eslint__js": "^8.42.3",
-    "@types/lint-staged": "^13.3.0",
     "@typescript-eslint/eslint-plugin": "^8.16.0",
     "@typescript-eslint/parser": "^8.16.0",
     "@vitest/coverage-v8": "^2.0.5",
@@ -54,8 +53,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-svelte": "^2.43.0",
     "globals": "^15.8.0",
-    "husky": "^9.1.4",
-    "lint-staged": "^15.2.7",
+    "lefthook": "^1.8.4",
     "nx": "^19.5.7",
     "prettier": "^3.3.3",
     "svelte": "^4.2.18",
