@@ -3,18 +3,12 @@ title: Overview
 titleSuffix: Eden-Query - Elysia.js
 ---
 
-import BasicApp1 from '../snippets/apps/basic-1.mdx'
+import { Integration } from '../../src/components/integration'
 
-```tsx twoslash
-// @filename: server.tsx
-// @include: apps-basic-1
 
-// @filename: index.ts
-// ---cut---
-import * as Hello from './server'
+# Introduction
 
-console
+Eden-Query is a type-safe, RPC client for [Elysia.js](https://elysiajs.com) that leverages
+the asynchronous state management capabilities of [Tanstack Query](https://tanstack.com/query/latest).
 
-Hello.Layout
-//    ^|
-```
+<Integration />
