@@ -4,17 +4,31 @@
  */
 export function Integration() {
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <div className="p-8 border rounded-lg">
-        <p>Elysia.js</p>
+    <div className="grid sm:grid-cols-2 gap-2">
+      <a
+        href="https://elysiajs.com"
+        target="_blank"
+        className="p-8 flex justify-between items-center border rounded-lg group"
+      >
+        <p className="text-xl font-bold group-hover:underline">Elysia.js</p>
         <img
           src="/assets/elysia_v.webp"
           alt="Curved text logo saying 'Elysia JS'"
-          className="max-w-[40ch] w-full object-contain object-left md:object-center mr-auto md:mr-0"
-          style={{ aspectRatio: '1.5 / 1' }}
+          className="h-20 object-contain"
         />
-      </div>
-      <div className="p-8 border rounded-lg">Tanstack Query</div>
+      </a>
+      <a
+        href="https://tanstack.com/query/latest"
+        target="_blank"
+        className="p-8 flex justify-between items-center border rounded-lg group"
+      >
+        <p className="text-xl font-bold group-hover:underline">Tanstack Query</p>
+        <img
+          src="/images/react-query-logo.svg"
+          alt="React Query logo"
+          className="h-20 object-contain"
+        />
+      </a>
     </div>
   )
 }

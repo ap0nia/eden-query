@@ -8,7 +8,49 @@ import { Integration } from '../../src/components/integration'
 
 # Introduction
 
-Eden-Query is a type-safe, RPC client for [Elysia.js](https://elysiajs.com) that leverages
+Eden-Query is a type-safe client for [Elysia.js](https://elysiajs.com) that leverages
 the asynchronous state management capabilities of [Tanstack Query](https://tanstack.com/query/latest).
 
 <Integration />
+
+The Eden-Query project is a collection of libraries that includes [`@ap0nia/eden`](/eden), the actual RPC client,
+as well as framework-specific integrations, such as `@ap0nia/eden-react-query` and `@ap0nia/eden-svelte-query`
+for React and Svelte respectively.
+
+> [!NOTE]
+> The [`@ap0nia/eden`](/eden) library is a distinct, but functionally identical implementation of the
+> official [`@elysiajs/eden`](https://elysiajs.com/eden/overview.html) library.
+
+## Why
+
+Eden-Query is most valuable to ***frontend projects that connect to an Elysia.js backend***.
+The Elysia.js types may be exposed from a separate project within a monorepo, or within a
+single project that leverages a full-stack solution such as Next.js or SvelteKit.
+
+See the [`examples` directory](https://github.com/ap0nia/eden-query/tree/main/examples) for examples.
+
+## Features
+
+- 🌎 Framework agnostic.
+- 🦺 Full end-to-end type-safety.
+- ✅ Fully supports REST API standards.
+- 🖥️SSR support and examples.
+- ✨ Reactive and infinite queries.
+- ⚡ Batching requests on both the client and server.
+- 🔗 Links for customizing the flow of data.
+- 👀 Data transformers for enhanced JSON handling.
+
+## Related Projects
+
+### [tRPC](https://trpc.io)
+
+tRPC is a type-safe, full-stack integration that allows developers to easily types
+between their frontend and backend without code generation.
+
+The core architecture and public API of Eden-Query was inspired by tRPC, making transitions
+between the two libraries feel seamless.
+
+> [!NOTE]
+> The [Eden-Query documentation](/eden-query) is an active work in progress
+> and may contain links that point to the [tRPC documentation](https://trpc.io/docs)
+> in order to supplement (possibly missing) information.

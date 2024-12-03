@@ -22,7 +22,7 @@ const config = defineConfig({
   globalStyles: path.join(__dirname, 'styles/index.css'),
   plugins: [
     rspressPluginTwoslash({
-      typesCache: createFileSystemTypesCache(),
+      typesCache: createFileSystemTypesCache({ dir: '.twoslash' }),
       twoslashOptions: {
         customTags: ['annotate', 'log', 'warn', 'error'],
       },
@@ -30,10 +30,6 @@ const config = defineConfig({
   ],
   themeConfig: {
     lastUpdated: true,
-  },
-  markdown: {
-    checkDeadLinks: false,
-    showLineNumbers: true,
   },
 })
 

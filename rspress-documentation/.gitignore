@@ -7,3 +7,6 @@ dist/
 
 ## Production build output.
 build/
+
+## Twoslash types cache directory.
+.twoslash/
