@@ -19,4 +19,4 @@
  * ```
  *
  */
-export type EmptyToVoid<T> = {} extends T ? void | T : T
+export type EmptyToVoid<T, U = T> = {} extends T ? void | U : U
