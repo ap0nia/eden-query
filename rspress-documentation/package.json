@@ -27,17 +27,18 @@
     "@mdx-js/typescript-plugin": "^0.0.6",
     "@sveltejs/kit": "^2.8.1",
     "@tailwindcss/nesting": "0.0.0-insiders.565cd3e",
+    "@tailwindcss/postcss": "^4.0.6",
     "@types/react": "^18.3.12",
     "@types/react-router-dom": "^5.3.3",
     "autoprefixer": "^10.4.19",
     "ci-info": "^4.0.0",
-    "daisyui": "^4.12.7",
-    "postcss": "^8.4.49",
+    "daisyui": "5.0.0-beta.7",
+    "postcss": "^8.5.2",
     "postcss-load-config": "^6.0.1",
     "postcss-nesting": "^12.1.5",
     "rspress": "^1.37.2",
     "svelte2tsx": "^0.7.26",
-    "tailwindcss": "^3.4.4",
+    "tailwindcss": "^4.0.6",
     "typescript": "^5.6.3"
   }
 }
