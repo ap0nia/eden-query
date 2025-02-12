@@ -1,0 +1,121 @@
+:global(.rspress-nav-menu-group-button) {
+  background-color: transparent;
+}
+
+.hidden {
+  transform: translate3d(0, calc(-100%), 0);
+  background: transparent;
+  opacity: 0;
+}
+
+.container {
+  margin: auto;
+}
+
+.navContainer {
+  top: 0;
+  left: 0;
+  transition: all 0.3s ease;
+  transition-property: transform, opacity;
+  background: var(--rp-c-bg);
+  height: var(--rp-nav-height);
+  z-index: var(--rp-z-index-nav);
+}
+
+.leftNav {
+  display: none;
+}
+
+.rightNav {
+  display: none;
+}
+
+.singleItem {
+  word-break: keep-all;
+}
+
+.activeItem,
+.singleItem:hover {
+  background-color: var(--rp-c-bg-mute);
+  cursor: pointer;
+  color: var(--rp-c-link);
+  border-radius: var(--rp-radius);
+}
+
+.navBarTitle {
+  flex-shrink: 0;
+}
+
+.navContainer * {
+  pointer-events: all;
+}
+
+.menu-item {
+  display: none;
+  margin: 0 8px;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --rp-nav-height: 56px;
+  }
+  .menu-item:before {
+    display: none;
+  }
+  .mobileNavMenu {
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .menu-item {
+    display: flex;
+  }
+  .leftNav {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+    margin: 0 0.5rem;
+  }
+  .rightNav {
+    display: flex;
+    align-items: center;
+  }
+  .mobileNavMenu {
+    display: none;
+  }
+}
+
+@media (min-width: 960px) {
+  .mask {
+    position: absolute;
+    right: 0;
+    bottom: -30px;
+    width: 100vw;
+    height: 30px;
+
+    &.docPage {
+      // Avoid influencing the sidebar.
+      width: calc(100vw - var(--rp-sidebar-width) - 48px);
+    }
+  }
+
+  .mask::before {
+    display: block;
+    width: 100%;
+    height: 30px;
+    background: linear-gradient(var(--rp-c-bg), transparent 60%);
+    content: '';
+  }
+
+  .leftNav {
+    margin: 0 2rem;
+  }
+}
+
+// Custom style for growing the part of the header with the search bar when the screen is large.
+@media (min-width: 960px) {
+  .lg-grow {
+    flex-grow: 1;
+  }
+}

@@ -4,3 +4,6 @@
 
 ## Packages installed by NPM. https://docs.npmjs.com/about-packages-and-modules
 node_modules/
+
+## Lockfiles
+pnpm-lock.yaml

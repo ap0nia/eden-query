@@ -1,0 +1,130 @@
+import type { DefaultThemeConfig, NavItem } from '@rspress/shared'
+import type { SiteData } from '@rspress/shared'
+import { clearAllBodyScrollLocks, disableBodyScroll } from 'body-scroll-lock'
+import { useEffect, useRef } from 'react'
+import { NoSSR } from 'rspress/runtime'
+import { SocialLinks } from 'rspress/theme'
+
+import { useNavData } from '../Nav'
+import { useTranslationMenuData, useVersionMenuData } from '../Nav/menuDataHooks'
+import { NavMenuSingleItem } from '../Nav/NavMenuSingleItem'
+import { ThemeToggle } from '../theme-toggle'
+import styles from './index.module.scss'
+import { NavScreenMenuGroup } from './NavScreenMenuGroup'
+
+interface Props {
+  isScreenOpen: boolean
+  toggleScreen: () => void
+  siteData: SiteData<DefaultThemeConfig>
+  pathname: string
+}
+
+const NavScreenTranslations = () => {
+  const translationMenuData = useTranslationMenuData()
+  return (
+    <div className="flex text-sm font-bold justify-center">
+      <div className="mx-1.5 my-1">
+        <NavScreenMenuGroup {...translationMenuData} />
+      </div>
+    </div>
+  )
+}
+
+const NavScreenVersions = () => {
+  const versionMenuData = useVersionMenuData()
+
+  return (
+    <div className={`${styles['navTranslations']} flex text-sm font-bold justify-center`}>
+      <div className="mx-1.5 my-1">
+        <NavScreenMenuGroup {...versionMenuData} />
+      </div>
+    </div>
+  )
+}
+
+export function NavScreen(props: Props) {
+  const { isScreenOpen, toggleScreen, siteData, pathname } = props
+
+  const screen = useRef<HTMLDivElement>(null)
+
+  const localesData = siteData.themeConfig.locales || []
+
+  const hasMultiLanguage = localesData.length > 1
+
+  const hasMultiVersion = siteData.multiVersion.versions.length > 1
+
+  const menuItems = useNavData()
+
+  const hasAppearanceSwitch = siteData.themeConfig.darkMode !== false
+
+  const socialLinks = siteData?.themeConfig?.socialLinks || []
+
+  const hasSocialLinks = socialLinks.length > 0
+
+  const langs = localesData.map((item) => item.lang || 'zh') || []
+
+  const { base } = siteData
+
+  const NavScreenAppearance = () => {
+    return (
+      <div className={`mt-2 ${styles['navAppearance']} flex justify-center`}>
+        <NoSSR>{<ThemeToggle />}</NoSSR>
+      </div>
+    )
+  }
+  const NavScreenMenu = ({ menuItems }: { menuItems: NavItem[] }) => {
+    return (
+      <div className={styles['navMenu']}>
+        {menuItems.map((item) => {
+          return (
+            <div key={item.text} className={`${styles['navMenuItem']} w-full`}>
+              {'link' in item ? (
+                <NavMenuSingleItem
+                  pathname={pathname}
+                  key={item.text}
+                  base={base}
+                  langs={langs}
+                  onClick={toggleScreen}
+                  {...item}
+                />
+              ) : (
+                <div key={item.text} className="mx-3 last:mr-0">
+                  <NavScreenMenuGroup {...item} items={'items' in item ? item.items : item} />
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  useEffect(() => {
+    if (screen.current && isScreenOpen) {
+      disableBodyScroll(screen.current, { reserveScrollBarGap: true })
+    }
+
+    return () => {
+      clearAllBodyScrollLocks()
+    }
+  }, [isScreenOpen])
+
+  return (
+    <div
+      className={`${styles['navScreen']} ${isScreenOpen ? styles['active'] : ''} rspress-nav-screen`}
+      ref={screen}
+      id="navScreen"
+    >
+      <div className={styles['container']}>
+        <NavScreenMenu menuItems={menuItems} />
+
+        <div className="flex-center flex-col gap-2">
+          {hasAppearanceSwitch && <NavScreenAppearance />}
+          {hasMultiLanguage && <NavScreenTranslations />}
+          {hasMultiVersion && <NavScreenVersions />}
+          {hasSocialLinks && <SocialLinks socialLinks={socialLinks} />}
+        </div>
+      </div>
+    </div>
+  )
+}
