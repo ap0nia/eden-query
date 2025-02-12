@@ -459,7 +459,7 @@ importers:
         specifier: workspace:^
         version: link:../eden
       '@tanstack/react-query':
-        specifier: ^5.66.0
+        specifier: ^5.51.16
         version: 5.66.0(react@18.3.1)
       elysia:
         specifier: 1.1.19
@@ -469,13 +469,13 @@ importers:
         version: 18.3.1
     devDependencies:
       '@types/react':
-        specifier: ^18.3.18
+        specifier: ^18.3.3
         version: 18.3.18
       tsup:
-        specifier: ^8.3.6
+        specifier: ^8.2.3
         version: 8.3.6(jiti@2.4.2)(postcss@8.5.2)(tsx@4.16.5)(typescript@5.7.3)(yaml@2.5.0)
       typescript:
-        specifier: ^5.7.3
+        specifier: ^5.6.3
         version: 5.7.3
 
   packages/eden-svelte-query:
@@ -24842,8 +24842,8 @@ snapshots:
       picocolors: 1.0.1
       sade: 1.8.1
       svelte: 4.2.18
-      svelte-preprocess: 5.1.4(@babel/core@7.26.8)(postcss-load-config@4.0.2(postcss@8.5.2))(postcss@8.5.2)(svelte@4.2.18)(typescript@5.6.3)
-      typescript: 5.6.3
+      svelte-preprocess: 5.1.4(@babel/core@7.26.8)(postcss-load-config@4.0.2(postcss@8.5.2))(postcss@8.5.2)(svelte@4.2.18)(typescript@5.7.3)
+      typescript: 5.7.3
     transitivePeerDependencies:
       - '@babel/core'
       - coffeescript
@@ -24869,7 +24869,7 @@ snapshots:
     dependencies:
       svelte: 4.2.18
 
-  svelte-preprocess@5.1.4(@babel/core@7.26.8)(postcss-load-config@4.0.2(postcss@8.5.2))(postcss@8.5.2)(svelte@4.2.18)(typescript@5.6.3):
+  svelte-preprocess@5.1.4(@babel/core@7.26.8)(postcss-load-config@4.0.2(postcss@8.5.2))(postcss@8.5.2)(svelte@4.2.18)(typescript@5.7.3):
     dependencies:
       '@types/pug': 2.0.10
       detect-indent: 6.1.0
@@ -24881,7 +24881,7 @@ snapshots:
       '@babel/core': 7.26.8
       postcss: 8.5.2
       postcss-load-config: 4.0.2(postcss@8.5.2)
-      typescript: 5.6.3
+      typescript: 5.7.3
 
   svelte2tsx@0.7.34(svelte@4.2.18)(typescript@5.6.3):
     dependencies:
