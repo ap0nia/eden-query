@@ -4,6 +4,7 @@ import path from 'node:path'
 
 import ci from 'ci-info'
 import { defineConfig } from 'rspress/config'
+import { pluginShiki } from '@rspress/plugin-shiki'
 
 import { rspressPluginTwoslash } from '@ap0nia/rspress-plugin-twoslash'
 import { createFileSystemTypesCache } from '@ap0nia/rspress-plugin-twoslash/cache-fs'
@@ -37,6 +38,7 @@ const config = defineConfig({
         customTags: ['annotate', 'log', 'warn', 'error'],
       },
     }),
+    pluginShiki(),
   ],
   head: [
     [

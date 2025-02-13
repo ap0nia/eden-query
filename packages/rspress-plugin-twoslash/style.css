@@ -13,11 +13,13 @@
  *
  * @see https://github.com/vuejs/vitepress/blob/564907152e7d2e72deabc3d3594930a4e38b5771/src/client/theme-default/styles/components/vp-code.css
  */
-.dark .rspress-code-content span {
+.dark .rspress-code-content span,
+.dark .shiki span {
   color: var(--shiki-dark, inherit);
 }
 
-html:not(.dark) .rspress-code-content span {
+html:not(.dark) .rspress-code-content span,
+html:not(.dark) .shiki span {
   color: var(--shiki-light, inherit);
 }
 
@@ -26,14 +28,12 @@ html:not(.dark) .rspress-code-content span {
  *
  * @see https://github.com/vuejs/vitepress/blob/564907152e7d2e72deabc3d3594930a4e38b5771/src/client/theme-default/styles/components/vp-doc.css#L334
  */
-.rspress-doc [class*='language-'] code {
+.rspress-doc [class*='language-'] code,
+code[class*='language-'] {
   display: block;
 
   /* This removes top/bottom padding and is unnecessary. */
   /* padding: 0 24px; */
-
-  /* Just need to add horizontal padding. */
-  padding-inline: 24px !important;
 
   width: fit-content;
   min-width: 100%;
@@ -41,6 +41,8 @@ html:not(.dark) .rspress-code-content span {
   font-size: var(--rp-code-font-size);
   color: var(--rp-code-block-color);
   transition: color 0.5s;
+
+  padding: 16px 24px;
 }
 
 /*
