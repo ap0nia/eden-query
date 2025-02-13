@@ -1,8 +1,36 @@
 ---
-pageType: custom
-navbar: true
+sidebar: false
+outline: false
+ray: false
+footer: false
 ---
 
 import { Hero } from '../src/components/hero'
+import { Note } from '../src/components/note'
+import { Motivation } from '../src/components/motivation'
 
-<Hero />
+<div className="flex flex-col gap-16 text-gray-500/80 dark:text-gray-400/90 leading-normal text-lg">
+  <Hero />
+
+  <Note />
+
+  <Motivation>
+```typescript twoslash
+import { Elysia /*, file */ } from 'elysia'
+
+new Elysia()
+  .get('/', 'Hello World')
+  // .get('/image', file('mika.webp'))
+  .get('/stream', function* () {
+    yield 'Hello'
+    yield 'World'
+  })
+  .ws('/realtime', {
+    message(ws, message) {
+      ws.send('got:' + message)
+    },
+  })
+  .listen(3000)
+```
+  </Motivation>
+</div>

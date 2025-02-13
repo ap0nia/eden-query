@@ -221,3 +221,64 @@
 div[class^='docLayout'] {
   position: unset;
 }
+
+.showcase {
+  @apply flex max-w-full flex-1 flex-col overflow-hidden rounded-2xl border bg-white sm:max-w-[30rem] dark:border-gray-700 dark:bg-gray-800;
+
+  box-shadow: 0 16px 40px rgba(0, 123, 255, 0.075);
+
+  background-image: radial-gradient(
+      closest-side at center,
+      rgba(255, 255, 255, 1) 70%,
+      transparent 150%
+    ),
+    radial-gradient(closest-side at center, rgba(255, 255, 255, 1) 90%, transparent 150%),
+    radial-gradient(at 9% 67%, hsla(223, 100%, 65%, 0.14) 0px, transparent 50%),
+    radial-gradient(at 22% 0%, hsla(210, 100%, 69%, 0.29) 0px, transparent 50%),
+    radial-gradient(at 97% 49%, hsla(240, 100%, 87%, 0.35) 0px, transparent 50%),
+    radial-gradient(at 100% 75%, hsla(280, 100%, 75%, 0.26) 0px, transparent 50%),
+    radial-gradient(at 75% 100%, hsla(22, 100%, 77%, 0.19) 0px, transparent 50%),
+    radial-gradient(at 40% 100%, hsla(240, 100%, 70%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 72% 0%, hsla(343, 100%, 76%, 0.17) 0px, transparent 50%);
+
+  html.dark & {
+    box-shadow: 0 16px 40px rgba(0, 123, 255, 0.15);
+
+    background-image: radial-gradient(
+        closest-side at center,
+        theme(colors.gray.800) 35%,
+        transparent 140%
+      ),
+      radial-gradient(at 9% 67%, hsla(223, 100%, 65%, 0.14) 0px, transparent 50%),
+      radial-gradient(at 22% 0%, hsla(210, 100%, 69%, 0.29) 0px, transparent 50%),
+      radial-gradient(at 97% 49%, hsla(240, 100%, 87%, 0.35) 0px, transparent 50%),
+      radial-gradient(at 100% 75%, hsla(280, 100%, 75%, 0.26) 0px, transparent 50%),
+      radial-gradient(at 75% 100%, hsla(22, 100%, 77%, 0.19) 0px, transparent 50%),
+      radial-gradient(at 40% 100%, hsla(240, 100%, 70%, 0.15) 0px, transparent 50%),
+      radial-gradient(at 72% 0%, hsla(343, 100%, 76%, 0.17) 0px, transparent 50%);
+  }
+
+  div[class^='language-'] {
+    margin: 0;
+
+    code {
+      background: none;
+
+      .line::before {
+        content: none;
+      }
+    }
+  }
+
+  & > div {
+    @apply !bg-transparent;
+
+    & > pre {
+      @apply !py-3.5;
+    }
+  }
+}
+
+.rspress-doc,
+.rspress-doc-container {
+}

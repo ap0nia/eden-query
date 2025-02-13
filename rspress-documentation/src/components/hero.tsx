@@ -28,48 +28,48 @@ export function Hero() {
 
   return (
     <div
-      className="w-full flex flex-col gap-16"
+      className="flex w-full flex-col gap-12"
       style={{ minHeight: 'calc(100dvh - var(--rp-nav-height))' }}
     >
-      <Ray className="h-[60vh] -top-16 pointer-events-none opacity-[.35] dark:opacity-50" />
+      <Ray className="pointer-events-none -top-16 h-[60vh] opacity-[.35] dark:opacity-50" />
 
-      <div className="w-full p-4 grow flex flex-col items-center justify-center gap-8">
+      <div className="flex w-full grow flex-col items-center justify-center gap-8 p-4">
         <div
           id="splash"
-          className="pointer-events-none absolute top-[-70vh] max-w-full justify-center w-full h-screen opacity-25 block gradient"
+          className="gradient pointer-events-none absolute top-[-70vh] block h-screen w-full max-w-full justify-center opacity-25"
         ></div>
 
         <img
           src="/assets/elysia_v.webp"
           alt="Curved text logo saying 'Elysia JS'"
-          className="w-full max-w-md object-contain aspect-3/2"
+          className="aspect-3/2 w-full max-w-md object-contain"
         />
 
         <p>
-          <span className="font-bold leading-tight text-5xl md:text-6xl md:text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-300 to-violet-400">
+          <span className="bg-gradient-to-r from-sky-300 to-violet-400 bg-clip-text text-5xl font-bold leading-tight text-transparent md:text-center md:text-6xl">
             Ergonomic Framework for Humans
           </span>
 
-          <span className="w-10 h-10 text-indigo-400 align-top icon-[ph--sparkle-fill]"></span>
+          <span className="icon-[ph--sparkle-fill] h-10 w-10 align-top text-indigo-400"></span>
         </p>
 
-        <h3 className="w-full max-w-2xl md:text-center text-xl md:text-2xl text-gray-500 dark:text-gray-400 !leading-normal">
+        <h3 className="w-full max-w-2xl text-xl !leading-normal text-gray-500 md:text-center md:text-2xl dark:text-gray-400">
           <span>TypeScript with &nbsp;</span>
 
-          <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">
+          <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text font-semibold text-transparent">
             End-to-End Type Safety
           </span>
 
           <span>, type integrity, and exceptional developer experience. Supercharged by Bun.</span>
         </h3>
 
-        <section className="flex items-center md:justify-center gap-4 flex-wrap">
-          <a className="btn btn-primary px-6 text-lg rounded-full" href="/eden-query/index">
+        <section className="flex flex-wrap items-center gap-4 md:justify-center">
+          <a className="btn btn-primary rounded-full px-6 text-lg" href="/eden-query/index">
             Get Started
           </a>
 
           <div className="flex gap-4">
-            <code className="px-6 py-2.5 font-mono font-medium text-lg bg-primary/25 rounded-full whitespace-nowrap">
+            <code className="bg-primary/25 whitespace-nowrap rounded-full px-6 py-2.5 font-mono text-lg font-medium">
               {copyValue}
             </code>
 
@@ -81,8 +81,8 @@ export function Hero() {
                 className={cn('swap btn btn-primary btn-outline', copied && 'swap-active')}
                 onClick={handleCopy}
               >
-                <span className="swap-on icon-[material-symbols--check-rounded] w-6 h-6"></span>
-                <span className="swap-off icon-[material-symbols--content-copy-outline-rounded] w-6 h-6"></span>
+                <span className="swap-on icon-[material-symbols--check-rounded] h-6 w-6"></span>
+                <span className="swap-off icon-[material-symbols--content-copy-outline-rounded] h-6 w-6"></span>
               </button>
             </div>
           </div>
@@ -91,7 +91,7 @@ export function Hero() {
 
       <p className="p-4 text-center text-gray-400">
         <span>See why developers love Elysia&nbsp;&nbsp;</span>
-        <span className="w-6 h-6 motion-safe:animate-bounce icon-[material-symbols--arrow-downward-rounded] align-bottom"></span>
+        <span className="icon-[material-symbols--arrow-downward-rounded] h-6 w-6 align-bottom motion-safe:animate-bounce"></span>
       </p>
     </div>
   )

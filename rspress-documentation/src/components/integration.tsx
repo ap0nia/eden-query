@@ -4,25 +4,26 @@
  */
 export function Integration() {
   return (
-    <div className="grid sm:grid-cols-2 gap-2">
+    <div className="grid gap-2 sm:grid-cols-2">
       <a
         href="https://elysiajs.com"
         target="_blank"
-        className="p-8 flex justify-between items-center border rounded-lg group"
+        className="hover:bg-base-200 flex items-center justify-between rounded-lg border p-8 transition-transform hover:-translate-y-1"
       >
-        <p className="text-xl font-bold group-hover:underline">Elysia.js</p>
+        <p className="text-xl font-bold">Elysia.js</p>
         <img
           src="/assets/elysia_v.webp"
           alt="Curved text logo saying 'Elysia JS'"
           className="h-20 object-contain"
         />
       </a>
+
       <a
         href="https://tanstack.com/query/latest"
         target="_blank"
-        className="p-8 flex justify-between items-center border rounded-lg group"
+        className="hover:bg-base-200 flex items-center justify-between rounded-lg border p-8 transition-transform hover:-translate-y-1"
       >
-        <p className="text-xl font-bold group-hover:underline">Tanstack Query</p>
+        <p className="text-xl font-bold">Tanstack Query</p>
         <img
           src="/images/react-query-logo.svg"
           alt="React Query logo"
