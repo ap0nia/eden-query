@@ -294,3 +294,25 @@ div[class^='docLayout'] {
 html {
   scroll-behavior: smooth;
 }
+
+.integrations > section {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border-width: 1px;
+  border-top-color: rgb(221 214 254 / var(--tw-border-opacity, 1));
+  border-bottom-color: rgb(221 214 254 / var(--tw-border-opacity, 1));
+  --tw-border-opacity: 1;
+  border-left-color: rgb(191 219 254 / var(--tw-border-opacity, 1));
+  border-right-color: rgb(191 219 254 / var(--tw-border-opacity, 1));
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+
+.integrations > section:is(.dark *) {
+  border-top-color: #8b5cf633;
+  border-bottom-color: #8b5cf633;
+  border-left-color: #3b82f633;
+  border-right-color: #3b82f633;
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+}

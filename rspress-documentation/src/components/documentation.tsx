@@ -1,31 +1,30 @@
-import Swagger from '../../docs/snippets/swagger.mdx'
+import Swagger from '@/docs/snippets/swagger.mdx'
 
 export function Documentation() {
   return (
     <article className="mx-auto w-full max-w-5xl space-y-12 p-4">
-      <header className="flex w-full flex-col justify-between md:flex-row md:items-end">
-        <h2 className="mb-2 flex flex-col gap-2 text-2xl font-medium text-gray-500 dark:text-gray-400">
-          <span>Your own documentation</span>
+      <header className="flex w-full flex-col justify-between gap-8 md:flex-row md:items-end">
+        <h2 className="space-y-2 text-2xl font-medium text-gray-500 dark:text-gray-400">
+          <p>Your own documentation</p>
 
-          <span className="z-10 bg-gradient-to-r from-violet-400 to-blue-500 bg-clip-text text-7xl font-semibold text-transparent">
+          <p className="bg-gradient-to-r from-violet-400 to-blue-500 bg-clip-text text-7xl font-semibold text-transparent">
             in 1 line
-          </span>
+          </p>
         </h2>
 
-        <div className="flex max-w-md flex-col gap-2 md:pr-4 md:text-base dark:font-medium">
+        <div className="max-w-md space-y-4 md:pr-4 md:text-base dark:font-medium">
           <p>It's not magic...</p>
 
           <p>
-            <span>With built-in integration with OpenAPI schema,</span>
-            <br />
-            <span>Elysia can generate Swagger documentation for your API out of the box.</span>
+            With built-in integration with OpenAPI schema, Elysia can generate Swagger documentation
+            for your API out of the box.
           </p>
         </div>
       </header>
 
       <div className="flex flex-col gap-2 space-y-4">
         <div className="flex items-center justify-center">
-          <div className="showcase rounded-xl">
+          <div className="showcase w-full overflow-x-auto rounded-xl">
             <Swagger />
           </div>
         </div>

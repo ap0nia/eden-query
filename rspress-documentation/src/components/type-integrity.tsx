@@ -1,11 +1,10 @@
 import { motion } from 'motion/react'
 import { useState } from 'react'
 
+import Input from '@/docs/snippets/type-safety/input.mdx'
+import Macros from '@/docs/snippets/type-safety/macros.mdx'
+import Output from '@/docs/snippets/type-safety/output.mdx'
 import { cn } from '@/utils/cn'
-
-import Input from '../../docs/snippets/type-safety/input.mdx'
-import Macros from '../../docs/snippets/type-safety/macros.mdx'
-import Output from '../../docs/snippets/type-safety/output.mdx'
 
 const tabs = [
   { id: 'input', label: 'Input', content: Input },
@@ -17,13 +16,13 @@ export function TypeIntegrity() {
   const [active, setActive] = useState(tabs[0])
 
   return (
-    <article className="mx-auto w-full max-w-5xl space-y-2 p-4">
-      <h1 className="break-words text-center leading-[5rem] text-gray-600 sm:leading-[5.5rem] dark:text-gray-400">
-        <span className="text-4xl sm:text-5xl">The next level of&nbsp;&nbsp;</span>
+    <article className="mx-auto w-full max-w-5xl space-y-4 p-4">
+      <h1 className="flex flex-col justify-center text-2xl font-medium text-gray-500 md:flex-row md:items-center md:gap-4 dark:text-gray-400">
+        <p>The next level of</p>
 
-        <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-6xl font-semibold text-transparent sm:text-7xl">
+        <p className="bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-7xl font-semibold leading-[6rem] text-transparent">
           type-safety
-        </span>
+        </p>
       </h1>
 
       <div>

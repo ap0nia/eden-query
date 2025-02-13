@@ -2,11 +2,12 @@
 pageType: custom
 ---
 
-import { Hero } from '../src/components/hero'
-import { Note } from '../src/components/note'
-import { Motivation } from '../src/components/motivation'
-import { TypeIntegrity } from '../src/components/type-integrity'
-import { Documentation } from '../src/components/documentation'
+import { Hero } from '@/components/hero'
+import { Note } from '@/components/note'
+import { Motivation } from '@/components/motivation'
+import { TypeIntegrity } from '@/components/type-integrity'
+import { Documentation } from '@/components/documentation'
+import { Integrations } from '@/components/integrations'
 
 <div className="flex flex-col gap-16 text-gray-500/80 dark:text-gray-400/90 leading-normal text-lg">
   <Hero>
@@ -26,5 +27,7 @@ import { Documentation } from '../src/components/documentation'
   <TypeIntegrity />
 
   <Documentation />
+
+  <Integrations />
 </div>
 

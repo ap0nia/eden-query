@@ -3,7 +3,7 @@ import Demo from '@/docs/snippets/demo.mdx'
 export function Motivation() {
   return (
     <article className="mx-auto w-full max-w-5xl space-y-2 p-4">
-      <div className="grid items-center justify-center gap-8 lg:grid-cols-2">
+      <div className="grid items-center justify-stretch gap-8 lg:grid-cols-2">
         <header className="flex flex-1 flex-col gap-6 text-xl">
           <div className="mb-2 flex flex-col gap-3">
             <h3 className="text-700 text-2xl font-medium">Our Philosophy</h3>
