@@ -223,7 +223,7 @@ div[class^='docLayout'] {
 }
 
 .showcase {
-  @apply flex max-w-full flex-1 flex-col overflow-hidden rounded-2xl border bg-white sm:max-w-[30rem] dark:border-gray-700 dark:bg-gray-800;
+  @apply border bg-white sm:max-w-[30rem] dark:border-gray-700 dark:bg-gray-800;
 
   box-shadow: 0 16px 40px rgba(0, 123, 255, 0.075);
 
@@ -277,8 +277,8 @@ div[class^='docLayout'] {
       @apply !py-3.5;
     }
   }
-}
 
-.rspress-doc,
-.rspress-doc-container {
+  &.mockup-code pre:before {
+    display: none;
+  }
 }

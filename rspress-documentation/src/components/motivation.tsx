@@ -1,10 +1,8 @@
-export type MotivationProps = {
-  children?: React.ReactNode
-}
+import Demo from '@/docs/snippets/demo.mdx'
 
-export function Motivation(props: MotivationProps) {
+export function Motivation() {
   return (
-    <article className="space-y-8">
+    <article className="space-y-8 p-4">
       <div className="grid grid-cols-2 items-center gap-8">
         <header className="flex flex-1 flex-col gap-6 text-xl">
           <div className="mb-2 flex flex-col gap-3">
@@ -33,7 +31,9 @@ export function Motivation(props: MotivationProps) {
           </p>
         </header>
 
-        <section className="showcase">{props.children}</section>
+        <section className="showcase rounded-2xl">
+          <Demo />
+        </section>
       </div>
 
       <footer className="grid grid-cols-2 gap-4">

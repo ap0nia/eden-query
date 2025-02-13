@@ -40,6 +40,13 @@ const config = defineConfig({
     }),
     pluginShiki(),
   ],
+  builderConfig: {
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+  },
   head: [
     [
       'meta',
