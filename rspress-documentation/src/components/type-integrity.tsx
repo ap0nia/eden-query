@@ -17,16 +17,14 @@ export function TypeIntegrity() {
   const [active, setActive] = useState(tabs[0])
 
   return (
-    <article className="mx-auto w-full max-w-5xl space-y-12 p-4">
-      <div className="relative z-10 mb-7 flex w-full items-end justify-between">
-        <h1 className="flex flex-1 flex-col text-3xl font-medium leading-[3rem] text-gray-600 sm:text-center sm:text-4xl sm:leading-[4rem] dark:text-gray-400">
-          <span>The next level of&nbsp;</span>
+    <article className="mx-auto w-full max-w-5xl space-y-2 p-4">
+      <h1 className="break-words text-center leading-[5rem] text-gray-600 sm:leading-[5.5rem] dark:text-gray-400">
+        <span className="text-4xl sm:text-5xl">The next level of&nbsp;&nbsp;</span>
 
-          <span className="-translate-y-1 bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-6xl font-semibold leading-[5rem] text-transparent sm:text-7xl sm:leading-[5.5rem]">
-            Type Safety
-          </span>
-        </h1>
-      </div>
+        <span className="bg-gradient-to-r from-cyan-400 to-indigo-400 bg-clip-text text-6xl font-semibold text-transparent sm:text-7xl">
+          type-safety
+        </span>
+      </h1>
 
       <div>
         <section className="flex h-[38rem] items-center justify-center rounded-lg bg-[url(/public/assets/sequoia.webp)] bg-center p-4">

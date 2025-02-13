@@ -3,7 +3,13 @@ import { useRef, useState } from 'react'
 import { Ray } from '../components/ray'
 import { cn } from '../utils/cn'
 
-export function Hero() {
+export type HeroProps = {
+  children?: React.ReactNode
+}
+
+export function Hero(props: HeroProps) {
+  const { children } = props
+
   const [copied, setCopied] = useState(false)
 
   const copyValue = 'bun create elysia app'
@@ -89,10 +95,7 @@ export function Hero() {
         </section>
       </div>
 
-      <p className="p-4 text-center text-gray-400">
-        <span>See why developers love Elysia&nbsp;&nbsp;</span>
-        <span className="icon-[material-symbols--arrow-downward-rounded] h-6 w-6 align-bottom motion-safe:animate-bounce"></span>
-      </p>
+      {children}
     </div>
   )
 }

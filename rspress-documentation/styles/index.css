@@ -282,3 +282,15 @@ div[class^='docLayout'] {
     display: none;
   }
 }
+
+:root {
+  --swagger-preview-src: url('/public/assets/scalar-preview-light.webp');
+}
+
+.dark {
+  --swagger-preview-src: url('/public/assets/scalar-preview-dark.webp');
+}
+
+html {
+  scroll-behavior: smooth;
+}

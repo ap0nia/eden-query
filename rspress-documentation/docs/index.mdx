@@ -6,14 +6,25 @@ import { Hero } from '../src/components/hero'
 import { Note } from '../src/components/note'
 import { Motivation } from '../src/components/motivation'
 import { TypeIntegrity } from '../src/components/type-integrity'
+import { Documentation } from '../src/components/documentation'
 
 <div className="flex flex-col gap-16 text-gray-500/80 dark:text-gray-400/90 leading-normal text-lg">
-  <Hero />
+  <Hero>
+    <a href="#notes" className="p-4 text-center text-gray-400 group">
+      <span className="group-hover:underline">See why developers love Elysia</span>
+      <span>&nbsp;&nbsp;</span>
+      <span className="icon-[material-symbols--arrow-downward-rounded] h-6 w-6 align-bottom motion-safe:animate-bounce group-hover:duration-500"></span>
+    </a>
+  </Hero >
 
-  <Note />
+  <div id="notes">
+    <Note />
+  </div>
 
   <Motivation/>
 
   <TypeIntegrity />
+
+  <Documentation />
 </div>
 
