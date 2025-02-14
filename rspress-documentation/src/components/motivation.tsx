@@ -2,7 +2,7 @@ import Demo from '@/docs/snippets/demo.mdx'
 
 export function Motivation() {
   return (
-    <article className="mx-auto w-full max-w-5xl space-y-2 p-4">
+    <article className="mx-auto w-full max-w-5xl space-y-8 p-4">
       <div className="grid items-center justify-stretch gap-8 lg:grid-cols-2">
         <header className="flex flex-1 flex-col gap-6 text-xl">
           <div className="mb-2 flex flex-col gap-3">

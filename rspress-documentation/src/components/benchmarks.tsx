@@ -144,12 +144,10 @@ function AnimatedNumber(props: { from?: number; to?: number; step?: number }) {
 
   const ref = useRef<HTMLSpanElement>(null)
 
-  const inView = useInView(ref)
-
-  const max = Math.floor(to / step) * step
+  const inView = useInView(ref, { once: true })
 
   useEffect(() => {
-    if (!inView || number === max) return
+    if (!inView) return
 
     const controls = animate(from, to, {
       duration: 1,
