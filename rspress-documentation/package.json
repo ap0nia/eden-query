@@ -25,8 +25,7 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.29.0",
     "superjson": "^2.2.2",
-    "tailwind-merge": "^2.6.0",
-    "usehooks-ts": "^3.1.1"
+    "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
     "@ap0nia/rspress-plugin-twoslash": "workspace:^",

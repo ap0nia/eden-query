@@ -659,9 +659,6 @@ importers:
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
-      usehooks-ts:
-        specifier: ^3.1.1
-        version: 3.1.1(react@18.3.1)
     devDependencies:
       '@iconify/json':
         specifier: ^2.2.306
@@ -11516,12 +11513,6 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  usehooks-ts@3.1.1:
-    resolution: {integrity: sha512-I4diPp9Cq6ieSUH2wu+fDAVQO43xwtulo+fKEidHUwZPnYImbtkTjzIJYcDcJqxgmX31GVqNFURodvcgHcW0pA==}
-    engines: {node: '>=16.15.0'}
-    peerDependencies:
-      react: ^16.8.0  || ^17 || ^18 || ^19 || ^19.0.0-rc
-
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
@@ -16930,7 +16921,7 @@ snapshots:
   '@sveltejs/vite-plugin-svelte-inspector@3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@5.2.3)(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0)))(svelte@5.2.3)(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0))':
     dependencies:
       '@sveltejs/vite-plugin-svelte': 4.0.2(svelte@5.2.3)(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0))
-      debug: 4.3.7
+      debug: 4.4.0
       svelte: 5.2.3
       vite: 5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0)
     transitivePeerDependencies:
@@ -16966,10 +16957,10 @@ snapshots:
   '@sveltejs/vite-plugin-svelte@4.0.2(svelte@5.2.3)(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0))':
     dependencies:
       '@sveltejs/vite-plugin-svelte-inspector': 3.0.1(@sveltejs/vite-plugin-svelte@4.0.2(svelte@5.2.3)(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0)))(svelte@5.2.3)(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0))
-      debug: 4.3.7
+      debug: 4.4.0
       deepmerge: 4.3.1
       kleur: 4.1.5
-      magic-string: 0.30.14
+      magic-string: 0.30.17
       svelte: 5.2.3
       vite: 5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0)
       vitefu: 1.0.4(vite@5.4.0(@types/node@22.13.2)(lightningcss@1.29.1)(sass-embedded@1.83.4)(terser@5.39.0))
@@ -25902,11 +25893,6 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  usehooks-ts@3.1.1(react@18.3.1):
-    dependencies:
-      lodash.debounce: 4.0.8
-      react: 18.3.1
-
   util-deprecate@1.0.2: {}
 
   util@0.12.5:
@@ -26006,7 +25992,7 @@ snapshots:
     dependencies:
       esbuild: 0.21.5
       postcss: 8.5.2
-      rollup: 4.20.0
+      rollup: 4.34.6
     optionalDependencies:
       '@types/node': 22.13.2
       fsevents: 2.3.3
