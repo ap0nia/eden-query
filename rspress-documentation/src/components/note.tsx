@@ -12,8 +12,8 @@ export function Note() {
     <div ref={ref} className="mx-auto flex w-full max-w-xl flex-col gap-6">
       <div
         className={cn(
-          inView && 'animate-in',
-          'zoom-in fade-in duration-1000',
+          inView ? 'animate-in' : 'animate-out',
+          'fade-out zoom-out zoom-in fade-in fill-mode-both duration-1000 ease-in-out',
           'flex items-center gap-2 text-gray-300 dark:text-gray-500',
         )}
       >

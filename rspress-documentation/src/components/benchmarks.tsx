@@ -1,7 +1,13 @@
 import { animate, motion, useInView } from 'motion/react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 
+import { cn } from '@/utils/cn'
+
 export function Benchmarks() {
+  const ref = useRef(null)
+
+  const inView = useInView(ref, { once: true })
+
   const results = [
     {
       name: 'Elysia',
@@ -40,98 +46,113 @@ export function Benchmarks() {
   }, 0)
 
   return (
-    <article className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-12 md:flex-row md:gap-24">
-      <div className="bg-grid">
-        <div className="fog h-full w-full" />
-      </div>
+    <article className="relative mx-auto w-full max-w-5xl">
+      <h2
+        className={cn(
+          inView ? 'animate-in' : 'animate-out',
+          'fade-out fade-in slide-in-from-left-10 fill-mode-both duration-1000 ease-in-out',
+          'bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-6xl font-semibold leading-[4.25rem] text-transparent',
+        )}
+      >
+        Performance
+      </h2>
 
-      <header className="relative z-10 flex w-full flex-row justify-around md:max-w-[10.5rem] md:flex-col md:justify-center">
-        <div className="">
-          <h3 className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-8xl font-bold text-transparent">
-            21x
-          </h3>
-
-          <p>faster than Express</p>
+      <div
+        ref={ref}
+        className="relative flex w-full flex-col gap-10 px-6 py-12 md:flex-row md:gap-24"
+      >
+        <div className="bg-grid">
+          <div className="fog h-full w-full" />
         </div>
 
-        <div className="">
-          <h3 className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-8xl font-bold text-transparent">
-            6x
-          </h3>
+        <div className="relative z-10 flex w-full flex-row justify-around md:max-w-[10.5rem] md:flex-col md:justify-center">
+          <div className="">
+            <h3 className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-8xl font-bold text-transparent">
+              21x
+            </h3>
 
-          <p>faster than Fastify</p>
+            <p>faster than Express</p>
+          </div>
+
+          <div className="">
+            <h3 className="bg-gradient-to-r from-violet-400 to-pink-400 bg-clip-text text-8xl font-bold text-transparent">
+              6x
+            </h3>
+
+            <p>faster than Fastify</p>
+          </div>
         </div>
-      </header>
 
-      <div className="relative">
-        <ol className="grid grid-cols-12 gap-4">
-          {results.map((result, index) => {
-            if (index === 0) {
+        <div className="relative">
+          <ol className="grid grid-cols-12 gap-4">
+            {results.map((result, index) => {
+              if (index === 0) {
+                return (
+                  <Fragment key={result.name}>
+                    <li className="col-span-3 flex h-6 gap-8">
+                      <h6 className="overflow-hidden text-ellipsis whitespace-nowrap">
+                        <span className="bg-gradient-to-r from-violet-500 to-sky-500 bg-clip-text text-xl font-semibold text-transparent">
+                          {result.name}
+                        </span>
+                        <span>&nbsp;{result.runtime}</span>
+                      </h6>
+                    </li>
+
+                    <li className="col-span-9 h-6 w-full">
+                      <BenchmarkBar
+                        {...result}
+                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400 px-2 text-end text-sm font-semibold text-white"
+                        max={maxRequests}
+                        value={result.requests}
+                      >
+                        <AnimatedNumber to={result.requests} step={1_000} />
+                        <span>&nbsp;reqs/s</span>
+                      </BenchmarkBar>
+                    </li>
+                  </Fragment>
+                )
+              }
+
               return (
                 <Fragment key={result.name}>
-                  <li className="col-span-3 flex h-6 gap-8">
+                  <li className="col-span-3 h-6">
                     <h6 className="overflow-hidden text-ellipsis whitespace-nowrap">
-                      <span className="bg-gradient-to-r from-violet-500 to-sky-500 bg-clip-text text-xl font-semibold text-transparent">
-                        {result.name}
-                      </span>
+                      <span className="font-semibold">{result.name}</span>
                       <span>&nbsp;{result.runtime}</span>
                     </h6>
                   </li>
 
-                  <li className="col-span-9 h-6 w-full">
+                  <li className="col-span-9 flex h-6 items-center gap-2">
                     <BenchmarkBar
                       {...result}
-                      className="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-400 px-2 text-end text-sm font-semibold text-white"
+                      className="h-full rounded-full bg-gray-200 dark:bg-gray-600"
                       max={maxRequests}
                       value={result.requests}
-                    >
+                    />
+
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       <AnimatedNumber to={result.requests} step={1_000} />
-                      <span>&nbsp;reqs/s</span>
-                    </BenchmarkBar>
+                    </p>
                   </li>
                 </Fragment>
               )
-            }
+            })}
+          </ol>
 
-            return (
-              <Fragment key={result.name}>
-                <li className="col-span-3 h-6">
-                  <h6 className="overflow-hidden text-ellipsis whitespace-nowrap">
-                    <span className="font-semibold">{result.name}</span>
-                    <span>&nbsp;{result.runtime}</span>
-                  </h6>
-                </li>
+          <p className="mt-3 text-sm text-gray-400">
+            <span>Measured in requests/second. Result from&nbsp;</span>
 
-                <li className="col-span-9 flex h-6 items-center gap-2">
-                  <BenchmarkBar
-                    {...result}
-                    className="h-full rounded-full bg-gray-200 dark:bg-gray-600"
-                    max={maxRequests}
-                    value={result.requests}
-                  />
+            <a
+              href="https://www.techempower.com/benchmarks/#hw=ph&test=plaintext&section=data-r22"
+              target="_blank"
+              className="underline"
+            >
+              TechEmpower Benchmark
+            </a>
 
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    <AnimatedNumber to={result.requests} step={1_000} />
-                  </p>
-                </li>
-              </Fragment>
-            )
-          })}
-        </ol>
-
-        <p className="mt-3 text-sm text-gray-400">
-          <span>Measured in requests/second. Result from&nbsp;</span>
-
-          <a
-            href="https://www.techempower.com/benchmarks/#hw=ph&test=plaintext&section=data-r22"
-            target="_blank"
-            className="underline"
-          >
-            TechEmpower Benchmark
-          </a>
-
-          <span>, Round 22 (2023-10-17) in PlainText</span>
-        </p>
+            <span>, Round 22 (2023-10-17) in PlainText</span>
+          </p>
+        </div>
       </div>
     </article>
   )

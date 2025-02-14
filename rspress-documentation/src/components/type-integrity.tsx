@@ -1,6 +1,6 @@
 import type { Variants } from 'motion/react'
-import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { AnimatePresence, motion, useInView } from 'motion/react'
+import { useRef, useState } from 'react'
 
 import Input from '@/docs/snippets/type-safety/input.mdx'
 import Macros from '@/docs/snippets/type-safety/macros.mdx'
@@ -27,7 +27,16 @@ const variants: Variants = {
 
 export function TypeIntegrity() {
   const [active, setActive] = useState(tabs[0])
+
   const [direction, setDirection] = useState(1)
+
+  const ref = useRef(null)
+
+  const contentRef = useRef(null)
+
+  const inView = useInView(ref, { once: true })
+
+  const contentInView = useInView(contentRef, { once: true })
 
   const handleTabChange = (newTab: (typeof tabs)[number]) => {
     const newIndex = tabs.findIndex((tab) => tab === newTab)
@@ -40,14 +49,18 @@ export function TypeIntegrity() {
   return (
     <article className="mx-auto w-full max-w-5xl space-y-4 p-4">
       <h1 className="flex flex-col justify-center text-2xl font-medium text-gray-500 md:flex-row md:items-center md:gap-4 dark:text-gray-400">
-        <p>The next level of</p>
-
-        <p className="bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-7xl font-semibold leading-[6rem] text-transparent">
-          type-safety
+        <p
+          className={cn(
+            inView ? 'animate-in' : 'animate-out',
+            'fade-out fade-in slide-in-from-top-4 fill-mode-both duration-1000 ease-in-out',
+            'bg-gradient-to-r from-cyan-400 to-indigo-500 bg-clip-text text-7xl font-semibold leading-[6rem] text-transparent',
+          )}
+        >
+          Type Safety
         </p>
       </h1>
 
-      <div>
+      <div ref={ref}>
         <section className="flex h-[38rem] items-center justify-center rounded-lg bg-[url(/public/assets/sequoia.webp)] bg-center p-4">
           <AnimatePresence custom={direction} mode="wait">
             {active?.content && (
@@ -67,8 +80,15 @@ export function TypeIntegrity() {
           </AnimatePresence>
         </section>
 
-        <section className="flex -translate-y-4 justify-center">
-          <div role="tablist" className="showcase tabs tabs-boxed rounded-full">
+        <section ref={contentRef} className="flex -translate-y-4 justify-center">
+          <div
+            role="tablist"
+            className={cn(
+              contentInView ? 'animate-in' : 'animate-out',
+              'fade-out fade-in slide-in-from-bottom-10 fill-mode-both duration-500 ease-in-out',
+              'showcase tabs tabs-boxed rounded-full',
+            )}
+          >
             {tabs.map((tab) => {
               const isActive = active?.id === tab.id
               return (

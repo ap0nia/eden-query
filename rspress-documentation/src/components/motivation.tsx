@@ -1,19 +1,31 @@
+import { useInView } from 'motion/react'
+import { useRef } from 'react'
+
 import Demo from '@/docs/snippets/demo.mdx'
+import { cn } from '@/utils/cn'
 
 export function Motivation() {
+  const ref = useRef(null)
+
+  const inView = useInView(ref, { once: true })
+
   return (
     <article className="mx-auto w-full max-w-5xl space-y-8 p-4">
       <div className="grid items-center justify-stretch gap-8 lg:grid-cols-2">
         <header className="flex flex-1 flex-col gap-6 text-xl">
           <div className="mb-2 flex flex-col gap-3">
-            <h3 className="text-700 text-2xl font-medium">Our Philosophy</h3>
-
-            <h2 className="bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-6xl font-semibold leading-[4.25rem] text-transparent">
-              Design for Humans
+            <h2
+              className={cn(
+                inView ? 'animate-in' : 'animate-out',
+                'fade-out fade-in slide-in-from-left-10 fill-mode-both duration-1000 ease-in-out',
+                'bg-gradient-to-r from-sky-500 to-violet-500 bg-clip-text text-6xl font-semibold leading-[4.25rem] text-transparent',
+              )}
+            >
+              Designed for Humans
             </h2>
           </div>
 
-          <p className="max-w-md leading-normal">
+          <p ref={ref} className="max-w-md leading-normal">
             Our goal is to design an ergonomic, sensible, and productive framework that even
             beginners can use easily.
           </p>
