@@ -1,4 +1,5 @@
-import { motion } from 'motion/react'
+import type { Variants } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import Input from '@/docs/snippets/type-safety/input.mdx'
@@ -12,8 +13,29 @@ const tabs = [
   { id: 'macros', label: 'Macros', content: Macros },
 ]
 
+const variants: Variants = {
+  enter: (direction: number) => ({
+    x: direction * 100,
+    opacity: 0,
+  }),
+  center: { x: 0, opacity: 1 },
+  exit: (direction: number) => ({
+    x: direction * -100,
+    opacity: 0,
+  }),
+}
+
 export function TypeIntegrity() {
   const [active, setActive] = useState(tabs[0])
+  const [direction, setDirection] = useState(1)
+
+  const handleTabChange = (newTab: (typeof tabs)[number]) => {
+    const newIndex = tabs.findIndex((tab) => tab === newTab)
+    const oldIndex = tabs.findIndex((tab) => tab === active)
+
+    setDirection(newIndex > oldIndex ? 1 : -1)
+    setActive(newTab)
+  }
 
   return (
     <article className="mx-auto w-full max-w-5xl space-y-4 p-4">
@@ -27,9 +49,22 @@ export function TypeIntegrity() {
 
       <div>
         <section className="flex h-[38rem] items-center justify-center rounded-lg bg-[url(/public/assets/sequoia.webp)] bg-center p-4">
-          <div className="showcase mockup-code w-full !max-w-3xl border">
-            {active?.content && <active.content />}
-          </div>
+          <AnimatePresence custom={direction} mode="wait">
+            {active?.content && (
+              <motion.div
+                key={active.id}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                custom={direction}
+                className="showcase mockup-code w-full !max-w-3xl border"
+              >
+                <active.content />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </section>
 
         <section className="flex -translate-y-4 justify-center">
@@ -41,7 +76,7 @@ export function TypeIntegrity() {
                   key={tab.id}
                   role="tab"
                   className={cn('tab')}
-                  onClick={setActive.bind(null, tab)}
+                  onClick={handleTabChange.bind(null, tab)}
                 >
                   <span className="z-10">{tab.label}</span>
 

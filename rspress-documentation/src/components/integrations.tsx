@@ -1,5 +1,5 @@
 import type { Rgb } from 'culori'
-import { formatRgb,interpolate } from 'culori'
+import { formatRgb, interpolate } from 'culori'
 import { motion } from 'motion/react'
 import { useRef, useState } from 'react'
 
@@ -108,6 +108,24 @@ export function Integrations() {
 
   return (
     <article className="integrations mx-auto grid w-full max-w-5xl justify-center gap-12 p-4 md:grid-cols-2">
+      <div className="space-y-4">
+        <div>
+          <h5>
+            <span className="icon-[mdi--heart-outline] align-middle text-2xl"></span>
+            <span className="align-middle">&nbsp;&nbsp;For DevOps</span>
+          </h5>
+
+          <h2 className="bg-gradient-to-r from-sky-400 to-violet-400 bg-clip-text text-3xl font-semibold text-transparent">
+            OpenTelemetry
+          </h2>
+        </div>
+
+        <p>
+          Elysia has 1st party support for OpenTelemetry. Instrumentation is built-in, so you can
+          easily monitor your services on regardless of the platform.
+        </p>
+      </div>
+
       <section
         ref={opentelemetryRef}
         className="relative flex flex-col gap-1 p-2"
@@ -118,20 +136,18 @@ export function Integrations() {
           style={{ width: '1.5px', left: `${paddedLeft}%` }}
         >
           <p
-            className="absolute top-14 pl-2 font-mono text-sm font-semibold text-sky-500"
+            className="absolute top-14 z-10 pl-2 font-mono text-sm font-semibold text-sky-500"
             style={{ left: paddedLeft > 80 ? '-4rem' : '0' }}
           >
             {((paddedLeft / 100) * totalTime).toFixed(2)}ms
           </p>
         </div>
 
-        <p className="pointer-events-none absolute right-2 top-2 z-10 rounded-full border bg-gray-50/40 px-2 py-1 text-xs backdrop-blur-sm dark:border-gray-600 dark:bg-gray-700/40">
-          POST /character/:id/chat
-        </p>
+        <p className="badge absolute right-2 top-2 z-10">POST /character/:id/chat</p>
 
         <button
           onClick={replay}
-          className="absolute bottom-2 left-2 z-10 rounded-full bg-blue-500 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm"
+          className="btn absolute bottom-2 left-2 z-10 h-auto min-h-0 rounded-full bg-blue-500 px-2 py-1 text-xs font-semibold text-white backdrop-blur-sm hover:bg-blue-600"
         >
           Playback
         </button>
@@ -191,7 +207,7 @@ export function Integrations() {
         </motion.div>
       </section>
 
-      <div className="block space-y-4 md:hidden">
+      <div className="space-y-4">
         <div>
           <h5>
             <span className="icon-[mdi--heart-outline] align-middle text-2xl"></span>
@@ -208,64 +224,9 @@ export function Integrations() {
           generation. The interaction between frontend and backend is type-checked at compile time.
         </p>
       </div>
-
-      <div className="block space-y-4 md:hidden">
-        <div>
-          <h5>
-            <span className="icon-[mdi--heart-outline] align-middle text-2xl"></span>
-            <span className="align-middle">&nbsp;&nbsp;For DevOps</span>
-          </h5>
-
-          <h2 className="bg-gradient-to-r from-sky-400 to-violet-400 bg-clip-text text-3xl font-semibold text-transparent">
-            OpenTelemetry
-          </h2>
-        </div>
-
-        <p>
-          Elysia has 1st party support for OpenTelemetry. Instrumentation is built-in, so you can
-          easily monitor your services on regardless of the platform.
-        </p>
-      </div>
-
       <section>
         <E2E />
       </section>
-
-      <div className="hidden space-y-4 md:block">
-        <div>
-          <h5>
-            <span className="icon-[mdi--heart-outline] align-middle text-2xl"></span>
-            <span className="align-middle">&nbsp;&nbsp;For DevOps</span>
-          </h5>
-
-          <h2 className="bg-gradient-to-r from-sky-400 to-violet-400 bg-clip-text text-3xl font-semibold text-transparent">
-            OpenTelemetry
-          </h2>
-        </div>
-
-        <p>
-          Elysia has 1st party support for OpenTelemetry. Instrumentation is built-in, so you can
-          easily monitor your services on regardless of the platform.
-        </p>
-      </div>
-
-      <div className="hidden space-y-4 md:block">
-        <div>
-          <h5>
-            <span className="icon-[mdi--heart-outline] align-middle text-2xl"></span>
-            <span className="align-middle">&nbsp;&nbsp; For Frontend</span>
-          </h5>
-
-          <h2 className="bg-gradient-to-r from-purple-400 to-rose-400 bg-clip-text text-3xl font-semibold text-transparent">
-            End-to-end Type Safety
-          </h2>
-        </div>
-
-        <p>
-          Like tRPC, Elysia provides type-safety from the backend to the frontend without code
-          generation. The interaction between frontend and backend is type-checked at compile time.
-        </p>
-      </div>
     </article>
   )
 }
