@@ -83,7 +83,7 @@ export function TypeIntegrity() {
                   {isActive && (
                     <motion.span
                       layoutId="bubble"
-                      className="bg-#9ca3af33 absolute inset-0 rounded-full dark:bg-[#ffffff26]"
+                      className="absolute inset-0 rounded-full bg-[#9ca3af33] dark:bg-[#ffffff26]"
                       transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                     />
                   )}
