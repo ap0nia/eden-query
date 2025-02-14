@@ -348,3 +348,13 @@ html {
     );
   }
 }
+
+.built-with-love {
+  &:checked ~ .elysia {
+    animation-name: enter;
+  }
+
+  &:not(:checked) ~ .elysia {
+    animation-name: exit;
+  }
+}
