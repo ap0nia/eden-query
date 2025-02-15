@@ -337,15 +337,23 @@ export function createEdenTreatyQueryUtilsProxy<TRouter extends AnyElysia, TSSRC
       // The rest of the args are passed directly to the function.
       const firstArg = argsCopy.shift()
 
-      const params: Record<string, any> = {}
+      let input: any = undefined
 
-      for (const param of pathParams) {
-        for (const key in param) {
-          params[key] = param[key]
-        }
+      if (firstArg != null) {
+        input ??= {}
+        input.query = firstArg
       }
 
-      const input = { query: firstArg, params }
+      if (pathParams.length) {
+        input ??= {}
+        input.params = {}
+
+        for (const param of pathParams) {
+          for (const key in param) {
+            input.params[key] = param[key]
+          }
+        }
+      }
 
       const queryKey = getQueryKey(paths, input, queryType)
 
