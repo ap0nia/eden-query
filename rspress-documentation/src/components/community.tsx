@@ -144,7 +144,7 @@ export function Community() {
                     <a
                       key={tweet.id}
                       href={tweet.href}
-                      className="btn text-transform-none border-neutral-content h-fit justify-start rounded-xl border p-4 text-left font-normal"
+                      className="btn text-transform-none hover:border-neutral-content transition:transform h-fit justify-start gap-4 rounded-xl border p-4 text-left font-normal hover:-translate-y-1"
                     >
                       <div className="flex items-center gap-4">
                         <img loading="lazy" className="h-12 w-12 rounded-full" src={tweet.image} />
