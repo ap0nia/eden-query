@@ -11,6 +11,7 @@ import BatchPage from './routes/batch/+page'
 import HelloPreloadPage, { load as helloPreloadLoader } from './routes/hello-preload/+page'
 import InfinitePage from './routes/infinite/+page'
 import MutationPage from './routes/mutation/+page'
+import MutationOnSuccessInvalidatePage from './routes/mutation-on-success-invalidate/+page'
 import MutationQueryParamPage from './routes/mutation-query-params/+page'
 import ReactiveInputPage from './routes/reactive-input/+page'
 import ReactiveParamsPage from './routes/reactive-params/+page'
@@ -87,6 +88,11 @@ export function App() {
                     </Link>
                   </li>
                   <li>
+                    <Link to="/mutation-on-success-invalidate">
+                      mutation with on success and invalidation
+                    </Link>
+                  </li>
+                  <li>
                     <Link to="/abort">abort</Link>
                   </li>
                   <li>
@@ -123,6 +129,10 @@ export function App() {
           {
             path: '/mutation-query-params',
             element: <MutationQueryParamPage />,
+          },
+          {
+            path: '/mutation-on-success-invalidate',
+            element: <MutationOnSuccessInvalidatePage />,
           },
           {
             path: '/abort',
