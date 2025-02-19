@@ -12,7 +12,7 @@ export interface TreeItemProps extends React.HTMLAttributes<HTMLLIElement> {
 const TreeItem = forwardRef<HTMLLIElement, TreeItemProps>((props, ref) => {
   const { asChild, children, className, value, ...restProps } = props
 
-  const { prefix, onChange, onCheckChanged, checked } = useContext(treeContext)
+  const { prefix, onChange } = useContext(treeContext)
 
   const Component = asChild ? Slot : 'li'
 
@@ -22,21 +22,8 @@ const TreeItem = forwardRef<HTMLLIElement, TreeItemProps>((props, ref) => {
     onChange?.(event, prefixedValue)
   }
 
-  const handleCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onCheckChanged(e, prefixedValue)
-  }
-
-  const inputChecked = checked.includes(prefixedValue)
-
   return (
     <Component ref={ref} {...restProps} className={cn('flex items-center gap-1', className)}>
-      <input
-        type="checkbox"
-        className="check check-sm"
-        checked={inputChecked}
-        onChange={handleCheck}
-      />
-
       <button className={cn('btn btn-ghost btn-sm', 'text-normal')} onClick={handleClick}>
         {children}
       </button>
