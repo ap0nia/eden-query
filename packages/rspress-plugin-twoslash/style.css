@@ -43,6 +43,10 @@ code[class*='language-'] {
   transition: color 0.5s;
 
   padding: 16px 24px;
+
+  span.line {
+    padding: 0;
+  }
 }
 
 /*

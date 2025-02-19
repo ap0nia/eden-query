@@ -69,7 +69,14 @@ export function rspressPluginTwoslash(options = {}) {
   /**
    * @type import('@shikijs/rehype').RehypeShikiOptions['transformers']
    */
-  const transformers = [twoslash]
+  const transformers = [
+    twoslash,
+    {
+      pre(hast) {
+        hast.properties['meta'] = this.options.meta?.__raw
+      },
+    },
+  ]
 
   typesCache?.init?.()
 

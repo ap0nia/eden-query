@@ -103,7 +103,6 @@ Backend in @elysiaJS + @bunjsproject.`,
 
 const columns = Array.from({ length: 3 }, (_, index) => index)
 
-console.log({ columns })
 export function Community() {
   const ref = useRef(null)
 

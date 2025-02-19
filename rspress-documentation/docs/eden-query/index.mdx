@@ -3,8 +3,9 @@ title: Overview
 titleSuffix: Eden-Query - Elysia.js
 ---
 
-import { Integration } from '../../src/components/integration'
+import { Tab, Tabs } from 'rspress/theme';
 
+import { Integration } from '../../src/components/integration'
 
 # Introduction
 
@@ -40,6 +41,233 @@ See the [`examples` directory](https://github.com/ap0nia/eden-query/tree/main/ex
 - 🔗 Links for customizing the flow of data.
 - 👀 Data transformers for enhanced JSON handling.
 
+## Core Features
+
+<div className="grid gap-2 sm:grid-cols-2">
+  <a
+    href="/eden-query/batching"
+    target="_blank"
+    className="hover:bg-base-200 rounded-lg border p-4 transition-transform hover:-translate-y-1"
+  >
+    <p className="text-lg font-semibold my-0">Batching</p>
+    <p>Batching by the client and server</p>
+  </a>
+  <a
+    href="/eden-query/transformers"
+    target="_blank"
+    className="hover:bg-base-200 rounded-lg border p-4 transition-transform hover:-translate-y-1"
+  >
+    <p className="text-lg font-semibold my-0">Transformers</p>
+    <p>Transformers to extend JSON data</p>
+  </a>
+  <a
+    href="/eden-query/links"
+    target="_blank"
+    className="hover:bg-base-200 rounded-lg border p-4 transition-transform hover:-translate-y-1"
+  >
+    <p className="text-lg font-semibold my-0">Links</p>
+    <p>Links to control the request flow</p>
+  </a>
+</div>
+
+## Implementations
+
+Eden-Query offers two implementations, [fetch](#fetch) and [treaty](#treaty),
+just like the official eden library.
+
+### Fetch (WIP)
+
+- Tanstack-query hooks are exposed at the root of the proxy.
+- The full path to the route is provided as the first argument.
+- Input to the route, such as query and route parameters, are provided after the path.
+
+:::warning
+This has not been implemented for any framework yet...
+:::
+
+### Treaty
+
+- API routes are split by their path segments, and represented as a nested object.
+- `/api/a/b` -> `eden.api.a.b`.
+- The method and hook are provided as the last two property accesses.
+- `eden.api.a.b.get.createQuery` -> `createQuery` for `GET` request to `/api/a/b`.
+
+#### Example Application
+
+```typescript twoslash include eq-index-application title="server.ts"
+import { Elysia, t } from 'elysia'
+
+const app = new Elysia()
+  .get('/nendoroid/:id/name', () => {
+    return 'Skadi'
+  })
+  .put(
+    '/nendoroid/:id',
+    (context) => {
+      return { status: 'OK', received: context.body }
+    },
+    {
+      body: t.Object({
+        name: t.String(),
+        from: t.String(),
+      }),
+    },
+  )
+  .listen(3000)
+
+export type App = typeof app
+```
+
+
+#### Example React-Query Usage
+
+A React client application cna use the hooks from Eden-Query to manage asynchronous state from the Elysia server application.
+
+::: code-group
+
+```typescript twoslash [index.ts]
+// @filename: server.ts
+// @include: eq-index-application
+
+// @filename: index.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+/**
+ * The domain is usually needed if the client application
+ * is not part of a full stack framework.
+ *
+ * For example, a React single-page-application would need to specify
+ * the server domain, while a Next.js application would not.
+ *
+ * Follow the steps provided in the specific framework integration.
+ */
+const domain = 'localhost:3000'
+
+export const app = createEdenTreatyReactQuery<App>({ domain })
+
+// useQuery for [GET] request to '/nendoroid/:id/name'
+const { data } = await app.nendoroid({ id: 'skadi' }).name.get.useQuery()
+
+// useMutation for [PUT] request to '/nendoroid/:id'
+const { data: nendoroid, error, mutateAsync } = app.nendoroid({ id: 1895 }).put.useMutation()
+
+// Peform the mutation...
+mutateAsync({ name: 'Skadi', from: 'Arknights' }).then((result) => {
+  result
+  // ^?
+})
+```
+
+:::
+
+::: tip
+`useMutation` does not actually perform the request.
+The result of `useMutation` has `mutate` and `mutateAsync` methods that receive the input to make the request.
+
+[Read more about mutations here](https://tanstack.com/query/latest/docs/framework/react/reference/useMutation#usemutation)
+:::
+
+## Comparison with tRPC
+
+### Links
+
+This library supports the same type of [links that tRPC has](https://trpc.io/docs/client/links).
+
+The official eden library only resolves requests, so Eden-Query provides helper methods to
+quickly initialize a client that does the same.
+
+Read more about Eden-Query links [here](./links).
+
+#### eden.createHttpClient
+
+This creates a basic eden client that resolves requests in the same way as the official eden implementation.
+
+```typescript twoslash
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
+
+const eden = createEdenTreatyReactQuery()
+
+const domain = 'http://localhost:3000'
+
+// Both are the exact same clients.
+
+const clientOne = eden.createClient({
+  links: [httpLink({ domain })],
+})
+
+const clientTwo = eden.createHttpClient({ domain })
+```
+
+::: tip
+Using this helper method means you don't have to initialize an `httpLink` from scratch,
+and you can provide `HTTPLinkOptions` directly to the method to create the client.
+:::
+
+#### eden.createHttpBatchClient
+
+Creates a client that can combine multiple requests into a single batch request.
+
+:::warning
+In order for this client to work properly, the Elysia server application must use the `batchPlugin`
+or `edenPlugin` with the `batch` property defined.
+:::
+
+**Elysia.js application with batching enabled**
+
+::: code-group
+
+```typescript twoslash include eq-index-batch-application [server.ts]
+import { Elysia, t } from 'elysia'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
+
+const app = new Elysia().use(edenPlugin({ batch: true }))
+
+export type App = typeof app
+```
+
+:::
+
+**React-Query Batch Client**
+
+::: code-group
+
+```typescript twoslash [index.ts]
+// @filename: server.ts
+// @include: eq-index-batch-application
+
+// @filename: index.ts
+// ---cut---
+import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+const eden = createEdenTreatyReactQuery<App>()
+
+const domain = 'http://localhost:3000'
+
+// Both are the exact same clients.
+
+const clientOne = eden.createClient({
+  links: [httpBatchLink({ domain, endpoint: '/api/batch' })],
+})
+
+const clientTwo = eden.createHttpBatchClient({ domain })
+```
+
+:::
+
+### Transformers
+
+This library supports the [same transformer API as tRPC](https://trpc.io/docs/server/data-transformers).
+
+:::info
+The transformers will only modify `request.body`.
+So this will **NOT** affect GET, OPTIONS, or HEAD requests; only POST, PUT, PATCH, etc.
+:::
+
+Read more about this Eden-Query transformers [here](./transformers).
+
 ## Related Projects
 
 ### [tRPC](https://trpc.io)
@@ -51,161 +279,3 @@ The core architecture and public API of Eden-Query was inspired by tRPC, making 
 between the two libraries feel seamless.
 
 Some documentation may link to this project to provide additional information and context.
-
-## Examples
-
-```typescript twoslash
-import { Elysia, t } from 'elysia'
-
-new Elysia()
-	.patch('/profile', ({ body }) => body.profile, {
-	                    // ^?
-
-
-
-
-		body: t.Object({
-			id: t.Number(),
-			profile: t.File({ type: 'image' })
-		})
-	})
-	.listen(3000)
-```
-
-```typescript twoslash
-// @errors: 2345
-import { Elysia, t } from 'elysia'
-
-new Elysia()
-	.get('/profile', ({ error }) => {
-		if(Math.random() > .5)
-			return error(418, 'Mika')
-
-		return 'ok'
-	}, {
-		response: {
-			200: t.Literal('ok'),
-			418: t.Literal('Nagisa')
-		}
-	})
-	.listen(3000)
-```
-
-```typescript twoslash
-// @noErrors
-import { Elysia, t } from 'elysia'
-
-const role = new Elysia({ name: 'macro' })
-	.macro(({ onBeforeHandle }) => ({
-		role(type: 'user' | 'staff' | 'admin') {
-			onBeforeHandle(({ headers, error }) => {
-				if(headers.authorization !== type)
-					return error(401)
-			})
-		}
-	}))
-
-new Elysia()
-	.use(role)
-	.get('/admin/check', 'ok', {
-        r
-      // ^|
-	})
-	.listen(3000)
-```
-
-```typescript
-import { Elysia } from 'elysia'
-import swagger from '@elysiajs/swagger'
-
-new Elysia()
-	.use(swagger())
-	.use(character)
-	.use(auth)
-	.listen(3000)
-```
-
-```typescript twoslash
-// @noErrors
-// @filename: server.ts
-import { Elysia, t } from 'elysia'
-
-const app = new Elysia()
-    .patch(
-        '/profile',
-        ({ body, error }) => {
-            if(body.age < 18)
-                return error(400, "Oh no")
-
-            return body
-        },
-        {
-            body: t.Object({
-                age: t.Number()
-            })
-        }
-    )
-    .listen(80)
-
-export type App = typeof app
-
-// @filename: client.ts
-// ---cut---
-import { treaty } from '@elysiajs/eden'
-import type { App } from './server'
-
-const api = treaty<App>('api.elysiajs.com')
-
-const { data } = await api.profile.patch({
-      // ^?
-    age: 21
-})
-```
-
-```typescript twoslash
-// @errors: 2345 2304
-// @filename: index.ts
-import { Elysia, t } from 'elysia'
-
-export const app = new Elysia()
-    .put(
-        '/user',
-        ({ body, error }) => {
-        	if(body.username === 'mika')
-				return error(400, {
-					success: false,
-					message: 'Username already taken'
-				} as const)
-
-            return {
-            	success: true,
-             	message: 'User created'
-            } as const
-        },
-        {
-            body: t.Object({
-            	username: t.String(),
-             	password: t.String()
-            })
-        }
-    )
-
-// @filename: client.ts
-// ---cut---
-import { treaty } from '@elysiajs/eden'
-import { app } from './index'
-import { test, expect } from 'bun:test'
-
-const server = treaty(app)
-
-test('should handle duplicated user', async () => {
-	const { error } = await server.user.put({
-	    username: 'mika',
-	})
-
-	expect(error?.value).toEqual({
-		success: false,
-		message: 'Username already taken'
-	})
-})
-```

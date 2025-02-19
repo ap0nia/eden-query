@@ -1,5 +1,5 @@
 @import '@ap0nia/rspress-plugin-twoslash/style.css';
-@import '@ap0nia/rspress-plugin-twoslash/styles/line-numbers.css';
+/* @import '@ap0nia/rspress-plugin-twoslash/styles/line-numbers.css'; */
 
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
@@ -260,14 +260,6 @@ div[class^='docLayout'] {
 
   div[class^='language-'] {
     margin: 0;
-
-    code {
-      background: none;
-
-      .line::before {
-        content: none;
-      }
-    }
   }
 
   & > div {
