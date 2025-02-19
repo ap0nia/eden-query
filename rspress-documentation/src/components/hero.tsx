@@ -2,6 +2,10 @@ import { useRef, useState } from 'react'
 
 import { Ray } from '@/components/ray'
 import { Tree, TreeItem } from '@/components/ui/tree'
+import A from '@/snippets/a.mdx'
+import B from '@/snippets/b.mdx'
+import C from '@/snippets/c.mdx'
+import D from '@/snippets/d.mdx'
 import { cn } from '@/utils/cn'
 
 export type HeroProps = {
@@ -33,6 +37,8 @@ export function Hero(props: HeroProps) {
     setCopied(false)
   }
 
+  const [tab, setTab] = useState('/server/server.js')
+
   return (
     <div
       className="flex w-full flex-col gap-12"
@@ -46,10 +52,29 @@ export function Hero(props: HeroProps) {
           className="gradient pointer-events-none absolute top-[-70vh] block h-screen w-full max-w-full justify-center opacity-25"
         ></div>
 
-        <Tree>
-          <TreeItem value="ITEM 1" />
-          <TreeItem value="ITEM 2" />
+        <Tree
+          root
+          onChange={(_e, v) => {
+            setTab(v)
+          }}
+        >
+          Project
+          <Tree value="/server">
+            Server
+            <TreeItem value="/server.js">server.js</TreeItem>
+            <TreeItem value="/index.js">index.js</TreeItem>
+          </Tree>
+          <Tree value="/client">
+            Client
+            <TreeItem value="/app.jsx">App.jsx</TreeItem>
+            <TreeItem value="/eden.ts">eden.ts</TreeItem>
+          </Tree>
         </Tree>
+
+        {tab === '/server/server.js' && <A />}
+        {tab === '/server/index.js' && <B />}
+        {tab === '/client/app.jsx' && <C />}
+        {tab === '/client/eden.ts' && <D />}
 
         <img
           src="/assets/elysia_v.webp"
