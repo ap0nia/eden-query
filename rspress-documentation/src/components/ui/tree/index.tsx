@@ -12,20 +12,32 @@ export interface TreeItemProps extends React.HTMLAttributes<HTMLLIElement> {
 const TreeItem = forwardRef<HTMLLIElement, TreeItemProps>((props, ref) => {
   const { asChild, children, className, value, ...restProps } = props
 
-  const { prefix, handleToggleItem } = useContext(treeContext)
+  const { prefix, onChange, onCheckChanged, checked } = useContext(treeContext)
 
   const Component = asChild ? Slot : 'li'
 
+  const prefixedValue = `${prefix}${value}`
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    handleToggleItem?.(event, `${prefix}${value}`)
+    onChange?.(event, prefixedValue)
   }
 
+  const handleCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onCheckChanged(e, prefixedValue)
+  }
+
+  const inputChecked = checked.includes(prefixedValue)
+
   return (
-    <Component ref={ref} {...restProps}>
-      <button
-        className={cn(className, 'btn btn-ghost btn-sm', 'text-normal')}
-        onClick={handleClick}
-      >
+    <Component ref={ref} {...restProps} className={cn('flex items-center gap-1', className)}>
+      <input
+        type="checkbox"
+        className="check check-sm"
+        checked={inputChecked}
+        onChange={handleCheck}
+      />
+
+      <button className={cn('btn btn-ghost btn-sm', 'text-normal')} onClick={handleClick}>
         {children}
       </button>
     </Component>
@@ -37,6 +49,7 @@ TreeItem.displayName = 'TreeItem'
 export type TreeProps = Omit<React.HTMLAttributes<HTMLElement>, 'onChange'> & {
   asChild?: boolean
   onChange?: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, value: string) => any
+  onCheckChanged?: (e: React.ChangeEvent<HTMLInputElement>, value: string) => any
 } & (RootTreeProps | LeafTreeProps)
 
 export type RootTreeProps = {
@@ -50,25 +63,38 @@ export type LeafTreeProps = {
 }
 
 export interface TreeContext {
-  handleToggleItem: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, value: string) => any
+  onChange: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, value: string) => any
+  onCheckChanged: (e: React.ChangeEvent<HTMLInputElement>, value: string) => any
   level: number
   prefix: string
+  checked: string[]
 }
 
 const treeContext = createContext<TreeContext>({
-  handleToggleItem: (_event, _value) => {},
+  onChange: (_event, _value) => {},
+  onCheckChanged: (_event, _value) => {},
+  checked: [],
   level: 0,
   prefix: '',
 })
 
 const Tree = forwardRef<HTMLDivElement, TreeProps>((props, ref) => {
-  const { asChild, children, className, root, onChange, value = '', ...restProps } = props
+  const {
+    asChild,
+    children,
+    className,
+    root,
+    onChange,
+    // onCheckChanged,
+    value = '',
+    ...restProps
+  } = props
 
   const context = useContext(treeContext)
 
   const Component = asChild ? Slot : 'div'
 
-  const valueWithPrefix = `${context.prefix}${value}`
+  const prefix = `${context.prefix}${value}`
 
   const treeChildren =
     Children.map(children, (child) => {
@@ -85,28 +111,43 @@ const Tree = forwardRef<HTMLDivElement, TreeProps>((props, ref) => {
 
   const defaultOpenChildrenValues = treeChildren
     .map((child) => {
-      return `${valueWithPrefix}${child.props['value']}`
+      return `${prefix}${child.props['value']}`
     })
     .filter(Boolean)
 
-  const [open, setOpen] = useState([...defaultOpenChildrenValues, valueWithPrefix])
+  const [open, setOpen] = useState([...defaultOpenChildrenValues, prefix])
 
-  const handleToggleItem: TreeContext['handleToggleItem'] = (event, id) => {
-    console.log({ id })
+  const [checked, setChecked] = useState<string[]>([])
 
+  const handleCheckChanged: TreeContext['onCheckChanged'] = (event, id) => {
+    if (root) {
+      setChecked((checked) => {
+        if (checked.includes(id)) {
+          return checked.filter((c) => c !== id)
+        } else {
+          return [...checked, id]
+        }
+      })
+      // onCheckChanged?.(event, id)
+    } else {
+      context.onCheckChanged(event, id)
+    }
+  }
+
+  const handleChange: TreeContext['onChange'] = (event, id) => {
     if (root) {
       onChange?.(event, id)
     } else {
-      context.handleToggleItem(event, id)
+      context.onChange(event, id)
     }
   }
 
   const handleToggleTree = () => {
     setOpen((open) => {
-      if (open.includes(valueWithPrefix)) {
-        return open.filter((v) => v !== valueWithPrefix)
+      if (open.includes(prefix)) {
+        return open.filter((v) => v !== prefix)
       } else {
-        return [...open, valueWithPrefix]
+        return [...open, prefix]
       }
     })
   }
@@ -115,30 +156,40 @@ const Tree = forwardRef<HTMLDivElement, TreeProps>((props, ref) => {
 
   const level = root ? context.level + Number(Boolean(trigger)) : context.level + 1
 
-  const shouldShow = open.includes(valueWithPrefix)
+  const shouldShow = open.includes(prefix)
 
   return (
-    <treeContext.Provider value={{ handleToggleItem, level, prefix: valueWithPrefix }}>
+    <treeContext.Provider
+      value={{
+        onChange: handleChange,
+        checked: root ? checked : context.checked,
+        onCheckChanged: handleCheckChanged,
+        level,
+        prefix,
+      }}
+    >
       <Component className={cn(className, 'space-y-2')} ref={ref} {...restProps}>
         {trigger && (
-          <button
-            onClick={handleToggleTree}
-            className={cn('btn btn-ghost btn-sm w-full min-w-fit justify-start', root && '-ml-4')}
-          >
-            <span
-              className={cn(
-                'icon-[mdi--expand-more] transition-transform',
-                !shouldShow && 'rotate-180',
-              )}
-            ></span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={handleToggleTree}
+              className={cn('btn btn-ghost btn-sm w-full min-w-fit justify-start', root && '-ml-4')}
+            >
+              <span
+                className={cn(
+                  'icon-[mdi--expand-more] transition-transform',
+                  !shouldShow && 'rotate-180',
+                )}
+              ></span>
 
-            <span className={cn('swap', shouldShow && 'swap-active')}>
-              <span className={cn('swap-off', 'icon-[mdi--folder]')}></span>
-              <span className={cn('swap-on', 'icon-[mdi--folder-open]')}></span>
-            </span>
+              <span className={cn('swap', shouldShow && 'swap-active')}>
+                <span className={cn('swap-off', 'icon-[mdi--folder]')}></span>
+                <span className={cn('swap-on', 'icon-[mdi--folder-open]')}></span>
+              </span>
 
-            {trigger}
-          </button>
+              {trigger}
+            </button>
+          </div>
         )}
 
         <AnimatePresence>
