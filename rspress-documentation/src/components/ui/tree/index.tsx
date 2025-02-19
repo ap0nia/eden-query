@@ -153,7 +153,10 @@ const Tree = forwardRef<HTMLDivElement, TreeProps>((props, ref) => {
                 collapsed: { opacity: 0, height: 0 },
               }}
               transition={{ ease: 'easeInOut' }}
-              className={cn('flex gap-2', level > 1 ? 'ml-[1.25rem]' : 'ml-[0.25rem]')}
+              className={cn(
+                'flex gap-2 overflow-hidden',
+                level > 1 ? 'ml-[1.25rem]' : 'ml-[0.25rem]',
+              )}
             >
               <div className="divider divider-horizontal mx-0 w-0 pb-3"></div>
 
