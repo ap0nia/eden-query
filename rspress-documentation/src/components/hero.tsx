@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 
-import { Ray } from '../components/ray'
-import { cn } from '../utils/cn'
+import { Ray } from '@/components/ray'
+import { cn } from '@/utils/cn'
+import { Tree, TreeItem } from '@/components/ui/tree'
 
 export type HeroProps = {
   children?: React.ReactNode
@@ -44,6 +45,11 @@ export function Hero(props: HeroProps) {
           id="splash"
           className="gradient pointer-events-none absolute top-[-70vh] block h-screen w-full max-w-full justify-center opacity-25"
         ></div>
+
+        <Tree>
+          <TreeItem value="ITEM 1" />
+          <TreeItem value="ITEM 2" />
+        </Tree>
 
         <img
           src="/assets/elysia_v.webp"

@@ -13,6 +13,7 @@
     "@ap0nia/eden-svelte-query": "workspace:^",
     "@ap0nia/rspress-plugin-twoslash": "workspace:^",
     "@elysiajs/eden": "1.1.0",
+    "@radix-ui/react-slot": "^1.1.2",
     "@rspress/theme-default": "1.41.3",
     "@tanstack/react-query": "^5.66.0",
     "@tanstack/svelte-query": "^5.66.0",

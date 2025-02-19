@@ -4,10 +4,11 @@ import path from 'node:path'
 
 import ci from 'ci-info'
 import { defineConfig } from 'rspress/config'
-import { pluginShiki } from '@rspress/plugin-shiki'
+import { ModuleResolutionKind } from 'typescript'
 
 import { rspressPluginTwoslash } from '@ap0nia/rspress-plugin-twoslash'
 import { createFileSystemTypesCache } from '@ap0nia/rspress-plugin-twoslash/cache-fs'
+import { pluginShiki } from '@rspress/plugin-shiki'
 
 import { repository } from '../package.json'
 
@@ -35,6 +36,9 @@ const config = defineConfig({
     rspressPluginTwoslash({
       typesCache: createFileSystemTypesCache({ dir: '.twoslash' }),
       twoslashOptions: {
+        compilerOptions: {
+          moduleResolution: ModuleResolutionKind.Bundler,
+        },
         customTags: ['annotate', 'log', 'warn', 'error'],
       },
     }),
