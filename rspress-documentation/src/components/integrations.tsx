@@ -3,7 +3,7 @@ import { formatRgb, interpolate } from 'culori'
 import { motion, useInView } from 'motion/react'
 import { useRef, useState } from 'react'
 
-import E2E from '@/docs/snippets/e2e.mdx'
+import E2E from '@/snippets/e2e.mdx'
 import { cn } from '@/utils/cn'
 
 function formatRgb255(color: Rgb) {

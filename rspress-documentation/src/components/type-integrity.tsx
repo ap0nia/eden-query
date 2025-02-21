@@ -2,9 +2,9 @@ import type { Variants } from 'motion/react'
 import { AnimatePresence, motion, useInView } from 'motion/react'
 import { useRef, useState } from 'react'
 
-import Input from '@/docs/snippets/type-safety/input.mdx'
-import Macros from '@/docs/snippets/type-safety/macros.mdx'
-import Output from '@/docs/snippets/type-safety/output.mdx'
+import Input from '@/snippets/type-safety/input.mdx'
+import Macros from '@/snippets/type-safety/macros.mdx'
+import Output from '@/snippets/type-safety/output.mdx'
 import { cn } from '@/utils/cn'
 
 const tabs = [

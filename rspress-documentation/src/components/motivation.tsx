@@ -1,7 +1,7 @@
 import { useInView } from 'motion/react'
 import { useRef } from 'react'
 
-import Demo from '@/docs/snippets/demo.mdx'
+import Demo from '@/snippets/demo.mdx'
 import { cn } from '@/utils/cn'
 
 export function Motivation() {

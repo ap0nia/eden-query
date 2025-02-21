@@ -1,7 +1,7 @@
 import { useInView } from 'motion/react'
 import { useRef } from 'react'
 
-import Swagger from '@/docs/snippets/swagger.mdx'
+import Swagger from '@/snippets/swagger.mdx'
 import { cn } from '@/utils/cn'
 
 export function Documentation() {

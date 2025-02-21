@@ -331,17 +331,21 @@ const config = defineConfig({
     ],
     nav: [
       {
-        text: 'Cheat Sheet',
-        link: '/integrations/cheat-sheet',
+        text: 'Eden-Query',
+        link: '/eden-query',
       },
-      {
-        text: 'Plugins',
-        link: '/plugins/overview',
-      },
-      {
-        text: 'Blog',
-        link: '/blog',
-      },
+      // {
+      //   text: 'Cheat Sheet',
+      //   link: '/integrations/cheat-sheet',
+      // },
+      // {
+      //   text: 'Plugins',
+      //   link: '/plugins/overview',
+      // },
+      // {
+      //   text: 'Blog',
+      //   link: '/blog',
+      // },
     ],
   },
 })
