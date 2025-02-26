@@ -44,8 +44,8 @@ export function rspressPluginTwoslash(options = {}) {
   if (typesCache) {
     twoslasher = /** @type typeof twoslasher */ (
       (code, extension, options) => {
-        const cached = typesCache.read(code) // Restore cache
-        if (cached) return cached
+        // const cached = typesCache.read(code) // Restore cache
+        // if (cached) return cached
         const twoslashResult = defaultTwoslasher(code, extension, options)
         typesCache.write(code, twoslashResult)
         return twoslashResult
@@ -112,6 +112,8 @@ export function rspressPluginTwoslash(options = {}) {
       config.markdown ??= {}
       config.markdown.codeHighlighter = 'shiki'
       config.markdown.mdxRs = false
+
+      config.markdown.remarkPlugins ??= []
 
       config.markdown.rehypePlugins ??= []
       config.markdown.rehypePlugins.push(...rehypePlugins)

@@ -3,7 +3,7 @@ title: Overview
 titleSuffix: Eden-Query - Elysia.js
 ---
 
-import { Tab, Tabs } from 'rspress/theme';
+import { Tab, Tabs } from '@theme';
 
 import { Integration } from '../../src/components/integration'
 
@@ -75,6 +75,23 @@ See the [`examples` directory](https://github.com/ap0nia/eden-query/tree/main/ex
 Eden-Query offers two implementations, [fetch](#fetch) and [treaty](#treaty),
 just like the official eden library.
 
+<Tabs>
+  <Tab label="treaty">
+
+```typescript
+eden.greeting({ name: 'Elysia' }).get.createQuery()
+```
+
+  </Tab>
+
+  <Tab label="fetch">
+
+```typescript
+eden.createQuery('/greeting/:name', { method: 'GET', params: { name: 'Elysia' } })
+```
+  </Tab>
+</Tabs>
+
 ### Fetch (WIP)
 
 - Tanstack-query hooks are exposed at the root of the proxy.
@@ -94,7 +111,7 @@ This has not been implemented for any framework yet...
 
 #### Example Application
 
-```typescript twoslash include eq-index-application title="server.ts"
+```typescript twoslash include eq-index-application title=server.ts
 import { Elysia, t } from 'elysia'
 
 const app = new Elysia()
@@ -123,9 +140,7 @@ export type App = typeof app
 
 A React client application cna use the hooks from Eden-Query to manage asynchronous state from the Elysia server application.
 
-::: code-group
-
-```typescript twoslash [index.ts]
+```typescript twoslash title=index.ts
 // @filename: server.ts
 // @include: eq-index-application
 
@@ -159,8 +174,6 @@ mutateAsync({ name: 'Skadi', from: 'Arknights' }).then((result) => {
   // ^?
 })
 ```
-
-:::
 
 ::: tip
 `useMutation` does not actually perform the request.
@@ -216,9 +229,7 @@ or `edenPlugin` with the `batch` property defined.
 
 **Elysia.js application with batching enabled**
 
-::: code-group
-
-```typescript twoslash include eq-index-batch-application [server.ts]
+```typescript twoslash include eq-index-batch-application title=server.ts
 import { Elysia, t } from 'elysia'
 import { edenPlugin } from '@ap0nia/eden-react-query/server'
 
@@ -227,13 +238,9 @@ const app = new Elysia().use(edenPlugin({ batch: true }))
 export type App = typeof app
 ```
 
-:::
-
 **React-Query Batch Client**
 
-::: code-group
-
-```typescript twoslash [index.ts]
+```typescript twoslash title=index.ts
 // @filename: server.ts
 // @include: eq-index-batch-application
 
@@ -254,8 +261,6 @@ const clientOne = eden.createClient({
 
 const clientTwo = eden.createHttpBatchClient({ domain })
 ```
-
-:::
 
 ### Transformers
 

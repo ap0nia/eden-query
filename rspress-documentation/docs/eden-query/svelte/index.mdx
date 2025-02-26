@@ -1,0 +1,84 @@
+---
+title: Eden-Svelte-Query - ElysiaJS
+head:
+  - - meta
+    - property: 'og:title'
+      content: Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - name: 'description'
+      content: Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - property: 'og:description'
+      content: Eden-Svelte-Query - ElysiaJS
+---
+
+import Server from '@/snippets/apps/server-1.mdx'
+import Client from '@/snippets/apps/svelte-client-1.mdx'
+
+# Eden-Svelte-Query
+
+Eden-Svelte-Query offers a first class integration with Svelte.
+Under the hood this is simply a wrapper around the very popular [@tanstack/svelte-query](https://tanstack.com/query/latest),
+so we recommend that you familiarise yourself with Svelte Query,
+as their docs go in to much greater depth on its usage.
+
+:::tip
+If you are using SvelteKit we recommend using [our integration with that](../sveltekit) instead
+
+(WIP)
+:::
+
+:::note
+Svelte code-snippets may have an empty `<script lang="ts" context="module">` block
+or equivalent that is used to include other snippets through twoslash.
+
+Unless stated otherwise, assume that the code sample will work function the exact same
+without this extra block.
+:::
+
+### The Eden Svelte Query Integration
+
+This library enables usage directly within Svelte components
+
+#### Elysia Server Application
+
+<Server />
+
+#### Eden-Query Client
+
+<Client />
+
+
+```svelte twoslash title=+page.svelte
+<script lang="ts" module>
+  // @filename: eden.ts
+  // @include: apps-svelte-client-1
+
+  // @filename: page.ts
+  // ---cut---
+</script>
+
+<script lang="ts">
+  import { eden } from './eden'
+
+  const query = eden.index.get.createQuery()
+  const mutation = eden.id({ id: "Bob" }).post.createMutation()
+</script>
+
+<div>
+  <p>Query: {$query.data}</p>
+  <button on:click={() => $mutation.mutate({ id: "B", name: "Bob" })}>Mutation</button>
+</div>
+
+```
+
+### Differences to vanilla Svelte Query
+
+The wrapper abstracts some aspects of Svelte Query for you:
+
+- Query Keys - these are generated and managed by eden on your behalf, based on the procedure inputs you provide.
+  - If you need the query key which eden calculates, you can use [getQueryKey](./getQueryKey).
+- Type safe by default - the types you provide in your Elysia Backend also drive the types of your Svelte Query client,
+  providing safety throughout your Svelte app.

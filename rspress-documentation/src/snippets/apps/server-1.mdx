@@ -1,16 +1,28 @@
-```ts twoslash include apps-server-1
+```ts twoslash include apps-server-1 title=server.ts
 import { Elysia, t } from 'elysia'
 
+const data: Record<string, unknown> = {}
+
 const app = new Elysia()
-    .get('/', () => 'Hi Elysia')
-    .get('/id/:id', ({ params: { id } }) => id)
-    .post('/mirror', ({ body }) => body, {
-        body: t.Object({
-            id: t.Number(),
-            name: t.String()
-        })
+    .get('/', () => {
+      return 'Hello, Elysia'
     })
-    .listen(3000)
+    .get('/id/:id', ({ params: { id } }) => {
+      return data[id]
+    })
+    .post('/id/:id', async ({ body, params: { id } }) => {
+      data[id] = body
+
+      return data[id]
+    }, {
+      body: t.Object({
+        id: t.Number(),
+        name: t.String()
+      })
+    })
+    .delete('/id/:id', async ({ params: { id } }) => {
+      delete data[id]
+    })
 
 export type App = typeof app
 ```

@@ -40,7 +40,6 @@ export function safeTransformPlugin<T extends DataTransformerOptions>(transforme
     elysia: Elysia<BasePath>,
   ): Elysia<
     BasePath,
-    false,
     {
       decorator: {}
       store: Record<typeof EdenQueryStoreKey, { transformer: T }>

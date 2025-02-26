@@ -191,7 +191,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const queryClient = context.queryClient ?? useQueryClient()
 
-    const hook = __useSuspenseQuery(queryOptions, queryClient) as HookResult
+    const hook = __useSuspenseQuery(queryOptions as any, queryClient) as HookResult
 
     const { paths } = parsed
 
@@ -239,7 +239,7 @@ export function createEdenTreatyQueryRootHooks<
 
     const queryClient = context.queryClient ?? useQueryClient()
 
-    const hook = __useSuspenseInfiniteQuery(queryOptions, queryClient) as HookResult
+    const hook = __useSuspenseInfiniteQuery(queryOptions as any, queryClient) as HookResult
 
     const { paths } = parsed
 
