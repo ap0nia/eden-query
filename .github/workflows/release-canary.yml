@@ -1,0 +1,52 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+---
+name: Release canary packages
+
+on:
+  push:
+    branches:
+      - canary
+
+jobs:
+  publish:
+    name: Publish canary packages to NPM
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    env:
+      RAW_COMMIT_MESSAGE: 'chore: release canary package(s)'
+
+    steps:
+      - name: ⏬ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🕺 Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: 🔨 Build
+        run: pnpm build --filter !@elysiajs/documentation
+
+      - name: ✏️ Generate commit message
+        id: devmoji
+        run: |
+          MESSAGE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(env.RAW_COMMIT_MESSAGE) }})
+          echo "MESSAGE=$MESSAGE" >> $GITHUB_OUTPUT
+
+      - name: 🚀 Create pull request or publish to npm
+        uses: changesets/action@v1
+        id: changesets
+        with:
+          version: pnpm changeset version --snapshot canary
+          publish: pnpm changeset publish
+          commit: ${{ steps.devmoji.outputs.MESSAGE }}
+          title: ${{ steps.devmoji.outputs.MESSAGE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
