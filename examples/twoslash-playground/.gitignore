@@ -6,7 +6,7 @@
 # Dist
 node_modules
 dist/
-doc_build/
+build/
 
 # IDE
 .vscode/*

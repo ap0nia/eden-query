@@ -67,7 +67,7 @@
       "skipDefaultLibCheck": true,
       "skipLibCheck": true,
       "moduleDetection": 3,
-      "baseUrl": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/",
+      "baseUrl": "/home/brian/Projects/typescript/eden-query/examples/twoslash-playground/",
       "moduleResolution": 100,
       "types": [
         "../node_modules/svelte2tsx/svelte-jsx",
@@ -92,7 +92,7 @@
       {
         "offset": 0,
         "filename": "index.tsx",
-        "filepath": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/index.tsx",
+        "filepath": "/home/brian/Projects/typescript/eden-query/examples/twoslash-playground/index.tsx",
         "content": "///<reference types=\"svelte\" />\n;\n                                                                     \n\n",
         "extension": "tsx",
         "supportLsp": true
@@ -100,7 +100,7 @@
       {
         "offset": 105,
         "filename": "src/server/index.ts",
-        "filepath": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/src/server/index.ts",
+        "filepath": "/home/brian/Projects/typescript/eden-query/examples/twoslash-playground/src/server/index.ts",
         "content": "// @filename: src/server/index.ts\nexport const app = {}\n\n",
         "extension": "ts",
         "supportLsp": true
@@ -108,7 +108,7 @@
       {
         "offset": 162,
         "filename": "src/lib/eden.ts",
-        "filepath": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/src/lib/eden.ts",
+        "filepath": "/home/brian/Projects/typescript/eden-query/examples/twoslash-playground/src/lib/eden.ts",
         "content": "// @filename: src/lib/eden.ts\nimport { app } from '$server'\n\nexport const hello = \"Hello, Eden\"\nexport { app }\n\n",
         "extension": "ts",
         "supportLsp": true
@@ -116,7 +116,7 @@
       {
         "offset": 274,
         "filename": "src/routes/+page.ts",
-        "filepath": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/src/routes/+page.ts",
+        "filepath": "/home/brian/Projects/typescript/eden-query/examples/twoslash-playground/src/routes/+page.ts",
         "content": "// @filename: src/routes/+page.ts\n// ---cut---\n;;\n\nimport { app, hello } from '$lib/eden';\nfunction render() {\n\n  \n\n  console.log(hello)\n;\nasync () => {\n\n\n\n { svelteHTML.createElement(\"div\", {});hello; }};\nreturn { props: /** @type {Record<string, never>} */ ({}), exports: {}, bindings: \"\", slots: {}, events: {} }}\nconst $$Component = __sveltets_2_isomorphic_component(__sveltets_2_partial(__sveltets_2_with_any_event(render())));\n/*Ωignore_startΩ*/type $$Component = InstanceType<typeof $$Component>;\n/*Ωignore_endΩ*/export default $$Component;",
         "extension": "ts",
         "supportLsp": true

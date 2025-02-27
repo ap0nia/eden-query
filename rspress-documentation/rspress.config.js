@@ -284,9 +284,9 @@ const config = defineConfig({
                   docFooterText: 'createInfiniteQuery',
                 },
                 {
-                  text: 'useUtils()',
-                  link: '/eden-query/svelte/useUtils',
-                  docFooterText: 'useUtils',
+                  text: 'getUtils()',
+                  link: '/eden-query/svelte/getUtils',
+                  docFooterText: 'getUtils',
                 },
                 {
                   text: 'createUtils()',

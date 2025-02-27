@@ -51,27 +51,25 @@ This library enables usage directly within Svelte components
 <Client />
 
 
-```svelte twoslash title=+page.svelte
+```svelte twoslash title=src/routes/+page.svelte
 <script lang="ts" module>
-  // @filename: eden.ts
-  // @include: apps-svelte-client-1
+// @include: apps-svelte-client-1
 
-  // @filename: page.ts
-  // ---cut---
+// @filename: src/routes/+page.ts
+// ---cut---
 </script>
 
 <script lang="ts">
-  import { eden } from './eden'
+  import { eden } from '$lib/eden'
 
   const query = eden.index.get.createQuery()
-  const mutation = eden.id({ id: "Bob" }).post.createMutation()
+  const mutation = eden.posts({ id: "Bob" }).post.createMutation()
 </script>
 
 <div>
   <p>Query: {$query.data}</p>
-  <button on:click={() => $mutation.mutate({ id: "B", name: "Bob" })}>Mutation</button>
+  <button on:click={() => $mutation.mutate({ id: "1", message: "Hello, World!" })}>Mutation</button>
 </div>
-
 ```
 
 ### Differences to vanilla Svelte Query

@@ -1,0 +1,97 @@
+---
+title: Inferring Types Eden-Svelte-Query - ElysiaJS
+head:
+  - - meta
+    - property: 'og:title'
+      content: Inferring Types Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - name: 'description'
+      content: Inferring Types Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - property: 'og:description'
+      content: Inferring Types Eden-Svelte-Query - ElysiaJS
+---
+
+import Server from '@/snippets/apps/server-1.mdx'
+import Client from '@/snippets/apps/svelte-client-1.mdx'
+
+# Inferring Types
+
+1. Create Elysia application
+
+<Server />
+
+2. Initialize Eden-Query Hooks and Types
+
+::: tip
+`InferRouteOptions`: gets the `query` and `params` required for the route.
+
+`InferRouteBody`: gets the `body` required for the route, e.g. POST, PATCH, etc. endpoints.
+:::
+
+```typescript twoslash include eq-svelte-client-infer title=src/lib/eden.ts
+// @noErrors
+// @paths: { "$lib/*": ["./src/lib/*"], "$server": ["./src/server"], "$server/*": ["./src/server/*"] }
+
+// @filename: src/server/index.ts
+// @include: apps-svelte-server-1
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import type { App } from '$server/index'
+import {
+  createEdenTreatySvelteQuery,
+  type InferTreatyQueryInput,
+  type InferTreatyQueryOutput,
+} from '@ap0nia/eden-svelte-query'
+
+export const eden = createEdenTreatySvelteQuery<App>()
+
+export type InferInput = InferTreatyQueryInput<App>
+
+export type InferOutput = InferTreatyQueryOutput<App>
+
+type A = InferInput['posts']['
+                           // ^|
+
+
+type B = InferInput['posts'][':id']['
+                                  // ^|
+
+
+
+
+
+
+type C = InferInput['posts'][':id']['get']
+
+type PrettifiedInput = { [K in keyof C]: C[K] }
+
+type InputQuery = PrettifiedInput['query']
+
+type InputParams = PrettifiedInput['params']
+```
+
+3. Use inference helpers
+
+```svelte twoslash title=src/routes/+page.svelte
+<script lang="ts" module>
+// @include: apps-svelte-client-1
+
+// @filename: src/routes/+page.ts
+// ---cut---
+</script>
+
+<script lang="ts">
+  import { writable } from 'svelte/store'
+  import { eden, type InferInput } from '$lib/eden'
+
+  const input = writable({ id: '' })
+
+  const post = eden.posts(input).get.createQuery()
+</script>
+
+<input bind:value={$input.id}>
+```

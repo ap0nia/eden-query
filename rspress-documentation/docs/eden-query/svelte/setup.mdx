@@ -94,7 +94,7 @@ export const load = async (event: RequestEvent) => {
 ### 5. Initialize Eden-Query Providers.
 
 ```svelte twoslash title=src/routes/+layout.svelte
-<script lang="ts" context="module">
+<script lang="ts" module>
 // @filename: $types.ts
 export type PageData = any
 
@@ -132,7 +132,7 @@ You can now use the eden-treaty React Query integration to call queries and muta
 <script lang="ts" module>
 // @include: apps-svelte-client-1
 
-// @filename: page.ts
+// @filename: src/routes/+page.ts
 // ---cut---
 </script>
 
@@ -140,11 +140,11 @@ You can now use the eden-treaty React Query integration to call queries and muta
   import { eden } from '$lib/eden'
 
   const query = eden.index.get.createQuery()
-  const mutation = eden.id({ id: "Bob" }).post.createMutation()
+  const mutation = eden.posts({ id: "Bob" }).post.createMutation()
 </script>
 
 <div>
   <p>Query: {$query.data}</p>
-  <button on:click={() => $mutation.mutate({ id: "B", name: "Bob" })}>Mutation</button>
+  <button on:click={() => $mutation.mutate({ id: "1", message: "Hello, World!" })}>Mutation</button>
 </div>
 ```

@@ -1,0 +1,90 @@
+---
+title: Aborting Eden-Svelte-Query - ElysiaJS
+head:
+  - - meta
+    - property: 'og:title'
+      content: Aborting Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - name: 'description'
+      content: Aborting Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - property: 'og:description'
+      content: Aborting Eden-Svelte-Query - ElysiaJS
+---
+
+import Server from '@/snippets/apps/server-1.mdx'
+import Client from '@/snippets/apps/svelte-client-1.mdx'
+
+# Aborting
+
+By default, Eden-Query does not cancel requests via Svelte Query.
+If you want to opt into this behaviour, you can provide `abortOnUnmount` in your configuration.
+
+:::info
+@tanstack/svelte-query only supports aborting queries.
+:::
+
+:::tip
+Although this property is named `abortOnUnmount`, it actually means "forward signal from tanstack-query".
+tanstack-query's signal facilitates **_additional_** functionality such as cancelling requests
+if there's already a duplicate in-progress.
+This has been discussed within tRPC [here](https://github.com/trpc/trpc/issues/4448).
+:::
+
+### Setup
+
+#### Elysia Server Application
+
+<Server />
+
+#### Eden-Query Hooks
+
+<Client />
+
+### Globally
+
+```typescript twoslash title=src/lib/eden.ts
+// @paths: { "$lib/*": ["./src/lib/*"], "$server": ["./src/server"], "$server/*": ["./src/server/*"] }
+
+// @filename: src/server/index.ts
+// @include: apps-svelte-server-1
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import { createEdenTreatySvelteQuery } from '@ap0nia/eden-svelte-query'
+import type { App } from '$server/index'
+
+export const eden = createEdenTreatySvelteQuery<App>({
+  abortOnUnmount: true,
+})
+```
+
+### Per-request
+
+You may also override this behaviour at the query level.
+
+```svelte twoslash title=src/routes/+page.svelte
+<script lang="ts" module>
+// @filename: $types.ts
+export type PageData = any
+
+// @include: apps-svelte-client-1
+
+// @filename: +page.ts
+// ---cut---
+</script>
+
+<script lang="ts">
+  import { eden } from '$lib/eden'
+  import type { PageData } from './$types'
+
+  export let data: PageData
+
+  const query = eden.posts({ id: data.id }).get.createQuery(undefined, {
+    eden: { abortOnUnmount: true }
+  })
+</script>
+
+```

@@ -181,7 +181,7 @@ export type EdenTreatySvelteQueryHooksPathParameterHook<
 > = {} extends TRouteParams
   ? {}
   : (
-      params: ExtractEdenTreatyRouteParamsInput<TRouteParams>,
+      params: StoreOrVal<ExtractEdenTreatyRouteParamsInput<TRouteParams>>,
     ) => EdenTreatySvelteQueryHooksProxy<TSchema[Extract<keyof TRouteParams, keyof TSchema>], TPath>
 
 /**

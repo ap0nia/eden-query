@@ -21,6 +21,7 @@ import type {
   QueryOptions,
 } from '@tanstack/svelte-query'
 import type { AnyElysia, RouteSchema } from 'elysia'
+import type { Readable } from 'svelte/store'
 
 import type { EdenQueryConfig } from '../../config'
 import type { CreateQueryOptionsForCreateQueries } from '../../integration/internal/create-query-options-for-create-queries'
@@ -36,7 +37,7 @@ export type EdenTreatySvelteQueryCreateQueries<T extends AnyElysia> = <
   TCombinedResult = QueriesResults<TData>,
 >(
   callback: (t: EdenTreatySvelteQueryCreateQueriesProxy<T>) => readonly [...QueriesOptions<TData>],
-) => TCombinedResult
+) => Readable<TCombinedResult>
 
 /**
  * RPC proxy derived from {@link AnyElysia._routes} that generates query options for `createQueries`.
@@ -62,10 +63,8 @@ export type EdenTreatySvelteQueryCreateQueriesProxyMapping<
   TSchema extends Record<string, any>,
   TPath extends any[] = [],
   TRouteParams = ExtractEdenTreatyRouteParams<TSchema>,
-> = {
-  [K in keyof TSchema]: EdenTreatySvelteQueryCreateQueriesPathHooks<TSchema, TPath, TRouteParams> &
-    EdenTreatySvelteQueryCreateQueriesPathParameterHook<TSchema, TPath, TRouteParams>
-}
+> = EdenTreatySvelteQueryCreateQueriesPathHooks<TSchema, TPath, TRouteParams> &
+  EdenTreatySvelteQueryCreateQueriesPathParameterHook<TSchema, TPath, TRouteParams>
 
 /**
  * This intersects the object created by {@link EdenTreatySvelteQueryCreateQueriesPathHooks}
@@ -138,7 +137,7 @@ export type EdenTreatySvelteQueryCreateQueriesLeaf<
 export type EdenTreatySvelteQueryCreateQueriesQueryLeaf<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput extends InferRouteOptions<TRoute> = InferRouteOptions<TRoute>,
+  TInput = InferRouteOptions<TRoute>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath>,

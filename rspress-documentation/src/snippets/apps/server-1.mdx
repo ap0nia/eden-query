@@ -1,26 +1,32 @@
 ```ts twoslash include apps-svelte-server-1 title=src/server/index.ts
 import { Elysia, t } from 'elysia'
 
-const data: Record<string, unknown> = {}
+const postSchema = t.Object({
+  id: t.String(),
+  message: t.String(),
+})
+
+type Post = typeof postSchema.static
+
+const data: Record<string, Post> = {}
 
 const app = new Elysia()
-    .get('/', () => {
+    .get('/', async () => {
       return 'Hello, Elysia'
     })
-    .get('/id/:id', ({ params: { id } }) => {
+    .get('/posts', async () => {
+      return data
+    })
+    .get('/posts/:id', async ({ params: { id } }) => {
       return data[id]
     })
-    .post('/id/:id', async ({ body, params: { id } }) => {
+    .post('/posts/:id', async ({ body, params: { id } }) => {
       data[id] = body
-
       return data[id]
     }, {
-      body: t.Object({
-        id: t.Number(),
-        name: t.String()
-      })
+      body: postSchema
     })
-    .delete('/id/:id', async ({ params: { id } }) => {
+    .delete('/posts/:id', async ({ params: { id } }) => {
       delete data[id]
     })
 
