@@ -39,14 +39,11 @@ jobs:
           MESSAGE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(env.RAW_COMMIT_MESSAGE) }})
           echo "MESSAGE=$MESSAGE" >> $GITHUB_OUTPUT
 
-      - name: Ensure not pre-release
-        continue-on-error: true
-        run: pnpm changeset pre exit
-
       - name: 🚀 Create pull request or publish to npm
         uses: changesets/action@v1
         id: changesets
         with:
+          version: pnpm changeset pre exit || true && pnpm changeset version
           publish: pnpm changeset publish
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
