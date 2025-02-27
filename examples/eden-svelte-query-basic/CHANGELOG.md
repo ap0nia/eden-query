@@ -4,6 +4,13 @@
 
 ### Patch Changes
 
+- Updated dependencies [c0f3f36]
+  - @ap0nia/eden-svelte-query@1.6.1-canary
+
+## 0.0.39-canary
+
+### Patch Changes
+
 - Updated dependencies [7e797df]
   - @ap0nia/eden-svelte-query@1.6.1-canary
 
