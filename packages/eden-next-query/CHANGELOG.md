@@ -1,5 +1,14 @@
 # @ap0nia/eden-next-query
 
+## 1.4.4-canary
+
+### Patch Changes
+
+- 7e797df: testing canary workflow changes(1)
+- Updated dependencies [7e797df]
+  - @ap0nia/eden-react-query@1.6.1-canary
+  - @ap0nia/eden@1.6.1-canary
+
 ## 1.4.3
 
 ### Patch Changes

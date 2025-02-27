@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.6.1-canary
+
+### Patch Changes
+
+- 7e797df: testing canary workflow changes(1)
+
 ## 1.6.0
 
 ### Minor Changes
