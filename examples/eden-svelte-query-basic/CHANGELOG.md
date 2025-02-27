@@ -1,5 +1,12 @@
 # eden-svelte-query-basic
 
+## 0.0.39-canary.1
+
+### Patch Changes
+
+- Updated dependencies [9672d8c]
+  - @ap0nia/eden-svelte-query@1.6.1-canary.1
+
 ## 0.0.39-canary.0
 
 ### Patch Changes
