@@ -3,9 +3,10 @@
 name: Deploy Vitepress documentation to GitHub-Pages
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   build:
