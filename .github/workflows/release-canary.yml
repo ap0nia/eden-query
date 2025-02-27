@@ -43,7 +43,10 @@ jobs:
         uses: changesets/action@v1
         id: changesets
         with:
-          version: pnpm changeset version --snapshot canary
+          version: |
+            pnpm changeset pre exit
+            pnpm changeset pre enter canary
+            pnpm changeset version
           publish: pnpm changeset publish --tag canary
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
