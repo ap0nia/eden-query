@@ -1,6 +1,6 @@
 {
   "name": "eden-svelte-query-basic",
-  "version": "0.0.39-canary.1",
+  "version": "0.0.39",
   "private": true,
   "type": "module",
   "scripts": {

@@ -1,5 +1,14 @@
 # @ap0nia/eden-svelte-query
 
+## 1.6.1
+
+### Patch Changes
+
+- 9672d8c: feat: canary changeset for primary packages
+- 334b9b7: feat: changeset workflow changes 3
+- Updated dependencies [9672d8c]
+  - @ap0nia/eden@1.6.1
+
 ## 1.6.1-canary.1
 
 ### Patch Changes
