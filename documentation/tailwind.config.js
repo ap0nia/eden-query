@@ -1,22 +1,19 @@
 // @ts-check
 
+import animate from 'tailwindcss-animate'
 import daisyui from 'daisyui'
+
+import { addDynamicIconSelectors } from '@iconify/tailwind'
 
 /**
  * @type {import('tailwindcss').Config}
  */
 const config = {
-  content: [
-    'src/**/*.vue',
-    'docs/**/*.md',
-    'src/**/*.svelte',
-    'src/**/*.ts',
-    'docs/.vitepress/theme/*.vue',
-  ],
+  content: ['docs/**/*.md', 'docs/**/*.mdx', 'src/**/*.ts', 'src/**/*.tsx', 'theme/**/*.tsx'],
 
   darkMode: 'class',
 
-  plugins: [daisyui],
+  plugins: [animate, daisyui, addDynamicIconSelectors()],
 
   /**
    * @type {import('daisyui').Config}
@@ -24,10 +21,17 @@ const config = {
   daisyui: {
     themes: [
       {
-        elysia: {
-          primary: 'rgb(59 130 246)',
-          secondary: 'rgb(192 132 252)',
-          accent: 'rgb(240, 98, 146)',
+        light: {
+          primary: '#ff94c2',
+          // secondary: '',
+          // accent: '',
+          'base-100': '#FFFFFF',
+        },
+        dark: {
+          primary: '#ba2d65',
+          // secondary: '',
+          // accent: '',
+          'base-100': '#0f172a',
         },
       },
     ],
