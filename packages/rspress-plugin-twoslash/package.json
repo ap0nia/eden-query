@@ -1,6 +1,7 @@
 {
   "name": "@ap0nia/rspress-plugin-twoslash",
   "private": true,
+  "version": "0.1.0",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
   "exports": {
