@@ -1,0 +1,23 @@
+import Server1 from './server-1.mdx'
+
+```ts twoslash include apps-svelte-client-1 title=src/lib/eden.ts
+// @paths: { "$lib/*": ["./src/lib/*"], "$server": ["./src/server"], "$server/*": ["./src/server/*"] }
+
+// @filename: src/server/index.ts
+// @include: apps-svelte-server-1
+
+// @filename: src/lib/eden.ts
+// ---cut---
+import {
+  createEdenTreatySvelteQuery,
+  type InferTreatyQueryInput,
+  type InferTreatyQueryOutput,
+} from '@ap0nia/eden-svelte-query'
+import type { App } from '$server/index'
+
+export const eden = createEdenTreatySvelteQuery<App>()
+
+export type InferInput = InferTreatyQueryInput<App>
+
+export type InferOutput = InferTreatyQueryOutput<App>
+```

@@ -233,7 +233,6 @@ export function safeBatchPlugin(options?: BatchPluginOptions) {
     elysia: Elysia<BasePath>,
   ): Elysia<
     BasePath,
-    false,
     {
       decorator: {}
       store: Record<typeof EdenQueryStoreKey, { batch: true }>

@@ -1,0 +1,352 @@
+@import '@ap0nia/rspress-plugin-twoslash/style.css';
+/* @import '@ap0nia/rspress-plugin-twoslash/styles/line-numbers.css'; */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --rp-c-brand-1: #f06292;
+  --rp-c-brand-light: #ff94c2;
+  --rp-c-brand-dark: #ba2d65;
+  --rp-code-block-bg: #f6f8fa;
+  --rp-code-copy-code-bg: #dedede;
+  --rp-code-copy-code-hover-bg: #dedede;
+  --rp-c-text-dark-2: #8f8f8f;
+  --rp-c-text-dark-3: #8f8f8f;
+  --rp-sidebar-bg-color: var(--rp-c-bg);
+  --rp-custom-block-tip-border: transparent;
+  --rp-custom-block-tip-text: var(--rp-c-text-1);
+  --rp-nav-bg-color: color-mix(in srgb, var(--rp-c-bg) 95%, transparent);
+  --rp-custom-block-tip-bg: #ecfdf5;
+  --rp-custom-block-tip-border: #dcfce7;
+  --rp-custom-block-tip-text: #15803d;
+  --rp-c-brand-nav-active: color-mix(in srgb, var(--rp-c-brand-light) 15%, transparent 100%);
+  --rp-nav-logo-height: 28px;
+}
+
+.dark {
+  --rp-c-bg: #0f172a;
+  --rp-c-bg-alt: #111827;
+  --rp-c-bg-soft: #1e293b;
+  --rp-c-divider: #334155;
+  --rp-code-block-bg: #1e293b;
+  --rp-c-bg-alpha-with-backdrop: #1f2937bf;
+  --rp-code-copy-code-bg: #273345;
+  --rp-code-copy-code-hover-bg: #273345;
+  --rp-c-text-dark-2: #8a8a8a;
+  --rp-c-text-dark-3: #8a8a8a;
+  --rp-custom-block-tip-bg: #064e3b;
+  --rp-custom-block-tip-border: #052e16;
+  --rp-custom-block-tip-text: #f0fdf4;
+  --rp-c-brand-nav-active: color-mix(in srgb, var(--rp-c-brand-dark) 30%, transparent 100%);
+}
+
+.gradient {
+  width: 1100px;
+  height: 1100px;
+}
+
+.gradient {
+  background: radial-gradient(ellipse at center, #d7e0ff 0%, #eaecff 35%, transparent 70%);
+}
+
+.dark .gradient {
+  background: radial-gradient(ellipse at center, #797ee199 0%, transparent 70%);
+}
+
+#hero-get-started,
+#hero-copy {
+  @apply transform hover:scale-110 focus:scale-110;
+  transition: transform 0.35s cubic-bezier(0.68, -0.6, 0.32, 1.6);
+}
+
+@keyframes jumbo {
+  from {
+    background-position:
+      50% 50%,
+      50% 50%;
+  }
+
+  to {
+    background-position:
+      350% 50%,
+      350% 50%;
+  }
+}
+
+.jumbo {
+  --stripes: repeating-linear-gradient(
+    100deg,
+    #fff 0%,
+    #fff 7%,
+    transparent 10%,
+    transparent 12%,
+    #fff 16%
+  );
+
+  --stripesDark: repeating-linear-gradient(
+    100deg,
+    #000 0%,
+    #000 7%,
+    transparent 10%,
+    transparent 12%,
+    #000 16%
+  );
+
+  --rainbow: repeating-linear-gradient(100deg, #60a5fa 10%, #e879f9 16%, #5eead4 22%, #60a5fa 30%);
+
+  contain: strict;
+  contain-intrinsic-size: 100vw 40vh;
+
+  background-image: var(--stripes), var(--rainbow);
+
+  background-size: 300%, 200%;
+
+  background-position:
+    50% 50%,
+    50% 50%;
+
+  height: inherit;
+
+  /* Webkit GPU acceleration hack for some reason */
+  /* https://stackoverflow.com/a/21364496 */
+  -webkit-transform: translateZ(0);
+  -webkit-perspective: 1000;
+  -webkit-backface-visibility: hidden;
+
+  filter: invert(100%);
+  mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
+  pointer-events: none;
+}
+
+.jumbo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--stripes), var(--rainbow);
+  background-size: 200%, 100%;
+  mix-blend-mode: difference;
+}
+
+.-animate.jumbo::after {
+  animation: jumbo 90s linear infinite;
+}
+
+.-static.jumbo::after {
+  animation: unset !important;
+}
+
+.dark .jumbo {
+  background-image: var(--stripesDark), var(--rainbow);
+  filter: opacity(50%) saturate(200%);
+}
+
+.dark .jumbo::after {
+  background-image: var(--stripesDark), var(--rainbow);
+}
+
+/* THEME SWITCH */
+
+:root {
+  --switch-duration: 1.75s;
+  --switch-name: scale;
+}
+
+.-animated {
+  --switch-duration: 1s;
+  --switch-name: scale-fast;
+}
+
+.-animated {
+  --switch-duration: 1s;
+  --switch-name: scale-fast;
+}
+
+::view-transition-group(root) {
+  animation-timing-function: var(--expo-in);
+  z-index: 100;
+}
+
+.dark::view-transition-new(root) {
+  z-index: 9999;
+}
+
+::view-transition-new(root) {
+  mask: url('/public/assets/shigure-ui.webp') center / 0 no-repeat;
+  animation: var(--switch-name) var(--switch-duration);
+}
+
+::view-transition-old(root),
+.dark::view-transition-old(root) {
+  animation: var(--switch-name) var(--switch-duration);
+}
+
+@keyframes scale {
+  0% {
+    mask-size: 0;
+  }
+
+  10% {
+    mask-size: 50vmax;
+  }
+
+  90% {
+    mask-size: 50vmax;
+  }
+
+  100% {
+    mask-size: 2000vmax;
+  }
+}
+
+@keyframes scale-fast {
+  0% {
+    mask-size: 0;
+  }
+
+  10% {
+    mask-size: 50vmax;
+  }
+
+  80% {
+    mask-size: 50vmax;
+  }
+
+  100% {
+    mask-size: 2000vmax;
+  }
+}
+
+div[class^='docLayout'] {
+  position: unset;
+}
+
+.showcase {
+  @apply border bg-white sm:max-w-[30rem] dark:border-gray-700 dark:bg-gray-800;
+
+  box-shadow: 0 16px 40px rgba(0, 123, 255, 0.075);
+
+  background-image: radial-gradient(
+      closest-side at center,
+      rgba(255, 255, 255, 1) 70%,
+      transparent 150%
+    ),
+    radial-gradient(closest-side at center, rgba(255, 255, 255, 1) 90%, transparent 150%),
+    radial-gradient(at 9% 67%, hsla(223, 100%, 65%, 0.14) 0px, transparent 50%),
+    radial-gradient(at 22% 0%, hsla(210, 100%, 69%, 0.29) 0px, transparent 50%),
+    radial-gradient(at 97% 49%, hsla(240, 100%, 87%, 0.35) 0px, transparent 50%),
+    radial-gradient(at 100% 75%, hsla(280, 100%, 75%, 0.26) 0px, transparent 50%),
+    radial-gradient(at 75% 100%, hsla(22, 100%, 77%, 0.19) 0px, transparent 50%),
+    radial-gradient(at 40% 100%, hsla(240, 100%, 70%, 0.15) 0px, transparent 50%),
+    radial-gradient(at 72% 0%, hsla(343, 100%, 76%, 0.17) 0px, transparent 50%);
+
+  html.dark & {
+    box-shadow: 0 16px 40px rgba(0, 123, 255, 0.15);
+
+    background-image: radial-gradient(
+        closest-side at center,
+        theme(colors.gray.800) 35%,
+        transparent 140%
+      ),
+      radial-gradient(at 9% 67%, hsla(223, 100%, 65%, 0.14) 0px, transparent 50%),
+      radial-gradient(at 22% 0%, hsla(210, 100%, 69%, 0.29) 0px, transparent 50%),
+      radial-gradient(at 97% 49%, hsla(240, 100%, 87%, 0.35) 0px, transparent 50%),
+      radial-gradient(at 100% 75%, hsla(280, 100%, 75%, 0.26) 0px, transparent 50%),
+      radial-gradient(at 75% 100%, hsla(22, 100%, 77%, 0.19) 0px, transparent 50%),
+      radial-gradient(at 40% 100%, hsla(240, 100%, 70%, 0.15) 0px, transparent 50%),
+      radial-gradient(at 72% 0%, hsla(343, 100%, 76%, 0.17) 0px, transparent 50%);
+  }
+
+  div[class^='language-'] {
+    margin: 0;
+  }
+
+  & > div {
+    @apply !bg-transparent;
+
+    & > pre {
+      @apply !py-3.5;
+    }
+  }
+
+  &.mockup-code pre:before {
+    display: none;
+  }
+}
+
+:root {
+  --swagger-preview-src: url('/public/assets/scalar-preview-light.webp');
+}
+
+.dark {
+  --swagger-preview-src: url('/public/assets/scalar-preview-dark.webp');
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.integrations > section {
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border-width: 1px;
+  border-top-color: rgb(221 214 254 / var(--tw-border-opacity, 1));
+  border-bottom-color: rgb(221 214 254 / var(--tw-border-opacity, 1));
+  --tw-border-opacity: 1;
+  border-left-color: rgb(191 219 254 / var(--tw-border-opacity, 1));
+  border-right-color: rgb(191 219 254 / var(--tw-border-opacity, 1));
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+}
+
+.integrations > section:is(.dark *) {
+  border-top-color: #8b5cf633;
+  border-bottom-color: #8b5cf633;
+  border-left-color: #3b82f633;
+  border-right-color: #3b82f633;
+  --tw-bg-opacity: 1;
+  background-color: rgb(31 41 55 / var(--tw-bg-opacity, 1));
+}
+
+.bg-grid {
+  @apply pointer-events-none absolute left-0 top-0 h-full w-full;
+
+  background-color: transparent;
+
+  background-image: linear-gradient(#ddd 1px, transparent 1px),
+    linear-gradient(to right, #ddd 1px, transparent 1px);
+
+  background-size: 40px 40px;
+
+  html.dark & {
+    background-image: linear-gradient(#646464 1px, transparent 1px),
+      linear-gradient(to right, #646464 1px, transparent 1px);
+  }
+}
+
+.fog {
+  background-image: radial-gradient(
+    closest-side at center,
+    transparent 0%,
+    rgba(255, 255, 255, 1) 100%
+  );
+
+  html.dark & {
+    background-image: radial-gradient(
+      closest-side at center,
+      transparent 0%,
+      theme(colors.gray.900) 100%
+    );
+  }
+}
+
+.built-with-love {
+  &:checked ~ .elysia {
+    animation-name: enter;
+  }
+
+  &:not(:checked) ~ .elysia {
+    animation-name: exit;
+  }
+}

@@ -1,0 +1,10 @@
+```typescript
+import { Elysia } from 'elysia'
+import swagger from '@elysiajs/swagger'
+
+new Elysia()
+	.use(swagger())
+	.use(character)
+	.use(auth)
+	.listen(3000)
+```

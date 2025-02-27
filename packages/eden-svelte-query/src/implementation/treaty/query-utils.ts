@@ -182,7 +182,7 @@ export type EdenTreatyQueryUtilsQueryUtils<
 export type EdenTreatyQueryUtilsInfiniteUtils<
   TRoute extends RouteSchema,
   TPath extends any[] = [],
-  TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>,
+  TInput = InferRouteOptions<TRoute, ReservedInfiniteQueryKeys>['query'],
   TOutput = InferRouteOutput<TRoute>,
   TError = InferRouteError<TRoute>,
   TKey extends QueryKey = EdenQueryKey<TPath, TInput>,

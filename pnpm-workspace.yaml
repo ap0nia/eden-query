@@ -1,5 +1,6 @@
 packages:
+  - fresh
   - documentation
-  - clean-docs
+  - rspress-documentation
   - examples/**/*
   - packages/**/*

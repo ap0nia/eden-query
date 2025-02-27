@@ -1,0 +1,13 @@
+import Server1 from './server-1.mdx'
+
+```ts twoslash include apps-react-client-1
+// @filename: server.ts
+// @include: apps-server-1
+
+// @filename: eden.ts
+// ---cut---
+import type { App } from './server'
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+
+export const eden = createEdenTreatyReactQuery<App>()
+```

@@ -1,0 +1,59 @@
+---
+title: Reactive Inputs Eden-Svelte-Query - ElysiaJS
+head:
+  - - meta
+    - property: 'og:title'
+      content: Reactive Inputs Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - name: 'description'
+      content: Reactive Inputs Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - property: 'og:description'
+      content: Reactive Inputs Eden-Svelte-Query - ElysiaJS
+---
+
+import Server from '@/snippets/apps/server-1.mdx'
+import Client from '@/snippets/apps/svelte-client-1.mdx'
+
+# Reactive Inputs
+
+To create queries that are reactive to an external source, wrap your input in a store, e.g.
+`writable`, `readable`, or `derived` from `svelte`.
+
+:::tip
+To get the type of input for the route, use the [inference helpers](./inferring-types)
+:::
+
+### Setup
+
+#### Elysia Server Application
+
+<Server />
+
+#### Eden-Query Hooks
+
+<Client />
+
+### Svelte
+
+```svelte twoslash title=src/routes/+page.svelte
+<script lang="ts" module>
+// @include: apps-svelte-client-1
+
+// @filename: src/routes/+page.ts
+// ---cut---
+</script>
+
+<script lang="ts">
+  import { writable } from 'svelte/store'
+  import { eden, type InferInput } from '$lib/eden'
+
+  const input = writable({ id: '' })
+
+  const post = eden.posts(input).get.createQuery()
+</script>
+
+<input bind:value={$input.id}>
+```

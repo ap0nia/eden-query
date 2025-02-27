@@ -1,0 +1,54 @@
+---
+title: Disabling Eden-Svelte-Query - ElysiaJS
+head:
+  - - meta
+    - property: 'og:title'
+      content: Disabling Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - name: 'description'
+      content: Disabling Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - property: 'og:description'
+      content: Disabling Eden-Svelte-Query - ElysiaJS
+---
+
+import Server from '@/snippets/apps/server-1.mdx'
+import Client from '@/snippets/apps/svelte-client-1.mdx'
+
+# Disabling
+
+### Setup
+
+#### Elysia Server Application
+
+<Server />
+
+#### Eden-Query HOoks
+
+<Client />
+
+To disable queries, you can pass `skipToken` as the first argument to `useQuery` or `useInfiniteQuery`. This will prevent the query from being executed.
+
+### Typesafe conditional queries using `skipToken`
+
+```svelte twoslash title=src/routes/+page.svelte
+<script lang="ts" module>
+// @include: apps-svelte-client-1
+
+// @filename: src/routes/+page.ts
+// ---cut---
+</script>
+
+<script lang="ts">
+  import { skipToken } from '@tanstack/svelte-query'
+  import { eden } from '$lib/eden'
+
+  let skip = true
+
+  const result = eden.posts.get.createQuery(skip ? skipToken : undefined)
+</script>
+
+// ...
+```

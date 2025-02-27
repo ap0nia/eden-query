@@ -32,17 +32,17 @@
     "@ap0nia/eden": "workspace:^",
     "@ap0nia/eden-react-query": "workspace:^",
     "@tanstack/react-query": "^5.51.16",
-    "elysia": "1.1.19",
+    "elysia": "^1.2.12",
     "react": "^18.3.1"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
     "tsup": "^8.2.3",
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.3"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.51.16",
-    "elysia": "1.1.19"
+    "elysia": "^1.2.12"
   },
   "publishConfig": {
     "access": "public"

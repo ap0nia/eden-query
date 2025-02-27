@@ -1,0 +1,73 @@
+{
+  "name": "@ap0nia/rspress-plugin-twoslash",
+  "private": true,
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "require": "./src/index.js",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    },
+    "./theme": {
+      "types": "./src/theme/index.d.ts",
+      "require": "./src/theme/index.jsx",
+      "import": "./src/theme/index.jsx",
+      "default": "./src/theme/index.jsx"
+    },
+    "./floating-components": {
+      "require": "./src/floating-components/index.js",
+      "import": "./src/floating-components/index.js",
+      "default": "./src/floating-components/index.js"
+    },
+    "./*.css": {
+      "require": "./*.css",
+      "import": "./*.css",
+      "default": "./*.css"
+    },
+    "./*": {
+      "types": "./src/*.d.ts",
+      "require": "./src/*.js",
+      "import": "./src/*.js",
+      "default": "./src/*.js"
+    }
+  },
+  "dependencies": {
+    "@floating-ui/react": "^0.26.28",
+    "@jridgewell/sourcemap-codec": "^1.5.0",
+    "@legendapp/state": "3.0.0-beta.19",
+    "@rspress/runtime": "^1.42.0",
+    "@rspress/theme-default": "^1.42.0",
+    "@shikijs/rehype": "^1.29.2",
+    "@shikijs/twoslash": "^1.29.2",
+    "@volar/language-core": "^2.4.11",
+    "clsx": "^2.1.1",
+    "copy-to-clipboard": "^3.3.3",
+    "mdast-util-from-markdown": "^2.0.2",
+    "mdast-util-gfm": "^3.1.0",
+    "mdast-util-mdxjs-esm": "^2.0.1",
+    "mdast-util-to-hast": "^13.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-syntax-highlighter": "^15.6.1",
+    "rehype-stringify": "^10.0.1",
+    "svelte2tsx": "^0.7.34",
+    "tailwind-merge": "^2.6.0",
+    "twoslash": "^0.2.12",
+    "twoslash-protocol": "^0.2.12",
+    "typescript": "^5.7.3",
+    "unist-util-visit": "^5.0.0"
+  },
+  "devDependencies": {
+    "@rspress/shared": "^1.42.0",
+    "@types/bun": "^1.2.2",
+    "@types/hast": "^3.0.4",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@types/react-syntax-highlighter": "^15.5.13",
+    "shiki": "^1.29.2",
+    "twoslash-vue": "^0.2.12",
+    "unified": "^10.1.2"
+  }
+}

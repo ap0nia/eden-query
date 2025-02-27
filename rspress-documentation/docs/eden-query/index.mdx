@@ -1,0 +1,286 @@
+---
+title: Overview
+titleSuffix: Eden-Query - Elysia.js
+---
+
+import { Tab, Tabs } from '@theme';
+
+import { Integration } from '../../src/components/integration'
+
+# Introduction
+
+Eden-Query is a type-safe, API client for [Elysia.js](https://elysiajs.com) that provides
+asynchronous state management with [Tanstack Query](https://tanstack.com/query/latest).
+
+<Integration />
+
+The Eden-Query project is a collection of libraries that includes the RPC client, [`@ap0nia/eden`](/eden),
+and framework-specific integrations, such as [`@ap0nia/eden-react-query`](/eden-query/react) and
+[`@ap0nia/eden-svelte-query`](/eden-query/svelte) for React and Svelte respectively.
+
+> [!NOTE]
+> The [`@ap0nia/eden`](/eden) library is a distinct, but functionally identical implementation of the
+> official [`@elysiajs/eden`](https://elysiajs.com/eden/overview.html) library.
+
+## Why
+
+Eden-Query is most valuable to ***frontend projects that connect to an Elysia.js backend***.
+The Elysia.js types may be exposed from a separate project within a monorepo, or within a
+single project that leverages a full-stack solution such as Next.js or SvelteKit.
+
+See the [`examples` directory](https://github.com/ap0nia/eden-query/tree/main/examples) for examples.
+
+## Features
+
+- 🌎 Framework agnostic.
+- 🦺 Full end-to-end type-safety.
+- ✅ Fully supports REST API standards.
+- 🖥️SSR support and examples.
+- ✨ Reactive and infinite queries.
+- ⚡ Batching requests on both the client and server.
+- 🔗 Links for customizing the flow of data.
+- 👀 Data transformers for enhanced JSON handling.
+
+## Core Features
+
+<div className="grid gap-2 sm:grid-cols-2">
+  <a
+    href="/eden-query/batching"
+    target="_blank"
+    className="hover:bg-base-200 rounded-lg border p-4 transition-transform hover:-translate-y-1"
+  >
+    <p className="text-lg font-semibold my-0">Batching</p>
+    <p>Batching by the client and server</p>
+  </a>
+  <a
+    href="/eden-query/transformers"
+    target="_blank"
+    className="hover:bg-base-200 rounded-lg border p-4 transition-transform hover:-translate-y-1"
+  >
+    <p className="text-lg font-semibold my-0">Transformers</p>
+    <p>Transformers to extend JSON data</p>
+  </a>
+  <a
+    href="/eden-query/links"
+    target="_blank"
+    className="hover:bg-base-200 rounded-lg border p-4 transition-transform hover:-translate-y-1"
+  >
+    <p className="text-lg font-semibold my-0">Links</p>
+    <p>Links to control the request flow</p>
+  </a>
+</div>
+
+## Implementations
+
+Eden-Query offers two implementations, [fetch](#fetch) and [treaty](#treaty),
+just like the official eden library.
+
+<Tabs>
+  <Tab label="treaty">
+
+```typescript
+eden.greeting({ name: 'Elysia' }).get.createQuery()
+```
+
+  </Tab>
+
+  <Tab label="fetch">
+
+```typescript
+eden.createQuery('/greeting/:name', { method: 'GET', params: { name: 'Elysia' } })
+```
+  </Tab>
+</Tabs>
+
+### Fetch (WIP)
+
+- Tanstack-query hooks are exposed at the root of the proxy.
+- The full path to the route is provided as the first argument.
+- Input to the route, such as query and route parameters, are provided after the path.
+
+:::warning
+This has not been implemented for any framework yet...
+:::
+
+### Treaty
+
+- API routes are split by their path segments, and represented as a nested object.
+- `/api/a/b` -> `eden.api.a.b`.
+- The method and hook are provided as the last two property accesses.
+- `eden.api.a.b.get.createQuery` -> `createQuery` for `GET` request to `/api/a/b`.
+
+#### Example Application
+
+```typescript twoslash include eq-index-application title=server.ts
+import { Elysia, t } from 'elysia'
+
+const app = new Elysia()
+  .get('/nendoroid/:id/name', () => {
+    return 'Skadi'
+  })
+  .put(
+    '/nendoroid/:id',
+    (context) => {
+      return { status: 'OK', received: context.body }
+    },
+    {
+      body: t.Object({
+        name: t.String(),
+        from: t.String(),
+      }),
+    },
+  )
+  .listen(3000)
+
+export type App = typeof app
+```
+
+
+#### Example React-Query Usage
+
+A React client application cna use the hooks from Eden-Query to manage asynchronous state from the Elysia server application.
+
+```typescript twoslash title=index.ts
+// @filename: server.ts
+// @include: eq-index-application
+
+// @filename: index.ts
+// ---cut---
+import { createEdenTreatyReactQuery } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+/**
+ * The domain is usually needed if the client application
+ * is not part of a full stack framework.
+ *
+ * For example, a React single-page-application would need to specify
+ * the server domain, while a Next.js application would not.
+ *
+ * Follow the steps provided in the specific framework integration.
+ */
+const domain = 'localhost:3000'
+
+export const app = createEdenTreatyReactQuery<App>({ domain })
+
+// useQuery for [GET] request to '/nendoroid/:id/name'
+const { data } = await app.nendoroid({ id: 'skadi' }).name.get.useQuery()
+
+// useMutation for [PUT] request to '/nendoroid/:id'
+const { data: nendoroid, error, mutateAsync } = app.nendoroid({ id: 1895 }).put.useMutation()
+
+// Peform the mutation...
+mutateAsync({ name: 'Skadi', from: 'Arknights' }).then((result) => {
+  result
+  // ^?
+})
+```
+
+::: tip
+`useMutation` does not actually perform the request.
+The result of `useMutation` has `mutate` and `mutateAsync` methods that receive the input to make the request.
+
+[Read more about mutations here](https://tanstack.com/query/latest/docs/framework/react/reference/useMutation#usemutation)
+:::
+
+## Comparison with tRPC
+
+### Links
+
+This library supports the same type of [links that tRPC has](https://trpc.io/docs/client/links).
+
+The official eden library only resolves requests, so Eden-Query provides helper methods to
+quickly initialize a client that does the same.
+
+Read more about Eden-Query links [here](./links).
+
+#### eden.createHttpClient
+
+This creates a basic eden client that resolves requests in the same way as the official eden implementation.
+
+```typescript twoslash
+import { createEdenTreatyReactQuery, httpLink } from '@ap0nia/eden-react-query'
+
+const eden = createEdenTreatyReactQuery()
+
+const domain = 'http://localhost:3000'
+
+// Both are the exact same clients.
+
+const clientOne = eden.createClient({
+  links: [httpLink({ domain })],
+})
+
+const clientTwo = eden.createHttpClient({ domain })
+```
+
+::: tip
+Using this helper method means you don't have to initialize an `httpLink` from scratch,
+and you can provide `HTTPLinkOptions` directly to the method to create the client.
+:::
+
+#### eden.createHttpBatchClient
+
+Creates a client that can combine multiple requests into a single batch request.
+
+:::warning
+In order for this client to work properly, the Elysia server application must use the `batchPlugin`
+or `edenPlugin` with the `batch` property defined.
+:::
+
+**Elysia.js application with batching enabled**
+
+```typescript twoslash include eq-index-batch-application title=server.ts
+import { Elysia, t } from 'elysia'
+import { edenPlugin } from '@ap0nia/eden-react-query/server'
+
+const app = new Elysia().use(edenPlugin({ batch: true }))
+
+export type App = typeof app
+```
+
+**React-Query Batch Client**
+
+```typescript twoslash title=index.ts
+// @filename: server.ts
+// @include: eq-index-batch-application
+
+// @filename: index.ts
+// ---cut---
+import { createEdenTreatyReactQuery, httpBatchLink } from '@ap0nia/eden-react-query'
+import type { App } from './server'
+
+const eden = createEdenTreatyReactQuery<App>()
+
+const domain = 'http://localhost:3000'
+
+// Both are the exact same clients.
+
+const clientOne = eden.createClient({
+  links: [httpBatchLink({ domain, endpoint: '/api/batch' })],
+})
+
+const clientTwo = eden.createHttpBatchClient({ domain })
+```
+
+### Transformers
+
+This library supports the [same transformer API as tRPC](https://trpc.io/docs/server/data-transformers).
+
+:::info
+The transformers will only modify `request.body`.
+So this will **NOT** affect GET, OPTIONS, or HEAD requests; only POST, PUT, PATCH, etc.
+:::
+
+Read more about this Eden-Query transformers [here](./transformers).
+
+## Related Projects
+
+### [tRPC](https://trpc.io)
+
+tRPC is a type-safe, full-stack integration that allows developers to easily types
+between their frontend and backend without code generation.
+
+The core architecture and public API of Eden-Query was inspired by tRPC, making transitions
+between the two libraries feel seamless.
+
+Some documentation may link to this project to provide additional information and context.

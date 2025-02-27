@@ -32,7 +32,6 @@ export function safeEdenPlugin<T extends EdenQueryConstraints>(config: T) {
     elysia: Elysia<BasePath>,
   ): Elysia<
     BasePath,
-    false,
     {
       decorator: {}
       store: Record<

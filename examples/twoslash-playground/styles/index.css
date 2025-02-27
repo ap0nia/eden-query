@@ -1,0 +1,43 @@
+@import '@ap0nia/rspress-plugin-twoslash/style.css';
+/* @import '@ap0nia/rspress-plugin-twoslash/styles/line-numbers.css'; */
+
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --rp-c-brand-1: #f06292;
+  --rp-c-brand-light: #ff94c2;
+  --rp-c-brand-dark: #ba2d65;
+  --rp-code-block-bg: #f6f8fa;
+  --rp-code-copy-code-bg: #dedede;
+  --rp-code-copy-code-hover-bg: #dedede;
+  --rp-c-text-dark-2: #8f8f8f;
+  --rp-c-text-dark-3: #8f8f8f;
+  --rp-sidebar-bg-color: var(--rp-c-bg);
+  --rp-custom-block-tip-border: transparent;
+  --rp-custom-block-tip-text: var(--rp-c-text-1);
+  --rp-nav-bg-color: color-mix(in srgb, var(--rp-c-bg) 95%, transparent);
+  --rp-custom-block-tip-bg: #ecfdf5;
+  --rp-custom-block-tip-border: #dcfce7;
+  --rp-custom-block-tip-text: #15803d;
+  --rp-c-brand-nav-active: color-mix(in srgb, var(--rp-c-brand-light) 15%, transparent 100%);
+  --rp-nav-logo-height: 28px;
+}
+
+.dark {
+  --rp-c-bg: #0f172a;
+  --rp-c-bg-alt: #111827;
+  --rp-c-bg-soft: #1e293b;
+  --rp-c-divider: #334155;
+  --rp-code-block-bg: #1e293b;
+  --rp-c-bg-alpha-with-backdrop: #1f2937bf;
+  --rp-code-copy-code-bg: #273345;
+  --rp-code-copy-code-hover-bg: #273345;
+  --rp-c-text-dark-2: #8a8a8a;
+  --rp-c-text-dark-3: #8a8a8a;
+  --rp-custom-block-tip-bg: #064e3b;
+  --rp-custom-block-tip-border: #052e16;
+  --rp-custom-block-tip-text: #f0fdf4;
+  --rp-c-brand-nav-active: color-mix(in srgb, var(--rp-c-brand-dark) 30%, transparent 100%);
+}

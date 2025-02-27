@@ -1,0 +1,150 @@
+---
+title: Setup Eden-Svelte-Query - ElysiaJS
+head:
+  - - meta
+    - property: 'og:title'
+      content: Setup Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - name: 'description'
+      content: Setup Eden-Svelte-Query - ElysiaJS
+
+  - - meta
+    - property: 'og:description'
+      content: Setup Eden-Svelte-Query - ElysiaJS
+---
+
+import { PackageManagerTabs } from '@theme';
+
+import Server from '@/snippets/apps/server-1.mdx'
+import Client from '@/snippets/apps/svelte-client-1.mdx'
+
+# Setup
+
+### Elysia Server Application
+
+This is the server that will be used for the following examples.
+
+### Eden-Query Client
+
+Make sure that the eden proxy and client are setup.
+
+## Steps
+
+### 1. Install dependencies
+
+<PackageManagerTabs command="install @ap0nia/eden-svelte-query @tanstack/react-query" />
+
+### 2. Create Elysia server application
+
+<Server />
+
+### 3. Create Eden-Query Hooks
+
+Create a set of strongly-typed Svelte hooks from your `App` type signature with `createEdenTreatySvelteQuery`.
+
+<Client />
+
+### 4. Initialize QueryClient and Eden Client
+
+::: tip
+If you are using client-side only Svelte, then you can initialize the `QueryClient` and `EdenClient`
+in `src/routes/+layout.svelte`.
+
+Initializing them in `src/routes/+layout.ts` ensures that each request will receive a clean
+cache, preventing leaks.
+:::
+
+```typescript twoslash title=src/routes/+layout.ts
+// @include: apps-svelte-client-1
+
+// @filename: +layout.ts
+// ---cut---
+import { httpBatchLink } from '@ap0nia/eden-svelte-query'
+import { QueryClient } from '@tanstack/svelte-query'
+import type { RequestEvent } from '@sveltejs/kit'
+import { eden } from '$lib/eden'
+
+function getAuthCookie() {
+  return undefined
+}
+
+export const load = async (event: RequestEvent) => {
+  const queryClient = new QueryClient()
+
+  const client = eden.createClient({
+    links: [
+      httpBatchLink({
+        fetcher: event.fetch,
+
+        // You can pass any HTTP headers you wish here
+        async headers() {
+          return {
+            authorization: getAuthCookie(),
+          }
+        },
+      }),
+    ],
+  })
+
+  return { queryClient, client }
+}
+```
+
+### 5. Initialize Eden-Query Providers.
+
+```svelte twoslash title=src/routes/+layout.svelte
+<script lang="ts" module>
+// @filename: $types.ts
+export type PageData = any
+
+// @include: apps-svelte-client-1
+
+// @filename: +layout.ts
+// ---cut---
+</script>
+
+<script lang="ts">
+  import type { PageData } from './$types'
+  import { eden } from '$lib/eden'
+
+  export let data: PageData
+
+  $: eden.setContext(data)
+</script>
+
+<slot />
+```
+
+:::info
+
+The reason for initializing the `queryClient` and `client` inside of `+layout.ts` is to ensure
+that each request gets a unique client when using SSR.
+If you only use client side rendering, then you can move all the code to `+layout.svelte`
+
+:::
+
+#### 5. Fetch data
+
+You can now use the eden-treaty React Query integration to call queries and mutations on your API.
+
+```svelte twoslash title=src/routes/+page.svelte
+<script lang="ts" module>
+// @include: apps-svelte-client-1
+
+// @filename: src/routes/+page.ts
+// ---cut---
+</script>
+
+<script lang="ts">
+  import { eden } from '$lib/eden'
+
+  const query = eden.index.get.createQuery()
+  const mutation = eden.posts({ id: "Bob" }).post.createMutation()
+</script>
+
+<div>
+  <p>Query: {$query.data}</p>
+  <button on:click={() => $mutation.mutate({ id: "1", message: "Hello, World!" })}>Mutation</button>
+</div>
+```
