@@ -409,6 +409,31 @@ importers:
         specifier: ~5.3.3
         version: 5.3.3
 
+  examples/twoslash-playground:
+    dependencies:
+      rspress:
+        specifier: ^1.40.2
+        version: 1.42.0(webpack@5.96.1)
+    devDependencies:
+      '@ap0nia/rspress-plugin-twoslash':
+        specifier: workspace:^
+        version: link:../../packages/rspress-plugin-twoslash
+      '@types/node':
+        specifier: ^18.11.17
+        version: 18.19.58
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.20(postcss@8.5.2)
+      postcss-load-config:
+        specifier: ^6.0.1
+        version: 6.0.1(jiti@2.4.2)(postcss@8.5.2)(tsx@4.16.5)(yaml@2.5.0)
+      svelte2tsx:
+        specifier: ^0.7.34
+        version: 0.7.34(svelte@5.2.3)(typescript@5.7.3)
+      tailwindcss:
+        specifier: ^3.4.17
+        version: 3.4.17
+
   packages/eden:
     dependencies:
       elysia:
@@ -8202,10 +8227,6 @@ packages:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
     engines: {node: '>=10'}
 
-  lilconfig@3.1.2:
-    resolution: {integrity: sha512-eop+wDAvpItUys0FWkHIKeC9ybYrTGbU41U5K7+bttZZeohvnY7M9dZ5kB21GNWiFT2q1OoPTvncPCgSOVO5ow==}
-    engines: {node: '>=14'}
-
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
     engines: {node: '>=14'}
@@ -12240,7 +12261,7 @@ snapshots:
   '@babel/generator@7.25.9':
     dependencies:
       '@babel/types': 7.25.9
-      '@jridgewell/gen-mapping': 0.3.5
+      '@jridgewell/gen-mapping': 0.3.8
       '@jridgewell/trace-mapping': 0.3.25
       jsesc: 3.0.2
 
@@ -14872,7 +14893,7 @@ snapshots:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 22.13.2
+      '@types/node': 18.19.58
       '@types/yargs': 16.0.9
       chalk: 4.1.2
     optional: true
@@ -18123,8 +18144,8 @@ snapshots:
 
   autoprefixer@10.4.20(postcss@8.5.2):
     dependencies:
-      browserslist: 4.24.4
-      caniuse-lite: 1.0.30001699
+      browserslist: 4.24.2
+      caniuse-lite: 1.0.30001669
       fraction.js: 4.3.7
       normalize-range: 0.1.2
       picocolors: 1.1.1
@@ -21160,7 +21181,7 @@ snapshots:
   jest-util@27.5.1:
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 22.13.2
+      '@types/node': 18.19.58
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -21215,7 +21236,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 22.13.2
+      '@types/node': 18.19.58
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -21538,8 +21559,6 @@ snapshots:
       lightningcss-win32-x64-msvc: 1.29.1
 
   lilconfig@2.1.0: {}
-
-  lilconfig@3.1.2: {}
 
   lilconfig@3.1.3: {}
 
@@ -23655,14 +23674,14 @@ snapshots:
 
   postcss-load-config@4.0.2(postcss@8.4.49):
     dependencies:
-      lilconfig: 3.1.2
+      lilconfig: 3.1.3
       yaml: 2.5.0
     optionalDependencies:
       postcss: 8.4.49
 
   postcss-load-config@4.0.2(postcss@8.5.2):
     dependencies:
-      lilconfig: 3.1.2
+      lilconfig: 3.1.3
       yaml: 2.5.0
     optionalDependencies:
       postcss: 8.5.2

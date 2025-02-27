@@ -1,0 +1,148 @@
+{
+  "code": "<script lang=\"ts\" module>\n</script>\n\n<script lang=\"ts\">\n  const hello = \"Hello, World\"\n\n  console.log(hello)\n</script>\n\n<div>{hello}</div>",
+  "nodes": [
+    {
+      "type": "hover",
+      "text": "const hello: \"Hello, World\"",
+      "start": 64,
+      "length": 5,
+      "target": "hello",
+      "line": 4,
+      "character": 8
+    },
+    {
+      "type": "hover",
+      "text": "var console: Console",
+      "start": 90,
+      "length": 7,
+      "target": "console",
+      "line": 6,
+      "character": 2
+    },
+    {
+      "type": "hover",
+      "text": "(method) Console.log(...data: any[]): void",
+      "docs": "[MDN Reference](https://developer.mozilla.org/docs/Web/API/console/log_static)",
+      "start": 98,
+      "length": 3,
+      "target": "log",
+      "line": 6,
+      "character": 10
+    },
+    {
+      "type": "hover",
+      "text": "const hello: \"Hello, World\"",
+      "start": 102,
+      "length": 5,
+      "target": "hello",
+      "line": 6,
+      "character": 14
+    },
+    {
+      "type": "hover",
+      "text": "const hello: \"Hello, World\"",
+      "start": 126,
+      "length": 5,
+      "target": "hello",
+      "line": 9,
+      "character": 6
+    }
+  ],
+  "meta": {
+    "extension": "svelte",
+    "compilerOptions": {
+      "strict": true,
+      "module": 99,
+      "target": 99,
+      "allowJs": true,
+      "skipDefaultLibCheck": true,
+      "skipLibCheck": true,
+      "moduleDetection": 3,
+      "baseUrl": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/",
+      "moduleResolution": 100,
+      "types": [
+        "../node_modules/svelte2tsx/svelte-jsx",
+        "../node_modules/svelte2tsx/svelte-jsx-v4",
+        "../node_modules/svelte2tsx/svelte-shims",
+        "../node_modules/svelte2tsx/svelte-shims-v4"
+      ]
+    },
+    "handbookOptions": {
+      "errors": [],
+      "noErrors": false,
+      "noErrorsCutted": true,
+      "noErrorValidation": false,
+      "noStaticSemanticInfo": false,
+      "showEmit": false,
+      "keepNotations": true
+    },
+    "removals": [[26, 145]],
+    "flagNotations": [],
+    "virtualFiles": [
+      {
+        "offset": 0,
+        "filename": "index.tsx",
+        "filepath": "/Users/aponia/Projects/typescript/eden-query/examples/twoslash-playground/index.tsx",
+        "content": "///<reference types=\"svelte\" />\n;\n  // @filename src/lib/eden.ts\n  export const hello = \"Hello, Eden\"\n\n  // @filename src/routes/+page.ts\n  // ---cut---\n;;function render() {\n\n  const hello = \"Hello, World\"\n\n  console.log(hello)\n;\nasync () => {\n\n\n\n { svelteHTML.createElement(\"div\", {});hello; }};\nreturn { props: /** @type {Record<string, never>} */ ({}), exports: {}, bindings: \"\", slots: {}, events: {} }}\nconst $$Component = __sveltets_2_isomorphic_component(__sveltets_2_partial(__sveltets_2_with_any_event(render())));\n/*Ωignore_startΩ*/type $$Component = InstanceType<typeof $$Component>;\n/*Ωignore_endΩ*/export default $$Component;",
+        "extension": "tsx",
+        "supportLsp": true
+      }
+    ],
+    "positionQueries": [],
+    "positionCompletions": [],
+    "positionHighlights": []
+  },
+  "queries": [],
+  "completions": [],
+  "errors": [],
+  "highlights": [],
+  "hovers": [
+    {
+      "type": "hover",
+      "text": "const hello: \"Hello, World\"",
+      "start": 64,
+      "length": 5,
+      "target": "hello",
+      "line": 4,
+      "character": 8
+    },
+    {
+      "type": "hover",
+      "text": "var console: Console",
+      "start": 90,
+      "length": 7,
+      "target": "console",
+      "line": 6,
+      "character": 2
+    },
+    {
+      "type": "hover",
+      "text": "(method) Console.log(...data: any[]): void",
+      "docs": "[MDN Reference](https://developer.mozilla.org/docs/Web/API/console/log_static)",
+      "start": 98,
+      "length": 3,
+      "target": "log",
+      "line": 6,
+      "character": 10
+    },
+    {
+      "type": "hover",
+      "text": "const hello: \"Hello, World\"",
+      "start": 102,
+      "length": 5,
+      "target": "hello",
+      "line": 6,
+      "character": 14
+    },
+    {
+      "type": "hover",
+      "text": "const hello: \"Hello, World\"",
+      "start": 126,
+      "length": 5,
+      "target": "hello",
+      "line": 9,
+      "character": 6
+    }
+  ],
+  "tags": []
+}

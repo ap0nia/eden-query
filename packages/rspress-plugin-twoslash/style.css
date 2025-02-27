@@ -42,10 +42,10 @@ code[class*='language-'] {
   color: var(--rp-code-block-color);
   transition: color 0.5s;
 
-  padding: 16px 24px;
+  /* padding: 16px 24px; */
 
   span.line {
-    padding: 0;
+    padding: 0 1.25rem;
   }
 }
 
