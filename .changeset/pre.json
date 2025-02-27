@@ -13,5 +13,5 @@
     "@ap0nia/eden-svelte-query": "1.6.1-canary",
     "@ap0nia/rspress-plugin-twoslash": "0.1.0"
   },
-  "changesets": []
+  "changesets": ["soft-students-perform"]
 }
