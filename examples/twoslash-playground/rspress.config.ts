@@ -1,10 +1,9 @@
 import * as path from 'node:path'
 
-import { defineConfig } from 'rspress/config'
-import { ModuleResolutionKind } from 'typescript'
-
 import { rspressPluginTwoslash } from '@ap0nia/rspress-plugin-twoslash'
 import { createFileSystemTypesCache } from '@ap0nia/rspress-plugin-twoslash/cache-fs'
+import { defineConfig } from 'rspress/config'
+import { ModuleResolutionKind } from 'typescript'
 
 export default defineConfig({
   root: path.join(__dirname, 'docs'),
