@@ -44,7 +44,7 @@ jobs:
         id: changesets
         with:
           version: pnpm changeset version --snapshot canary
-          publish: pnpm changeset publish
+          publish: pnpm changeset publish --tag canary
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
         env:
