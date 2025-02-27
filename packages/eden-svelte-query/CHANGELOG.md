@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 1.6.1-canary.0
+
+### Patch Changes
+
+- 334b9b7: feat: changeset workflow changes 3
+
 ## 1.6.1-canary
 
 ### Patch Changes
