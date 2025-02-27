@@ -1,5 +1,19 @@
 # eden-react-query-basic
 
+## 0.0.35-canary.0
+
+### Patch Changes
+
+- Updated dependencies [9672d8c]
+  - @ap0nia/eden-react-query@1.6.1-canary.0
+
+## 0.0.35-canary
+
+### Patch Changes
+
+- Updated dependencies [7e797df]
+  - @ap0nia/eden-react-query@1.6.1-canary
+
 ## 0.0.34
 
 ### Patch Changes

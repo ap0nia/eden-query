@@ -1,5 +1,19 @@
 # @examples/react-native
 
+## 1.0.5-canary.0
+
+### Patch Changes
+
+- Updated dependencies [9672d8c]
+  - @ap0nia/eden-react-query@1.6.1-canary.0
+
+## 1.0.5-canary
+
+### Patch Changes
+
+- Updated dependencies [7e797df]
+  - @ap0nia/eden-react-query@1.6.1-canary
+
 ## 1.0.4
 
 ### Patch Changes

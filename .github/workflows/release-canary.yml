@@ -1,15 +1,15 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Release packages
+name: Release canary packages
 
 on:
   push:
     branches:
-      - main
+      - canary
 
 jobs:
   publish:
-    name: Publish packages to NPM
+    name: Publish canary packages to NPM
 
     runs-on: ubuntu-latest
 
@@ -18,7 +18,7 @@ jobs:
       pull-requests: write
 
     env:
-      RAW_COMMIT_MESSAGE: 'chore: release package(s)'
+      RAW_COMMIT_MESSAGE: 'chore: release canary package(s)'
 
     steps:
       - name: ⏬ Checkout repository
