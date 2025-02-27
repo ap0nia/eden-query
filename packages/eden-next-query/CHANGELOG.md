@@ -1,5 +1,13 @@
 # @ap0nia/eden-next-query
 
+## 1.4.4
+
+### Patch Changes
+
+- Updated dependencies [9672d8c]
+  - @ap0nia/eden-react-query@1.6.1
+  - @ap0nia/eden@1.6.1
+
 ## 1.4.4-canary.0
 
 ### Patch Changes
