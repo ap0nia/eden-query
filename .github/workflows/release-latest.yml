@@ -43,7 +43,7 @@ jobs:
         uses: changesets/action@v1
         id: changesets
         with:
-          version: pnpm changeset pre exit || true && pnpm changeset version
+          version: echo "hello"
           publish: pnpm changeset publish
           commit: ${{ steps.devmoji.outputs.MESSAGE }}
           title: ${{ steps.devmoji.outputs.MESSAGE }}
