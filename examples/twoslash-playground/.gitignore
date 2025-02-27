@@ -12,3 +12,5 @@ build/
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+.twoslash/
