@@ -4,6 +4,12 @@
 
 ### Patch Changes
 
+- c0f3f36: feat: canary workflow testing 2
+
+## 1.6.1-canary
+
+### Patch Changes
+
 - 7e797df: testing canary workflow changes(1)
 - Updated dependencies [7e797df]
   - @ap0nia/eden@1.6.1-canary
