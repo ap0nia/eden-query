@@ -8,7 +8,7 @@ import type { Nullish } from './types'
 export function linkAbortSignals(...signals: Array<AbortSignal | Nullish>): AbortSignal {
   const ac = new AbortController()
 
-  const count = signals.length
+  let count = 0
 
   let abortedCount = 0
 
@@ -21,10 +21,11 @@ export function linkAbortSignals(...signals: Array<AbortSignal | Nullish>): Abor
   for (const signal of signals) {
     if (signal?.aborted) {
       onAbort()
-    } else {
+    } else if (signal) {
       signal?.addEventListener('abort', onAbort, {
         once: true,
       })
+      count++
     }
   }
 
