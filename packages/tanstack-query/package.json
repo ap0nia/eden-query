@@ -1,6 +1,6 @@
 {
   "name": "@ap0nia/eden-tanstack-query",
-  "version": "1.0.0-next.18",
+  "version": "1.0.0-next.19",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 0.1.0-next.19
+
+### Patch Changes
+
+- ef64591: fix: set fetch config with signal on correct argument
+
 ## 0.1.0-next.18
 
 ### Patch Changes
