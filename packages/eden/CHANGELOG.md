@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.0-next.18
+
+### Patch Changes
+
+- 7b5a793: fix: link and count only defined abort signals
+
 ## 1.0.0-next.17
 
 ### Patch Changes
