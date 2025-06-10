@@ -291,9 +291,9 @@ export function edenTreatyTanstackQuery<
         queryFn: async (context) => {
           const resolvedOptions: EdenRequestOptions = { ...options }
 
-          if (config.abortOnUnmount) {
-            const signal = linkAbortSignals(context.signal, resolvedOptions.fetch?.signal)
-            resolvedOptions.fetch = { ...resolvedOptions.fetch, signal }
+          if (resolvedConfig.abortOnUnmount) {
+            const signal = linkAbortSignals(context.signal, resolvedConfig.fetch?.signal)
+            resolvedConfig.fetch = { ...resolvedConfig.fetch, signal }
           }
 
           const result: EdenResult = await (treaty as any)(resolvedOptions, resolvedConfig)
