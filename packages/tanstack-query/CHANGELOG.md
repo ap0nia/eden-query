@@ -1,5 +1,11 @@
 # @ap0nia/eden-tanstack-query
 
+## 1.0.0-next.19
+
+### Patch Changes
+
+- ef64591: fix: set fetch config with signal on correct argument
+
 ## 1.0.0-next.18
 
 ### Patch Changes
