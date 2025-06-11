@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 0.1.0-next.20
+
+### Patch Changes
+
+- 58a23bb: feat: add page-param handling for infinite queries
+
 ## 0.1.0-next.19
 
 ### Patch Changes

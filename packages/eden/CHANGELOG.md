@@ -1,5 +1,12 @@
 # @ap0nia/eden
 
+## 1.0.0-next.19
+
+### Patch Changes
+
+- 58a23bb: feat: add page-param handling for infinite queries
+- 58a23bb: chore: version packages
+
 ## 1.0.0-next.18
 
 ### Patch Changes
