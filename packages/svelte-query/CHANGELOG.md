@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 0.1.0-next.21
+
+### Patch Changes
+
+- a7d13a0: fix: use object-has-own-property for detecting cursor
+
 ## 0.1.0-next.20
 
 ### Patch Changes
