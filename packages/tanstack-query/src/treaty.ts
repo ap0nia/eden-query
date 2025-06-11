@@ -297,11 +297,11 @@ export function edenTreatyTanstackQuery<
           }
 
           if (context.pageParam) {
-            if (resolvedOptions.query?.['cursor']) {
+            if (Object.prototype.hasOwnProperty.call(resolvedOptions.query, 'cursor')) {
               resolvedOptions.query = { ...resolvedOptions.query, cursor: context.pageParam as any }
             }
 
-            if (resolvedOptions.params?.['cursor']) {
+            if (Object.prototype.hasOwnProperty.call(resolvedOptions.params, 'cursor')) {
               resolvedOptions.params = {
                 ...resolvedOptions.params,
                 cursor: context.pageParam as any,
