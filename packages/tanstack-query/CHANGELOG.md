@@ -1,5 +1,11 @@
 # @ap0nia/eden-tanstack-query
 
+## 1.0.0-next.20
+
+### Patch Changes
+
+- 58a23bb: feat: add page-param handling for infinite queries
+
 ## 1.0.0-next.19
 
 ### Patch Changes
