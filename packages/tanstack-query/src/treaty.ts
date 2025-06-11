@@ -274,7 +274,7 @@ export function edenTreatyTanstackQuery<
 ): EdenTreatyTanstackQuery<TElysia, TConfig> {
   const hooks: EdenTreatyTanstackQueryHooks<TElysia, TConfig> = {
     queryOptions: (treaty, paths, argArray) => {
-      const [options, conf] = argArray as [EdenRequestOptions, TypedEdenResolverConfig]
+      const [options, conf] = argArray as [EdenRouteInput, TypedEdenResolverConfig]
 
       const resolvedConfig = { ...config, ...conf }
 
@@ -289,11 +289,24 @@ export function edenTreatyTanstackQuery<
       const queryOptions: EdenQueryOptions = {
         queryKey,
         queryFn: async (context) => {
-          const resolvedOptions: EdenRequestOptions = { ...options }
+          const resolvedOptions = { ...options }
 
           if (resolvedConfig.abortOnUnmount) {
             const signal = linkAbortSignals(context.signal, resolvedConfig.fetch?.signal)
             resolvedConfig.fetch = { ...resolvedConfig.fetch, signal }
+          }
+
+          if (context.pageParam) {
+            if (resolvedOptions.query?.['cursor']) {
+              resolvedOptions.query = { ...resolvedOptions.query, cursor: context.pageParam as any }
+            }
+
+            if (resolvedOptions.params?.['cursor']) {
+              resolvedOptions.params = {
+                ...resolvedOptions.params,
+                cursor: context.pageParam as any,
+              }
+            }
           }
 
           const result: EdenResult = await (treaty as any)(resolvedOptions, resolvedConfig)
