@@ -247,7 +247,13 @@ export function edenFetchTanstackQuery<
         .filter((p) => p !== 'index')
         .filter(Boolean)
 
-      const queryKey = [paths, { options, type: 'query' }]
+      const cacheSettings: any = { type: 'query' }
+
+      if (options) {
+        cacheSettings.options = options
+      }
+
+      const queryKey = [paths, cacheSettings]
 
       const queryOptions: EdenQueryOptions = {
         queryKey,
@@ -275,7 +281,13 @@ export function edenFetchTanstackQuery<
         .filter((p) => p !== 'index')
         .filter(Boolean)
 
-      const queryKey = [paths, { options, type: 'infinite-query' }]
+      const cacheSettings: any = { type: 'infinite-query' }
+
+      if (options) {
+        cacheSettings.options = options
+      }
+
+      const queryKey = [paths, cacheSettings]
 
       const queryOptions = this.queryOptions(...(argArray as [any, any]))
 
@@ -288,7 +300,13 @@ export function edenFetchTanstackQuery<
 
       const paths = path.split('/').filter((p) => p !== 'index')
 
-      const mutationKey = [paths, { options, type: 'mutation' }]
+      const cacheSettings: any = { type: 'mutation' }
+
+      if (options) {
+        cacheSettings.options = options
+      }
+
+      const mutationKey = [paths, cacheSettings]
 
       const mutationOptions: EdenMutationOptions = {
         mutationKey,

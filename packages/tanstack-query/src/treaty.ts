@@ -247,16 +247,30 @@ export function edenTreatyTanstackQueryProxy<
         throw new Error(`Unknown hook: ${hook}`)
       }
 
-      const params = Object.fromEntries(pathParams.flatMap((p) => Object.entries(p)))
+      let options = argArray[0] as EdenRequestOptions | undefined
 
-      const [options, configOrWsOptions] = argArray as [
-        EdenRequestOptions,
-        TypedEdenResolverConfig | Partial<WebSocketClientOptions>,
-      ]
+      const configOrWsOptions = argArray[1] as
+        | TypedEdenResolverConfig
+        | Partial<WebSocketClientOptions>
 
-      const optionsWithParams = { ...options, params }
+      const paramEntries = pathParams.flatMap((p) => Object.entries(p))
 
-      const resolvedArgs = [optionsWithParams, configOrWsOptions]
+      if (paramEntries.length) {
+        const params = Object.fromEntries(paramEntries)
+
+        options = {
+          ...options,
+          input: {
+            ...options?.input,
+            params: {
+              ...options?.input?.params,
+              ...params,
+            },
+          },
+        }
+      }
+
+      const resolvedArgs = [options, configOrWsOptions]
 
       return root.hooks[hook as keyof typeof root.hooks](root.treaty, pathsCopy, resolvedArgs)
     },
@@ -284,7 +298,13 @@ export function edenTreatyTanstackQuery<
 
       if (HTTP_METHODS.includes(maybeMethod as any)) pathsNoMethod.pop()
 
-      const queryKey = [pathsNoMethod, { options, type: 'query' }]
+      const cacheSettings: any = { type: 'query' }
+
+      if (options) {
+        cacheSettings.options = options
+      }
+
+      const queryKey = [pathsNoMethod, cacheSettings]
 
       const queryOptions: EdenQueryOptions = {
         queryKey,
@@ -322,7 +342,13 @@ export function edenTreatyTanstackQuery<
 
       const [options] = argArray as [EdenRequestOptions, TypedEdenResolverConfig]
 
-      const queryKey = [queryOptions.queryKey[0], { options, type: 'infinite-query' }]
+      const cacheSettings: any = { type: 'infiniteQuery' }
+
+      if (options) {
+        cacheSettings.options = options
+      }
+
+      const queryKey = [queryOptions.queryKey[0], cacheSettings]
 
       const infiniteQueryOptions = { ...queryOptions, queryKey }
 
@@ -333,7 +359,13 @@ export function edenTreatyTanstackQuery<
 
       const resolvedConfig = { ...config, ...conf }
 
-      const mutationKey = [paths, { options, type: 'mutation' }]
+      const cacheSettings: any = { type: 'mutation' }
+
+      if (options) {
+        cacheSettings.options = options
+      }
+
+      const mutationKey = [paths, cacheSettings]
 
       const mutationOptions: EdenMutationOptions = {
         mutationKey,
