@@ -188,8 +188,8 @@ export type EdenTreatySvelteQueryQueryRoute<
           ]),
     ]
   ) => CreateQueryResult<EdenRouteSuccess<TRoute>, EdenRouteError<TRoute>>
-} & (TOptions extends { query?: any }
-  ? InfiniteQueryKeys extends keyof TOptions['query']
+} & (TOptions extends { query?: infer TQuery }
+  ? NonNullable<keyof TQuery> extends InfiniteQueryKeys
     ? EdenTreatySvelteQueryInfiniteQueryRoute<TElysia, TRoute, TConfig, TPaths>
     : {}
   : {})
