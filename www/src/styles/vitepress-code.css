@@ -1,0 +1,152 @@
+/**
+ * @see https://github.com/vuejs/vitepress/blob/9d0145d32dd72bfcc6964afb7c5016668fb57a40/src/client/theme-default/styles/components/vp-doc.css#L334-L343
+ */
+pre.shiki {
+  code {
+    display: block;
+    /* padding: 0 24px; */
+    width: fit-content;
+    min-width: 100%;
+    line-height: var(--vp-code-line-height);
+    font-size: var(--vp-code-font-size);
+    color: var(--vp-code-block-color);
+    transition: color 0.5s;
+  }
+}
+
+/**
+ * Map Vitepress CSS variables to DaisyUI.
+ *
+ * @see https://github.com/vuejs/vitepress/blob/9d0145d32dd72bfcc6964afb7c5016668fb57a40/src/client/theme-default/styles/components/vp-doc.css#L345C1-L418C1
+ */
+:root {
+  --vp-code-line-highlight-color: color-mix(
+    in oklab,
+    var(--color-base-100),
+    var(--color-base-content) 20%
+  );
+
+  --vp-code-line-warning-color: color-mix(
+    in oklab,
+    var(--color-warning),
+    var(--color-base-100) 70%
+  );
+  --vp-code-line-error-color: color-mix(in oklab, var(--color-error), var(--color-base-100) 70%);
+
+  --vp-code-line-diff-remove-color: color-mix(
+    in oklab,
+    var(--color-error),
+    var(--color-base-100) 70%
+  );
+  --vp-code-line-diff-add-color: color-mix(
+    in oklab,
+    var(--color-success),
+    var(--color-base-100) 70%
+  );
+
+  --vp-code-line-diff-remove-symbol-color: var(--color-error);
+  --vp-code-line-diff-add-symbol-color: var(--color-success);
+}
+
+.vp-doc [class*='language-'] code .highlighted {
+  background-color: var(--vp-code-line-highlight-color);
+  transition: background-color 0.5s;
+  margin: 0 -24px;
+  padding: 0 24px;
+  width: calc(100% + 2 * 24px);
+  display: inline-block;
+}
+
+.vp-doc [class*='language-'] code .highlighted.error {
+  background-color: var(--vp-code-line-error-color);
+}
+
+.vp-doc [class*='language-'] code .highlighted.warning {
+  background-color: var(--vp-code-line-warning-color);
+}
+
+.vp-doc [class*='language-'] code .diff {
+  transition: background-color 0.5s;
+  margin: 0 -24px;
+  padding: 0 24px;
+  width: calc(100% + 2 * 24px);
+  display: inline-block;
+
+  /* Undo styles applied by DaisyUI diff component. */
+  container-type: normal;
+}
+
+/*
+ * Use ::after so it does not conflict with line numbers.
+ *
+ * .vp-doc [class*='language-'] code .diff::before {
+ *   position: absolute;
+ *   left: 10px;
+ * }
+*/
+
+.vp-doc [class*='language-'] code .diff::after {
+  position: absolute;
+  left: 10px;
+}
+
+.vp-doc [class*='language-'] .has-focused-lines .line:not(.has-focus) {
+  filter: blur(0.095rem);
+  opacity: 0.4;
+  transition:
+    filter 0.35s,
+    opacity 0.35s;
+}
+
+.vp-doc [class*='language-'] .has-focused-lines .line:not(.has-focus) {
+  opacity: 0.7;
+  transition:
+    filter 0.35s,
+    opacity 0.35s;
+}
+
+.vp-doc [class*='language-']:hover .has-focused-lines .line:not(.has-focus) {
+  filter: blur(0);
+  opacity: 1;
+}
+
+.vp-doc [class*='language-'] code .diff.remove {
+  background-color: var(--vp-code-line-diff-remove-color);
+  opacity: 0.7;
+}
+
+/**
+ * Use ::after so it does not conflict with line numbers.
+ *
+ * .vp-doc [class*='language-'] code .diff.remove::before {
+ *   content: '-';
+ *   color: var(--vp-code-line-diff-remove-symbol-color);
+ * }
+ */
+.vp-doc [class*='language-'] code .diff.remove::after {
+  content: '-';
+  color: var(--vp-code-line-diff-remove-symbol-color);
+}
+
+.vp-doc [class*='language-'] code .diff.add {
+  background-color: var(--vp-code-line-diff-add-color);
+}
+
+/**
+ * Use ::after so it does not conflict with line numbers.
+ *
+ * .vp-doc [class*='language-'] code .diff.add::before {
+ *   content: '+';
+ *   color: var(--vp-code-line-diff-add-symbol-color);
+ * }
+ */
+
+.vp-doc [class*='language-'] code .diff.add::after {
+  content: '+';
+  color: var(--vp-code-line-diff-add-symbol-color);
+}
+
+.vp-doc div[class*='language-'].line-numbers-mode {
+  /*rtl:ignore*/
+  padding-left: 32px;
+}

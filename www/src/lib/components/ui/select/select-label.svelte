@@ -1,0 +1,27 @@
+<script lang="ts">
+  import type { WithElementRef } from 'bits-ui'
+  import type { HTMLAttributes } from 'svelte/elements'
+
+  import { cn } from '$lib/utils/cn'
+
+  let {
+    ref = $bindable(null),
+    class: className,
+    children,
+    ...restProps
+  }: WithElementRef<HTMLAttributes<HTMLDivElement>> & {} = $props()
+</script>
+
+<div
+  bind:this={ref}
+  data-slot="select-label"
+  class={cn(
+    'text-base-content/70',
+    // 'text-muted-foreground',
+    'px-2 py-1.5 text-xs',
+    className,
+  )}
+  {...restProps}
+>
+  {@render children?.()}
+</div>

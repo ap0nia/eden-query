@@ -1,0 +1,33 @@
+@utility btn-active {
+  /**
+   * Undo styles set by btn-ghost.
+   */
+  &.btn-ghost:not(:disabled, [disabled], .btn-disabled) {
+    --btn-fg: var(--color-base-content);
+    --btn-bg: color-mix(in oklab, var(--btn-color, var(--color-base-200)), #000 7%);
+  }
+}
+
+/**
+ * Allow swap to be activated conditionally with variants.
+ * e.g. dark:swap-active, hover:swap-active, etc.
+ */
+@utility swap-active {
+  &.swap-rotate {
+    .swap-on {
+      rotate: 0deg;
+    }
+
+    .swap-off {
+      rotate: -45deg;
+    }
+  }
+
+  .swap-on {
+    z-index: 10;
+  }
+
+  .swap-off {
+    z-index: 0;
+  }
+}

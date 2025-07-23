@@ -2,6 +2,12 @@
 @import 'tw-animate-css';
 @import '@shikijs/vitepress-twoslash/style.css';
 
+@import './styles/code.css';
+@import './styles/daisyui.css';
+@import './styles/milkdown.css';
+@import './styles/twoslash.css';
+@import './styles/vitepress-code.css';
+
 @plugin "@tailwindcss/typography";
 
 @plugin 'daisyui' {

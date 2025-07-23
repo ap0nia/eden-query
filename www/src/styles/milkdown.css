@@ -1,0 +1,7 @@
+:not(.dark) .milkdown code span {
+  color: var(--shiki-light, inherit);
+}
+
+.dark .milkdown code span {
+  color: var(--shiki-dark, inherit);
+}

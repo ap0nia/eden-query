@@ -1,22 +1,22 @@
 // @ts-check
 
-import { defaultClientConditions, defineConfig } from 'vite'
+import { defineConfig } from 'vite'
 import devtoolsJson from 'vite-plugin-devtools-json'
+import { groupIconVitePlugin } from 'vitepress-plugin-group-icons'
 
 import { paraglideVitePlugin } from '@inlang/paraglide-js'
 import { sveltekit } from '@sveltejs/kit/vite'
 import tailwind from '@tailwindcss/vite'
 
 const config = defineConfig({
-  resolve: {
-    conditions: [...defaultClientConditions, 'worker'],
-  },
   plugins: [
     devtoolsJson(),
 
     tailwind(),
 
     sveltekit(),
+
+    groupIconVitePlugin(),
 
     paraglideVitePlugin({
       project: './project.inlang',

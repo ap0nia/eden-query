@@ -1,0 +1,42 @@
+/**
+ * Derive the twoslash colors from the daisyui theme.
+ *
+ * Since we're importing the style sheet from @shikijs/vitepress-twoslash, 
+ * we'll opt into their variable names.
+ *
+ * @see https://github.com/shikijs/shiki/blob/f8ef446af3f5f3910131b692e0c81ce032754ffa/packages/vitepress-twoslash/src/style.css#L1-L13
+ */
+:root {
+  --twoslash-border-color: var(--color-base-content);
+  --twoslash-underline-color: currentColor;
+  --twoslash-highlighted-border: #c37d0d50;
+  --twoslash-highlighted-bg: #c37d0d20;
+  --twoslash-popup-bg: var(--color-base-100);
+  --twoslash-popup-color: inherit;
+  --twoslash-popup-shadow: rgba(0, 0, 0, 0.08) 0px 1px 4px;
+  --twoslash-docs-color: #888;
+  --twoslash-docs-font: sans-serif;
+  --twoslash-code-font: inherit;
+  --twoslash-code-font-size: 1em;
+  --twoslash-matched-color: inherit;
+  --twoslash-unmatched-color: #888;
+  --twoslash-cursor-color: #8888;
+  --twoslash-error-color: #d45656;
+  --twoslash-error-bg: #d4565620;
+  --twoslash-warn-color: #c37d0d;
+  --twoslash-warn-bg: #c37d0d20;
+  --twoslash-tag-color: #3772cf;
+  --twoslash-tag-bg: #3772cf20;
+  --twoslash-tag-warn-color: var(--twoslash-warn-color);
+  --twoslash-tag-warn-bg: var(--twoslash-warn-bg);
+  --twoslash-tag-annotate-color: #1ba673;
+  --twoslash-tag-annotate-bg: #1ba67320;
+}
+
+.twoslash-popup-docs code:has(div[class*='vp-code']) {
+  background: transparent !important;
+}
+
+.v-popper {
+  z-index: 30;
+}
