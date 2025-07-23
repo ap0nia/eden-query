@@ -25,6 +25,7 @@
   ],
   "workspaces": [
     "documentation",
+    "www",
     "examples/**/*",
     "packages/*"
   ],

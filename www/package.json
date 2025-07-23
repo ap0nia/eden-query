@@ -1,0 +1,58 @@
+{
+  "name": "@ap0nia/eden-www",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "prepare": "svelte-kit sync",
+    "storybook": "storybook dev",
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ap0nia/eden": "workspace:^",
+    "@ap0nia/eden-tanstack-query": "workspace:^",
+    "@shikijs/rehype": "^3.8.1",
+    "@shikijs/transformers": "^3.8.1",
+    "@sinclair/typebox": "^0.34.38",
+    "@skeletonlabs/floating-ui-svelte": "^0.3.9",
+    "@tanstack/svelte-query": "^5.83.0",
+    "bits-ui": "^2.8.11",
+    "elysia": "^1.3.5",
+    "mermaid": "^11.9.0",
+    "mode-watcher": "^1.1.0",
+    "rehype-stringify": "^10.0.1",
+    "remark-directive": "^4.0.0",
+    "remark-rehype": "^11.1.2",
+    "runed": "^0.30.0",
+    "superjson": "^2.2.2",
+    "tailwind-merge": "^3.3.1",
+    "tailwind-variants": "^1.0.0",
+    "twoslash-cdn": "^0.3.3"
+  },
+  "devDependencies": {
+    "@iconify/json": "^2.2.362",
+    "@iconify/tailwind4": "^1.0.6",
+    "@inlang/cli": "^3.0.12",
+    "@inlang/paraglide-js": "^2.2.0",
+    "@shikijs/vitepress-twoslash": "^3.8.1",
+    "@storybook/addon-svelte-csf": "^5.0.7",
+    "@storybook/sveltekit": "^9.0.18",
+    "@sveltejs/kit": "^2.25.2",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/vite": "^4.1.11",
+    "daisyui": "^5.0.46",
+    "svelte": "^5.36.14",
+    "svelte-check": "^4.3.0",
+    "tw-animate-css": "^1.3.5",
+    "typescript": "^5.8.3",
+    "vite": "^7.0.5",
+    "vite-plugin-devtools-json": "^0.2.1"
+  },
+  "packageManager": "pnpm@10.13.1",
+  "engines": {
+    "pnpm": "^10.13.1",
+    "node": "^22.11.0",
+    "bun": "^1.2.18"
+  }
+}

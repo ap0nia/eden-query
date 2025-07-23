@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import '@shikijs/vitepress-twoslash/style.css';
+
+@plugin "@tailwindcss/typography";
+
+@plugin 'daisyui' {
+  exclude: scrollbar;
+  themes: all;
+}
+
+@plugin '@iconify/tailwind4';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html {
+  /**
+   * Share the the data-theme globally via a CSS variable.
+   */
+  --data-theme: attr(data-theme);
+}

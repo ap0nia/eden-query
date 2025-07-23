@@ -1,0 +1,16 @@
+#####################################################################################
+# Generated
+#####################################################################################
+
+## Packages installed by NPM. May also contain cached dependencies from Vite.
+# https://docs.npmjs.com/about-packages-and-modules
+/node_modules/
+
+## SvelteKit temporary build output.
+/.svelte-kit/
+
+## Vercel build output.
+/.vercel/
+
+## Temporary, bundled Vite configuration modules that fail to be deleted automatically.
+vite.config.js.timestamp-*
