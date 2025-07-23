@@ -104,6 +104,8 @@
     return Number.isNaN(maybeEnd) ? undefined : maybeEnd
   })
 
+  // const resolvedShowHeader = $derived(false)
+
   const resolvedShowHeader = $derived(showHeader == null ? Boolean(title) : showHeader)
 
   const canTwoslash = $derived(
@@ -329,7 +331,7 @@
           <label
             class="btn btn-square btn-ghost btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
           >
-            <input name="wrap" type="checkbox" />
+            <input name="wrap" type="checkbox" class="hidden" />
             <span class="swap-on icon-[mdi--wrap]"></span>
             <span class="swap-off icon-[mdi--wrap-disabled]"></span>
           </label>
@@ -365,30 +367,30 @@
           <div class="hover pointer-events-auto">
             <div data-tip="Toggle line numbers" class="tooltip">
               <label
-                class="btn btn-square btn-ghost btn-sm group-has-[[name=line-count]:checked]/code:btn-active"
+                class="btn btn-square btn-outline btn-sm group-has-[[name=line-count]:checked]/code:btn-active"
               >
-                <input name="line-count" type="checkbox" />
+                <input name="line-count" type="checkbox" class="hidden" />
                 <span class="icon-[mdi--format-list-numbered]"></span>
               </label>
             </div>
 
             <div data-tip="Toggle line wrap" class="tooltip">
               <label
-                class="btn btn-square btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
+                class="btn btn-outline btn-square btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
               >
-                <input name="wrap" type="checkbox" />
+                <input name="wrap" type="checkbox" class="hidden" />
                 <span class="swap-on icon-[mdi--wrap]"></span>
                 <span class="swap-off icon-[mdi--wrap-disabled]"></span>
               </label>
             </div>
 
             <div data-tip="Copy code" class="tooltip">
-              <CopyButton {ref} class="btn-sm" />
+              <CopyButton {ref} class="btn-sm btn-square !btn-outline" />
             </div>
           </div>
         </div>
         <div
-          class="code-extras pointer-events-none absolute top-0 left-0 flex w-full justify-end px-2 transition-opacity peer-hover/actions:opacity-0 peer-hover/wrap:opacity-0 hover:opacity-0"
+          class="code-extras pointer-events-none absolute top-0 left-0 flex w-full justify-end p-2 transition-opacity peer-hover/actions:opacity-0 peer-hover/wrap:opacity-0 hover:opacity-0"
         >
           {#if lang}
             <span class={cn('text-xs')}>{lang}</span>
