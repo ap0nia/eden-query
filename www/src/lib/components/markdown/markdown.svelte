@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Element, Raw, Root, RootContent, Text } from 'hast'
+  import type { Snippet } from 'svelte'
   import type { HTMLAttributes } from 'svelte/elements'
   import { VFile } from 'vfile'
 
@@ -15,12 +16,22 @@
 
   interface $$Props extends Omit<HTMLAttributes<HTMLElement>, 'children'> {
     /**
+     * For statically generated Markdown, they will already have a children snippet.
+     *
+     * In order to dynamically update the Markdown, it needs to be switched to "live" mode.
+     *
+     * "Live" mode should attempt to parse the original Markdown string from the frontmatter,
+     * then override the children with an array.
+     */
+    metadata?: any
+
+    /**
      */
     content?: string | null
 
     /**
      */
-    children?: (Root | RootContent)[]
+    children?: (Root | RootContent)[] | Snippet
 
     /**
      */
@@ -257,7 +268,9 @@ All nested instances of this component will only be given tokens to render.
   {@html child.value}
 {/snippet}
 
-{#if showFallback && content && !children.length}
+{#if typeof children === 'function'}
+  {@render children?.()}
+{:else if showFallback && content && !children.length}
   {@render fallback()}
 {:else}
   {#each children as child, index (index)}

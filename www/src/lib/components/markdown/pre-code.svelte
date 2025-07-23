@@ -126,7 +126,7 @@
    * @example "```ts title=my_custom_title lang=code_language twoslash"
    */
   function extractCodeStart() {
-    if (context.content == null) {
+    if (context?.content == null) {
       console.log('No content found')
       return
     }

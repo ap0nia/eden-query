@@ -156,6 +156,8 @@ export async function compile(options, config) {
 
   file.data['matter'] = frontmatter.matter
 
+  file.data['matter']['content'] = options.content
+
   if (frontmatter.value) {
     file.value = frontmatter.value
   }
