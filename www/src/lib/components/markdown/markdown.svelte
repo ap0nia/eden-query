@@ -51,6 +51,8 @@
   const clientId = $props.id()
 
   let {
+    metadata,
+
     content = $bindable(),
 
     vfile = content ? new VFile() : undefined,
@@ -72,16 +74,20 @@
    */
   let previouslyParsedContent = $state(browser ? '' : content)
 
+  let listener = $state<(event: MessageEvent<UnifiedOutgoingMessage>) => unknown>()
+
+  let syncedLanguages = $state(false)
+
   // Only set context at the root.
   // The root Markdown component is the only component in the tree with non-empty content.
 
-  if (content) {
+  if (content || metadata) {
     setMarkdownContext({
       get vfile() {
         return vfile
       },
       get content() {
-        return content
+        return content || metadata.content
       },
       set content(value) {
         content = value
@@ -93,9 +99,9 @@
   }
 
   $effect(() => {
-    if (!content) return
+    if (!content || listener) return
 
-    const listener = (event: MessageEvent<UnifiedOutgoingMessage>) => {
+    listener = (event: MessageEvent<UnifiedOutgoingMessage>) => {
       switch (event.data.type) {
         case 'parse-and-run': {
           vfile = event.data.vfile
@@ -111,16 +117,27 @@
           return
         }
 
+        case 'load-language': {
+          syncedLanguages = true
+          return
+        }
+
         default: {
           return
         }
       }
     }
+  })
 
-    emitter.addScopedEventListener(clientId, 'message', listener)
+  $effect(() => {
+    if (listener) {
+      emitter.addScopedEventListener(clientId, 'message', listener)
+    }
 
     return () => {
-      emitter.addScopedEventListener(clientId, 'message', listener)
+      if (listener) {
+        emitter.removeScopedEventListener(clientId, 'message', listener)
+      }
     }
   })
 
@@ -176,7 +193,7 @@
     if (!content) return
 
     // Synchronize the in-memory highlighter with the worker's highlighter.
-    if (workerEnabled) {
+    if (workerEnabled && !syncedLanguages) {
       postMessage({ type: 'load-language', languages: highlighter.getLoadedLanguages() as any })
     } else {
       // noop

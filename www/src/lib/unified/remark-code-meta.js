@@ -1,14 +1,17 @@
-import type { Code, Node } from 'mdast'
-import type { Transformer } from 'unified'
+// @ts-check
+
 import { visit } from 'unist-util-visit'
 
-export function remarkCodeMeta(): Transformer<Node, Node> {
+/**
+ * @returns {import('unified').Transformer<import('mdast').Node, import('mdast'). Node>}
+ */
+export function remarkCodeMeta() {
   return (tree, file) => {
     visit(
       tree,
       (node) => node.type === 'code',
       (node, _index, _parent) => {
-        const code = node as Code
+        const code = /** @type import ('mdast').Code */ (node)
 
         if (code.lang) {
           code.meta ||= ''

@@ -174,6 +174,16 @@
 
     sections[0] = '```' + lang
 
+    if (sections.includes('twoslash')) {
+      twoslashLoading = true
+
+      let lastLineIndex = code.lastIndexOf('```')
+
+      const source = code.slice(index, lastLineIndex)
+
+      await context.postMessage({ type: 'prepare-types', source })
+    }
+
     firstLine = sections.join(' ')
 
     const updatedContent = content.slice(0, start) + firstLine + content.slice(start + index)
@@ -250,10 +260,10 @@
     <div
       class={cn(
         'code-header vp-code-block-title',
-        'bg-neutral',
+        // 'bg-neutral',
         'rounded-t-field',
         'group-has-[[name=sticky-pin]:checked]/code:sticky',
-        'top-0 z-10 flex items-center justify-between gap-4 border-b px-4 py-0.5 pr-2',
+        'top-0 z-10 flex items-center justify-between gap-4 border-b px-4 py-1 pr-2',
       )}
     >
       <div class="flex items-center">
@@ -274,7 +284,7 @@
 
         {#if langInfo}
           <Select.Root type="single" value={lang || ''} onValueChange={handleLanguageChange}>
-            <Select.Trigger class="border-none">{langInfo.name}</Select.Trigger>
+            <Select.Trigger class="btn-sm! border-none">{langInfo.name}</Select.Trigger>
 
             <Select.Content>
               <Select.Group>

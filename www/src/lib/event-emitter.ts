@@ -44,6 +44,18 @@ class EventEmitter<T = any> {
     this.scopedListeners[type][id].add(listener)
   }
 
+  removeScopedEventListener = <K extends keyof T>(
+    id: string,
+    type: K,
+    listener: EventListener<T[K]>,
+    // optionsOrCapture?: AddEventListenerOptions | boolean,
+  ) => {
+    // const options =
+    //   typeof optionsOrCapture === 'boolean' ? { capture: optionsOrCapture } : optionsOrCapture || {}
+
+    this.scopedListeners[type]?.[id]?.delete(listener)
+  }
+
   removeEventListener = <K extends keyof T>(type: K, listener: EventListener<T[K]>) => {
     this.listeners[type]?.delete(listener)
     this.onceListeners[type]?.delete(listener)
