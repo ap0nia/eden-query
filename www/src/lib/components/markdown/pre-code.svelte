@@ -6,13 +6,15 @@
 
 <script lang="ts">
   import { bundledLanguagesInfo } from 'shiki'
+  import { tick } from 'svelte'
   import type { HTMLAttributes } from 'svelte/elements'
   import { slide } from 'svelte/transition'
 
   import CopyButton from '$lib/components/copy-button.svelte'
   import TwoslashIcon from '$lib/components/icons/twoslash.svelte'
   import { getMarkdownContext } from '$lib/components/markdown/context'
-  import * as Select from '$lib/components/ui/select'
+  import * as Command from '$lib/components/ui/command'
+  import * as Popover from '$lib/components/ui/popover'
   import { aliasLanguages } from '$lib/shiki'
   import type { remarkCodeMeta as _remarkCodeMeta } from '$lib/unified/remark-code-meta'
   import type { remarkWysiwyg as _remarkWysiwyg } from '$lib/unified/remark-wysiwyg'
@@ -66,6 +68,10 @@
   let timeout: ReturnType<typeof setTimeout> | undefined
 
   const context = getMarkdownContext()
+
+  let open = $state(false)
+
+  let triggerRef = $state<HTMLButtonElement>(null!)
 
   const dataAttributes = $derived.by(() => {
     const propEntries = Object.entries(rest)
@@ -189,6 +195,16 @@
     const updatedContent = content.slice(0, start) + firstLine + content.slice(start + index)
 
     context.content = updatedContent
+
+    // We want to refocus the trigger button when the user selects
+    // an item from the list so users can continue navigating the
+    // rest of the form with the keyboard.
+
+    open = false
+
+    await tick()
+
+    triggerRef.focus()
   }
 
   async function toggleTwoslash() {
@@ -283,19 +299,33 @@
         </div>
 
         {#if langInfo}
-          <Select.Root type="single" value={lang || ''} onValueChange={handleLanguageChange}>
-            <Select.Trigger class="btn-sm! border-none">{langInfo.name}</Select.Trigger>
+          <Popover.Root bind:open>
+            <Popover.Trigger bind:ref={triggerRef} class="btn btn-sm">
+              <span>{langInfo.name}</span>
+              <span class="icon-[mdi--chevron-down]"></span>
+            </Popover.Trigger>
 
-            <Select.Content>
-              <Select.Group>
-                {#each bundledLanguagesInfo as info (info.id)}
-                  <Select.Item value={info.id}>
-                    {info.name}
-                  </Select.Item>
-                {/each}
-              </Select.Group>
-            </Select.Content>
-          </Select.Root>
+            <Popover.Content class="p-0">
+              <Command.Root value={lang || ''}>
+                <Command.Input placeholder="Search framework..." />
+
+                <Command.List>
+                  <Command.Empty>No language found.</Command.Empty>
+
+                  <Command.Group>
+                    {#each bundledLanguagesInfo as info (info.id)}
+                      <Command.Item
+                        value={info.id}
+                        onclick={handleLanguageChange.bind(null, info.id)}
+                      >
+                        {info.name}
+                      </Command.Item>
+                    {/each}
+                  </Command.Group>
+                </Command.List>
+              </Command.Root>
+            </Popover.Content>
+          </Popover.Root>
         {:else}
           <span data-title={title} class="font-mono text-sm">{title}</span>
         {/if}
