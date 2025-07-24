@@ -14,7 +14,7 @@ import { mdsxPreprocess } from './src/lib/mdsx/index.js'
 import { rendererFloatingSvelte } from './src/lib/mdsx/floating-renderer-svelte.js'
 import { createTwoslasher } from './src/lib/mdsx/twoslash-svelte.js'
 import { parseMetaString } from './src/lib/unified/parse-meta.js'
-import { remarkCodeMeta } from './src/lib/unified/remark-code-meta.js'
+// import { remarkCodeMeta } from './src/lib/unified/remark-code-meta.js'
 import { rehypePreCode } from './src/lib/unified/rehype-pre-code.js'
 import { transformers } from './src/lib/unified/shiki-transformers.js'
 
@@ -36,44 +36,40 @@ const config = {
         },
       },
       unified: (processor) => {
-        return (
-          processor
-            // These might not work here.
-            .use(remarkCodeMeta)
-            .use(rehypePreCode)
-            .use(rehypeSlug)
-            .use(rehypeAutolinkHeadings, { properties: { class: 'header-anchor' } })
-            .use(shikiRehype, {
-              addLanguageClass: true,
-              defaultColor: false,
-              parseMetaString,
-              themes: {
-                light: 'github-light',
-                dark: 'github-dark-high-contrast',
-              },
-              transformers: [
-                ...transformers,
-                transformerTwoslash({
-                  explicitTrigger: true,
-                  langs: ['ts', 'tsx', 'svelte'],
-                  twoslasher: createTwoslasher(),
-                  twoslashOptions: {
-                    compilerOptions: {
-                      jsx: ts.JsxEmit.Preserve,
-                      paths: {
-                        $lib: ['./src/lib'],
-                        '$lib/*': ['./src/lib/*'],
-                      },
-                      moduleResolution: ts.ModuleResolutionKind.Bundler,
-                      module: ts.ModuleKind.ESNext,
-                      target: ts.ScriptTarget.ESNext,
+        return processor
+          .use(rehypePreCode)
+          .use(rehypeSlug)
+          .use(rehypeAutolinkHeadings, { properties: { class: 'header-anchor' } })
+          .use(shikiRehype, {
+            addLanguageClass: true,
+            defaultColor: false,
+            parseMetaString,
+            themes: {
+              light: 'github-light',
+              dark: 'github-dark-high-contrast',
+            },
+            transformers: [
+              ...transformers,
+              transformerTwoslash({
+                explicitTrigger: true,
+                langs: ['ts', 'tsx', 'svelte'],
+                twoslasher: createTwoslasher(),
+                twoslashOptions: {
+                  compilerOptions: {
+                    jsx: ts.JsxEmit.Preserve,
+                    paths: {
+                      $lib: ['./src/lib'],
+                      '$lib/*': ['./src/lib/*'],
                     },
+                    moduleResolution: ts.ModuleResolutionKind.Bundler,
+                    module: ts.ModuleKind.ESNext,
+                    target: ts.ScriptTarget.ESNext,
                   },
-                  renderer: rendererFloatingSvelte(),
-                }),
-              ],
-            })
-        )
+                },
+                renderer: rendererFloatingSvelte(),
+              }),
+            ],
+          })
       },
     }),
   ],

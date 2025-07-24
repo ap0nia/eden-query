@@ -59,6 +59,10 @@ export type Blueprint = {
   /**
    */
   unified?: UnifiedPlugin
+
+  /**
+   */
+  props?: any
 }
 
 /**
