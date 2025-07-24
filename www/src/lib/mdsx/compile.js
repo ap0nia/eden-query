@@ -23,9 +23,6 @@ import { remarkNpmToYarn } from './unified/remark/remark-npm-to-yarn.js'
 import { getRelativeFilePath } from './utils/path.js'
 import { parseFrontmatter } from './utils/yaml.js'
 
-import { remarkCodeMeta } from '../unified/remark-code-meta.js'
-import { rehypePreCode } from '../unified/rehype-pre-code.js'
-
 /**
  * Generate a string representing the `<script context="module">` part of a Svelte component.
  *
@@ -179,12 +176,6 @@ export async function compile(options, config) {
     .use(remarkContainers)
     .use(remarkGithubAlerts)
     .use(remarkGfm)
-    .use(remarkCodeMeta)
-    .use(rehypePreCode)
-    .use(remarkRehype, {
-      allowDangerousHtml: true,
-      handlers: /** @type import('mdast-util-to-hast').Handlers */ (handlers),
-    })
 
   // User can add or override the processor as desired.
 
@@ -200,6 +191,10 @@ export async function compile(options, config) {
 
   // Finally, use all the core rehype plugins.
   processor = processor
+    .use(remarkRehype, {
+      allowDangerousHtml: true,
+      handlers: /** @type import('mdast-util-to-hast').Handlers */ (handlers),
+    })
     .use(rehypeRenderCode)
     .use(rehypeBlueprint)
     .use(rehypeGetFloating)

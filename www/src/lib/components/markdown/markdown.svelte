@@ -26,6 +26,9 @@
     metadata?: any
 
     /**
+     * Markdown content string.
+     *
+     * Be careful when binding to it, because it can be updated by any Markdown child.
      */
     content?: string | null
 
@@ -76,6 +79,8 @@
 
   let listener = $state<(event: MessageEvent<UnifiedOutgoingMessage>) => unknown>()
 
+  let handleLoadedLanguages = $state<(...languages: string[]) => unknown>()
+
   let syncedLanguages = $state(false)
 
   // Only set context at the root.
@@ -101,7 +106,7 @@
   $effect(() => {
     if (!content || listener) return
 
-    listener = (event: MessageEvent<UnifiedOutgoingMessage>) => {
+    listener ||= (event: MessageEvent<UnifiedOutgoingMessage>) => {
       switch (event.data.type) {
         case 'parse-and-run': {
           vfile = event.data.vfile
@@ -130,19 +135,7 @@
   })
 
   $effect(() => {
-    if (listener) {
-      emitter.addScopedEventListener(clientId, 'message', listener)
-    }
-
-    return () => {
-      if (listener) {
-        emitter.removeScopedEventListener(clientId, 'message', listener)
-      }
-    }
-  })
-
-  $effect(() => {
-    if (!content) return
+    if (!content || handleLoadedLanguages) return
 
     /**
      * When the Markdown content is parsed, every encountered language is captured in the VFile data.
@@ -150,7 +143,7 @@
      *
      * @see {_remarkCodeMeta} for implementation details of storing languages.
      */
-    const handleLoadedLanguages = async (...languages: string[]) => {
+    handleLoadedLanguages ||= async (...languages: string[]) => {
       const markdownHasLanguage = vfile?.data.langs?.has.bind(vfile.data.langs)
 
       if (markdownHasLanguage == null) {
@@ -171,6 +164,22 @@
       // Since content should never be empty at the root, this should force a re-render.
       previouslyParsedContent = ''
     }
+  })
+
+  $effect(() => {
+    if (listener) {
+      emitter.addScopedEventListener(clientId, 'message', listener)
+    }
+
+    return () => {
+      if (listener) {
+        emitter.removeScopedEventListener(clientId, 'message', listener)
+      }
+    }
+  })
+
+  $effect(() => {
+    if (!handleLoadedLanguages) return
 
     const unsubscribe = highlighter.on('languageLoaded', handleLoadedLanguages)
 
@@ -190,10 +199,10 @@
    */
 
   $effect(() => {
-    if (!content) return
+    if (!content || syncedLanguages) return
 
     // Synchronize the in-memory highlighter with the worker's highlighter.
-    if (workerEnabled && !syncedLanguages) {
+    if (workerEnabled) {
       postMessage({ type: 'load-language', languages: highlighter.getLoadedLanguages() as any })
     } else {
       // noop

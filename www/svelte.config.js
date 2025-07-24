@@ -14,8 +14,8 @@ import { mdsxPreprocess } from './src/lib/mdsx/index.js'
 import { rendererFloatingSvelte } from './src/lib/mdsx/floating-renderer-svelte.js'
 import { createTwoslasher } from './src/lib/mdsx/twoslash-svelte.js'
 import { parseMetaString } from './src/lib/unified/parse-meta.js'
-// import { remarkCodeMeta } from './src/lib/unified/remark-code-meta.js'
-// import { rehypePreCode } from './src/lib/unified/rehype-pre-code.js'
+import { remarkCodeMeta } from './src/lib/unified/remark-code-meta.js'
+import { rehypePreCode } from './src/lib/unified/rehype-pre-code.js'
 import { transformers } from './src/lib/unified/shiki-transformers.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
@@ -39,8 +39,8 @@ const config = {
         return (
           processor
             // These might not work here.
-            // .use(remarkCodeMeta)
-            // .use(rehypePreCode)
+            .use(remarkCodeMeta)
+            .use(rehypePreCode)
             .use(rehypeSlug)
             .use(rehypeAutolinkHeadings, { properties: { class: 'header-anchor' } })
             .use(shikiRehype, {
