@@ -12,6 +12,8 @@
   "dependencies": {
     "@ap0nia/eden": "workspace:^",
     "@ap0nia/eden-tanstack-query": "workspace:^",
+    "@milkdown/kit": "^7.15.1",
+    "@prosemirror-adapter/svelte": "^0.4.1",
     "@shikijs/rehype": "^3.8.1",
     "@shikijs/transformers": "^3.8.1",
     "@sinclair/typebox": "^0.34.38",
