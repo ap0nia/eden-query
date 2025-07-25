@@ -10,6 +10,7 @@ import { IsPromise } from '@sinclair/typebox/value'
 import type { Attachment } from 'svelte/attachments'
 
 import { within } from '$lib/milkdown/actions/within'
+import { codeView } from '$lib/milkdown/plugins/code-view'
 import { keymap } from '$lib/milkdown/plugins/keymap'
 import { nodeViewFactory } from '$lib/milkdown/plugins/node-view-factory'
 import { prosemirror, prosemirrorConfig } from '$lib/milkdown/plugins/prosemirror'
@@ -148,6 +149,7 @@ export function milkdown(params?: MilkdownParams): Attachment {
     .use(gfm)
     .use(clipboard)
     .use(remarkWysiwyg)
+    .use(codeView)
     .use(params?.plugins ?? [])
 
   $effect(() => {
