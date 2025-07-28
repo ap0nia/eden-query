@@ -1,11 +1,15 @@
 <script lang="ts">
+  import type { ComponentProps } from 'svelte'
   import type { HTMLAttributes } from 'svelte/elements'
 
   import PreCode from '$lib/components/markdown/pre-code.svelte'
   import PreMermaid from '$lib/components/markdown/pre-mermaid.svelte'
   import { parseMetaString } from '$lib/unified/parse-meta'
 
-  interface $$Props extends HTMLAttributes<HTMLElement> {
+  interface $$Props
+    extends HTMLAttributes<HTMLElement>,
+      ComponentProps<typeof PreCode>,
+      ComponentProps<typeof PreMermaid> {
     /**
      * Meta string.
      */

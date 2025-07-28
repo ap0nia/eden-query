@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Element, Raw, Root, RootContent, Text } from 'hast'
-  import type { Snippet } from 'svelte'
+  import type { ComponentProps, Snippet } from 'svelte'
   import type { HTMLAttributes } from 'svelte/elements'
   import { VFile } from 'vfile'
 
@@ -49,6 +49,10 @@
      * Fallback to rendering the raw Markdown content if it has not been parsed.
      */
     showFallback?: string
+
+    componentProps?: {
+      [K in keyof typeof markdown]?: Omit<ComponentProps<(typeof markdown)[K]>, 'children'>
+    }
   }
 
   const clientId = $props.id()
@@ -67,6 +71,8 @@
     workerEnabled = true,
 
     showFallback,
+
+    componentProps,
 
     ...rest
   }: $$Props = $props()
@@ -248,15 +254,19 @@ All nested instances of this component will only be given tokens to render.
 {/snippet}
 
 {#snippet htmlElement(child: Element)}
-  {@const Component = markdown[child.tagName as keyof typeof markdown]}
+  {@const tagName = child.tagName as keyof typeof markdown}
+
+  {@const Component = markdown[tagName]}
+
+  {@const childProps = componentProps?.[tagName]}
 
   {#if Component}
-    <Component {...rest} {...child.properties as any} {...child.data}>
-      <Markdown children={child.children} {...rest} />
+    <Component {...childProps} {...<any>child.properties} {...child.data} {...rest}>
+      <Markdown children={child.children} {...rest} {componentProps} />
     </Component>
   {:else}
-    <svelte:element this={child.tagName} {...rest} {...child.properties} {...child.data}>
-      <Markdown children={child.children} {...rest} />
+    <svelte:element this={tagName} {...childProps} {...child.properties} {...child.data} {...rest}>
+      <Markdown children={child.children} {...rest} {componentProps} />
     </svelte:element>
   {/if}
 {/snippet}
@@ -270,10 +280,10 @@ All nested instances of this component will only be given tokens to render.
 {#snippet root(child: Root)}
   {#if content}
     <div class="vp-doc markdown contents">
-      <Markdown children={child.children} {...rest} />
+      <Markdown children={child.children} {componentProps} {...rest} />
     </div>
   {:else}
-    <Markdown children={child.children} {...rest} />
+    <Markdown children={child.children} {componentProps} {...rest} />
   {/if}
 {/snippet}
 
