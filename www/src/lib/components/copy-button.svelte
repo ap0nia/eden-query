@@ -72,10 +72,10 @@ A button that will copy either the provided value or the text-content of the pro
 -->
 
 <button
+  {...restProps}
   onclick={copy}
   class={cn(copied && 'swap-active', className, 'btn btn-soft btn-square swap')}
   aria-label="Copy"
-  {...restProps}
 >
   <span class="icon-[mdi--content-copy] swap-off"></span>
   <span class="icon-[mdi--success-bold] swap-on"></span>
