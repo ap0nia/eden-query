@@ -20,7 +20,7 @@ import { transformers } from './src/lib/unified/shiki-transformers.js'
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
-const relativeBlueprintPath = path.join('src', 'lib', 'components', 'markdown', 'index.ts')
+const relativeBlueprintPath = path.join('src', 'lib', 'components', 'markdown', 'docs.svelte')
 
 /**
  * @satisfies {import('@sveltejs/kit').Config}

@@ -25,8 +25,6 @@
     bundledLanguagesInfo.find((info) => info.name === lang || info.id === lang),
   )
 
-  $inspect({ lang, langInfo, attrs })
-
   let ref = $state<HTMLElement>()
 
   const title = $derived(attrs['title']?.toString()?.replace(/^"(.*)"$/, '$1') || lang)

@@ -24,6 +24,7 @@ import { getRelativeFilePath } from './utils/path.js'
 import { parseFrontmatter } from './utils/yaml.js'
 
 import { remarkCodeMeta } from '../unified/remark-code-meta.js'
+import { getGitTimestamp } from './utils/git.js'
 
 /**
  * Generate a string representing the `<script context="module">` part of a Svelte component.
@@ -138,6 +139,7 @@ function getBlueprintData(file, config) {
  */
 export async function compile(options, config) {
   const source = options.filename ?? ''
+
   const filename = source
 
   /**
@@ -163,6 +165,8 @@ export async function compile(options, config) {
   if (frontmatter.value) {
     file.value = frontmatter.value
   }
+
+  file.data['matter']['lastUpdated'] = await getGitTimestamp(filename)
 
   const blueprint = getBlueprintData(file, config)
 
