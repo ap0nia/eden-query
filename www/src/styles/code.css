@@ -6,11 +6,11 @@
   color: var(--shiki-dark, inherit);
 }
 
-code[data-line-numbers] {
+code {
   counter-reset: line;
 }
 
-code[data-line-numbers] > .line::before {
+code > .line::before {
   display: inline-block;
   width: 0.75rem;
   margin-right: 2rem;
@@ -40,7 +40,7 @@ code[data-line-numbers-max-digits] > .line::before {
 }
 
 @utility line-count {
-  & > code[data-line-numbers] > .line::before {
+  & > code > .line::before {
     counter-increment: line;
     content: counter(line);
   }
