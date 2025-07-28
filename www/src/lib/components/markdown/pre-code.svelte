@@ -286,18 +286,21 @@
       <div class="flex items-center gap-0.5">
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <label
-              class="btn btn-square btn-ghost btn-sm group-has-[[name=collapsed-code]:checked]/code:btn-active"
-            >
-              <input
-                name="collapsed-code"
-                type="checkbox"
-                class="peer hidden"
-                bind:checked={collapsed}
-              />
-              <span class="icon-[mdi--chevron-down] transition-transform peer-checked:-rotate-180"
-              ></span>
-            </label>
+            {#snippet child({ props })}
+              <label
+                class="btn btn-square btn-ghost btn-sm group-has-[[name=collapsed-code]:checked]/code:btn-active"
+                {...props}
+              >
+                <input
+                  name="collapsed-code"
+                  type="checkbox"
+                  class="peer hidden"
+                  bind:checked={collapsed}
+                />
+                <span class="icon-[mdi--chevron-down] transition-transform peer-checked:-rotate-180"
+                ></span>
+              </label>
+            {/snippet}
           </Tooltip.Trigger>
 
           <Tooltip.Content>{collapsed ? 'Expand code' : 'Collapse code'}</Tooltip.Content>
@@ -307,10 +310,14 @@
           <Popover.Root bind:open>
             <Tooltip.Root>
               <Tooltip.Trigger>
-                <Popover.Trigger bind:ref={triggerRef} class="btn btn-sm">
-                  <span>{langInfo.name}</span>
-                  <span class="icon-[mdi--chevron-down]"></span>
-                </Popover.Trigger>
+                {#snippet child({ props })}
+                  <div {...props}>
+                    <Popover.Trigger bind:ref={triggerRef} class="btn btn-sm">
+                      <span>{langInfo.name}</span>
+                      <span class="icon-[mdi--chevron-down]"></span>
+                    </Popover.Trigger>
+                  </div>
+                {/snippet}
               </Tooltip.Trigger>
 
               <Tooltip.Content>Language</Tooltip.Content>
@@ -345,19 +352,16 @@
       <div class="hover pointer-events-auto">
         {#if canTwoslash}
           <Tooltip.Root>
-            <Tooltip.Trigger>
-              <button
-                onclick={toggleTwoslash}
-                class="btn btn-outline btn-sm btn-square p-1"
-                class:btn-active={Boolean(rest.twoslash)}
-                class:disabled={twoslashLoading}
-              >
-                {#if twoslashLoading}
-                  <span class="loading"></span>
-                {:else}
-                  <TwoslashIcon class="size-full" />
-                {/if}
-              </button>
+            <Tooltip.Trigger
+              onclick={toggleTwoslash}
+              class={cn('btn btn-outline btn-sm btn-square p-1', rest.twoslash && 'btn-active')}
+              disabled={twoslashLoading}
+            >
+              {#if twoslashLoading}
+                <span class="loading"></span>
+              {:else}
+                <TwoslashIcon class="size-full" />
+              {/if}
             </Tooltip.Trigger>
 
             <Tooltip.Content>Toggle Twoslash</Tooltip.Content>
@@ -366,12 +370,15 @@
 
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <label
-              class="btn btn-square btn-ghost btn-sm group-has-[[name=sticky-pin]:checked]/code:btn-active"
-            >
-              <input name="sticky-pin" type="checkbox" checked class="hidden" />
-              <span class="icon-[mdi--pin]"></span>
-            </label>
+            {#snippet child({ props })}
+              <label
+                class="btn btn-square btn-ghost btn-sm group-has-[[name=sticky-pin]:checked]/code:btn-active"
+                {...props}
+              >
+                <input name="sticky-pin" type="checkbox" checked class="hidden" />
+                <span class="icon-[mdi--pin]"></span>
+              </label>
+            {/snippet}
           </Tooltip.Trigger>
 
           <Tooltip.Content>Pin header to top</Tooltip.Content>
@@ -379,12 +386,15 @@
 
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <label
-              class="btn btn-square btn-ghost btn-sm group-has-[[name=line-count]:checked]/code:btn-active"
-            >
-              <input name="line-count" type="checkbox" class="hidden" />
-              <span class="icon-[mdi--format-list-numbered]"></span>
-            </label>
+            {#snippet child({ props })}
+              <label
+                class="btn btn-square btn-ghost btn-sm group-has-[[name=line-count]:checked]/code:btn-active"
+                {...props}
+              >
+                <input name="line-count" type="checkbox" class="hidden" />
+                <span class="icon-[mdi--format-list-numbered]"></span>
+              </label>
+            {/snippet}
           </Tooltip.Trigger>
 
           <Tooltip.Content>Toggle line numbers</Tooltip.Content>
@@ -392,13 +402,16 @@
 
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <label
-              class="btn btn-square btn-ghost btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
-            >
-              <input name="wrap" type="checkbox" class="hidden" />
-              <span class="swap-on icon-[mdi--wrap]"></span>
-              <span class="swap-off icon-[mdi--wrap-disabled]"></span>
-            </label>
+            {#snippet child({ props })}
+              <label
+                class="btn btn-square btn-ghost btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
+                {...props}
+              >
+                <input name="wrap" type="checkbox" class="hidden" />
+                <span class="swap-on icon-[mdi--wrap]"></span>
+                <span class="swap-off icon-[mdi--wrap-disabled]"></span>
+              </label>
+            {/snippet}
           </Tooltip.Trigger>
 
           <Tooltip.Content>Toggle line wrap</Tooltip.Content>
@@ -407,7 +420,7 @@
         <Tooltip.Root>
           <Tooltip.Trigger>
             {#snippet child({ props })}
-              <CopyButton {ref} class="!btn-ghost btn-sm" {...props} />
+              <CopyButton {...props} {ref} class="!btn-ghost btn-sm" />
             {/snippet}
           </Tooltip.Trigger>
 
@@ -438,30 +451,51 @@
           class="code-extras peer/actions pointer-events-none absolute top-0 left-0 flex w-full justify-end p-2 opacity-0 transition-opacity peer-hover/wrap:opacity-100 hover:opacity-100"
         >
           <div class="hover pointer-events-auto">
-            <div data-tip="Toggle line numbers" class="tooltip">
-              <label
-                class="btn btn-square btn-outline btn-sm group-has-[[name=line-count]:checked]/code:btn-active"
-              >
-                <input name="line-count" type="checkbox" class="hidden" />
-                <span class="icon-[mdi--format-list-numbered]"></span>
-              </label>
-            </div>
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <label
+                    class="btn btn-square btn-outline btn-sm group-has-[[name=line-count]:checked]/code:btn-active"
+                    {...props}
+                  >
+                    <input name="line-count" type="checkbox" class="hidden" />
+                    <span class="icon-[mdi--format-list-numbered]"></span>
+                  </label>
+                {/snippet}
+              </Tooltip.Trigger>
 
-            <div data-tip="Toggle line wrap" class="tooltip">
-              <label
-                class="btn btn-outline btn-square btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
-              >
-                <input name="wrap" type="checkbox" class="hidden" />
-                <span class="swap-on icon-[mdi--wrap]"></span>
-                <span class="swap-off icon-[mdi--wrap-disabled]"></span>
-              </label>
-            </div>
+              <Tooltip.Content>Toggle line numbers</Tooltip.Content>
+            </Tooltip.Root>
 
-            <div data-tip="Copy code" class="tooltip">
-              <CopyButton {ref} class="btn-sm btn-square !btn-outline" />
-            </div>
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <label
+                    class="btn btn-outline btn-square btn-sm swap group-has-[[name=wrap]:checked]/code:btn-active"
+                    {...props}
+                  >
+                    <input name="wrap" type="checkbox" class="hidden" />
+                    <span class="swap-on icon-[mdi--wrap]"></span>
+                    <span class="swap-off icon-[mdi--wrap-disabled]"></span>
+                  </label>
+                {/snippet}
+              </Tooltip.Trigger>
+
+              <Tooltip.Content>Toggle line wrap</Tooltip.Content>
+            </Tooltip.Root>
+
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <CopyButton {...props} {ref} class="btn-sm btn-square !btn-outline" />
+                {/snippet}
+              </Tooltip.Trigger>
+
+              <Tooltip.Content>Copy code</Tooltip.Content>
+            </Tooltip.Root>
           </div>
         </div>
+
         <div
           class="code-extras pointer-events-none absolute top-0 left-0 flex w-full justify-end p-2 transition-opacity peer-hover/actions:opacity-0 peer-hover/wrap:opacity-0 hover:opacity-0"
         >
