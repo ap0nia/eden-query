@@ -60,7 +60,7 @@
     end?: string
   }
 
-  let { children, showHeader = true, ...rest }: $$Props = $props()
+  let { children, showHeader, ...rest }: $$Props = $props()
 
   let ref = $state<HTMLElement>()
 
@@ -99,7 +99,7 @@
     bundledLanguagesInfo.find((info) => info.name === lang || info.id === lang),
   )
 
-  const title = $derived(rest.title?.toString()?.replace(/^"(.*)"$/, '$1') || lang)
+  const title = $derived(rest.title?.toString()?.replace(/^"(.*)"$/, '$1'))
 
   const start = $derived.by(() => {
     const maybeStart = Number(rest.start)
@@ -110,8 +110,6 @@
     const maybeEnd = Number(rest.end)
     return Number.isNaN(maybeEnd) ? undefined : maybeEnd
   })
-
-  // const resolvedShowHeader = $derived(false)
 
   const resolvedShowHeader = $derived(showHeader == null ? Boolean(title) : showHeader)
 
