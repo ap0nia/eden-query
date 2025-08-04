@@ -150,6 +150,27 @@ export function milkdown(params?: MilkdownParams): Attachment {
     .use(clipboard)
     .use(remarkWysiwyg)
     .use(codeView)
+    .use(
+      /**
+       * @see https://github.com/Milkdown/milkdown/blob/d6ce9c45275c84e40b6de27cad7a4d631def1d63/packages/crepe/src/feature/latex/block-latex.ts
+       */
+      codeBlockSchema.extendSchema((prev) => {
+        return (ctx) => {
+          const baseSchema = prev(ctx)
+
+          return {
+            ...baseSchema,
+            toMarkdown: {
+              ...baseSchema.toMarkdown,
+              runner: (state, node) => {
+                console.log({ state, node })
+                return baseSchema.toMarkdown.runner(state, node)
+              },
+            },
+          }
+        }
+      }),
+    )
     .use(params?.plugins ?? [])
 
   $effect(() => {

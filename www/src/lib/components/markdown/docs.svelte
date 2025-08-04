@@ -67,7 +67,7 @@ MDSX blueprint for documentation pages.
 <div class="flex min-h-dvh flex-col items-center justify-center gap-2 p-4">
   {#if editing}
     <div class="w-full">
-      <Editor defaultValue={rest.metadata?.content} />
+      <Editor defaultValue={rest.metadata?.content} onMessage={console.log} />
     </div>
   {:else}
     <div class="w-full">

@@ -6,6 +6,7 @@
   import { IsPromise } from '@sinclair/typebox/value'
 
   import { milkdown, type MilkdownParams } from '$lib/attachments/milkdown.svelte'
+  import * as Tooltip from '$lib/components/ui/tooltip'
   import { cn } from '$lib/utils/cn'
 
   interface $$Props extends MilkdownParams {
@@ -95,11 +96,19 @@
 
     <div class="flex max-h-full justify-between gap-1">
       <ul class="flex gap-1 self-end">
-        <li data-tip="More" class="tooltip">
-          <button class="btn btn-ghost btn-circle btn-sm" aria-label="More">
-            <span class="icon-[mdi--plus] size-6"></span>
-          </button>
-        </li>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <li {...props} class="tooltip">
+                <button class="btn btn-ghost btn-circle btn-sm" aria-label="More">
+                  <span class="icon-[mdi--plus] size-6"></span>
+                </button>
+              </li>
+            {/snippet}
+          </Tooltip.Trigger>
+
+          <Tooltip.Content>More</Tooltip.Content>
+        </Tooltip.Root>
       </ul>
 
       {#if !stacked}
@@ -109,51 +118,68 @@
       {/if}
 
       <ul class="flex gap-1 self-end">
-        <li data-tip="Stacked" class="tooltip">
-          <label
-            class="btn btn-ghost btn-square btn-sm has-checked:btn-active"
-            aria-label="Stacked"
-          >
-            <input type="checkbox" class="hidden" bind:checked={stacked} />
-            <span class="icon-[mdi--gradient-vertical] size-6"></span>
-          </label>
-        </li>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <li {...props}>
+                <label
+                  class="btn btn-ghost btn-square btn-sm has-checked:btn-active"
+                  aria-label="Stacked"
+                >
+                  <input type="checkbox" class="hidden" bind:checked={stacked} />
+                  <span class="icon-[mdi--settings] size-6"></span>
+                </label>
+              </li>
+            {/snippet}
+          </Tooltip.Trigger>
 
-        <li
-          class={cn(
-            'swap',
-            !canSubmit && 'group-not-has-[[contenteditable]]/editor:swap-active',
-            !canSubmit &&
-              'group-has-[[contenteditable]_p:only-child_br:only-child]/editor:swap-active',
-          )}
-        >
-          <button
-            type="button"
-            class={cn(
-              'flex cursor-pointer items-center',
-              'swap-on',
-              'transition-[opacity,scale] duration-300',
-              'hover:text-primary hover:scale-110 hover:ease-[cubic-bezier(.5,-2,.5,2)]',
-            )}
-            aria-label="Record message"
-          >
-            <span class="icon-[mdi--microphone] size-6"></span>
-          </button>
+          <Tooltip.Content>{stacked ? 'Row' : 'Stack'}</Tooltip.Content>
+        </Tooltip.Root>
 
-          <button
-            onclick={onSubmit}
-            type="button"
-            class={cn(
-              'flex cursor-pointer items-center',
-              'swap-off',
-              'transition-[opacity,translate] duration-300',
-              'hover:text-primary hover:translate-x-0.5 hover:ease-[cubic-bezier(.5,-2,.5,2)]',
-            )}
-            aria-label="Submit message"
-          >
-            <span class="icon-[mdi--send] size-6"></span>
-          </button>
-        </li>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            {#snippet child({ props })}
+              <li
+                {...props}
+                class={cn(
+                  'swap',
+                  !canSubmit && 'group-not-has-[[contenteditable]]/editor:swap-active',
+                  !canSubmit &&
+                    'group-has-[[contenteditable]_p:only-child_br:only-child]/editor:swap-active',
+                )}
+              >
+                <button
+                  type="button"
+                  class={cn(
+                    'flex cursor-pointer items-center',
+                    'swap-on',
+                    'transition-[opacity,scale] duration-300',
+                    'hover:text-primary hover:scale-110 hover:ease-[cubic-bezier(.5,-2,.5,2)]',
+                  )}
+                  aria-label="Record message"
+                >
+                  <span class="icon-[mdi--microphone] size-6"></span>
+                </button>
+
+                <button
+                  onclick={onSubmit}
+                  type="button"
+                  class={cn(
+                    'flex cursor-pointer items-center',
+                    'swap-off',
+                    'transition-[opacity,translate] duration-300',
+                    'hover:text-primary hover:translate-x-0.5 hover:ease-[cubic-bezier(.5,-2,.5,2)]',
+                  )}
+                  aria-label="Submit message"
+                >
+                  <span class="icon-[mdi--send] size-6"></span>
+                </button>
+              </li>
+            {/snippet}
+          </Tooltip.Trigger>
+
+          <Tooltip.Content>Send message</Tooltip.Content>
+        </Tooltip.Root>
       </ul>
     </div>
   </div>

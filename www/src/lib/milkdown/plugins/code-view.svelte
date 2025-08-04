@@ -9,6 +9,10 @@
   import { aliasLanguages } from '$lib/shiki'
   import { cn } from '$lib/utils/cn'
 
+  interface $$Props {}
+
+  let {}: $$Props = $props()
+
   const contentRef = useNodeViewContext('contentRef')
 
   const node = useNodeViewContext('node')
