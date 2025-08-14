@@ -1,5 +1,11 @@
 # @ap0nia/eden
 
+## 1.0.0-next.22
+
+### Patch Changes
+
+- 9f163a0: fix: types
+
 ## 1.0.0-next.21
 
 ### Patch Changes

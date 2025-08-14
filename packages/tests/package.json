@@ -1,7 +1,7 @@
 {
   "name": "@ap0nia/eden-query-tests",
   "private": true,
-  "version": "0.0.1-next.21",
+  "version": "0.0.1-next.22",
   "type": "module",
   "scripts": {
     "test": "ATTEST_skipTypes=1 vitest http-subscription",

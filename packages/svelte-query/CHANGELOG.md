@@ -1,5 +1,11 @@
 # @ap0nia/eden-svelte-query
 
+## 0.1.0-next.22
+
+### Patch Changes
+
+- 9f163a0: fix: types
+
 ## 0.1.0-next.21
 
 ### Patch Changes
