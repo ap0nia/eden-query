@@ -24,7 +24,7 @@ describe('treaty', () => {
 
     const treaty = edenTreaty<typeof app>(domain)
 
-    const result = await treaty.index.get()
+    const result = await treaty.get()
 
     expect(result.data).toBe(data)
   })
@@ -53,7 +53,7 @@ describe('treaty', () => {
 
       const treaty = edenTreaty<typeof app>(domain, { links: [httpLink()] })
 
-      const result = await treaty.index.get()
+      const result = await treaty.get()
 
       expect(result.data).toBe(data)
     })
@@ -71,7 +71,7 @@ describe('treaty', () => {
         links: [httpBatchLink({ types: true })],
       })
 
-      const promises = datas.map(() => treaty.index.get())
+      const promises = datas.map(() => treaty.get())
 
       const results = await Promise.all(promises)
 
@@ -101,7 +101,7 @@ describe('treaty', () => {
           ],
         })
 
-        const result = await treaty.index.get()
+        const result = await treaty.get()
 
         expect(result.data).toBe(data)
       })
@@ -124,7 +124,7 @@ describe('treaty', () => {
           links: [httpBatchLink({ types: true, transformer: SuperJSON })],
         })
 
-        const promises = datas.map(() => treaty.index.get())
+        const promises = datas.map(() => treaty.get())
 
         const results = await Promise.all(promises)
 
@@ -163,7 +163,7 @@ describe('treaty', () => {
 
         const listener = vi.fn()
 
-        const promises = values.map(() => treaty.index.get().then(listener))
+        const promises = values.map(() => treaty.get().then(listener))
 
         for (const value of values) {
           await vi.advanceTimersByTimeAsync(interval)
@@ -257,7 +257,7 @@ describe('treaty', () => {
         links: [httpLink({ types: true, fetch, fetcher })],
       })
 
-      await treaty.index.get().catch(() => {})
+      await treaty.get().catch(() => {})
 
       expect(fetcher).toHaveBeenCalledExactlyOnceWith(
         expect.anything(),

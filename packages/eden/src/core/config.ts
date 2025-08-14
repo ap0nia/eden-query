@@ -95,7 +95,7 @@ export interface EdenResolverConfig<
    * @see https://github.com/trpc/trpc/blob/662da0bb0a2766125e3f7eced3576f05a850a069/packages/client/src/links/internals/httpUtils.ts#L29
    * @see https://github.com/elysiajs/eden/blob/7b4e3d90f9f69bc79ca108da4f514ee845c7d9d2/src/treaty2/index.ts#L164
    */
-  fetcher?: FetchEsque
+  fetcher?: FetchEsque | typeof fetch
 
   /**
    * Global headers, provide a function to compute headers based on the request.

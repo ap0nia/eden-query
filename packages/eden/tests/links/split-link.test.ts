@@ -1,9 +1,8 @@
 import { describe, expect, test, vi } from 'vitest'
 
-import type { EdenResponse } from '../../src/core/dto'
 import { createChain } from '../../src/links/shared'
 import { splitLink } from '../../src/links/split-link'
-import type { Operation } from '../../src/links/types'
+import type { Operation, OperationLinkResult } from '../../src/links/types'
 import { Observable, promisifyObservable } from '../../src/observable'
 
 describe('splitLink', () => {
@@ -20,9 +19,15 @@ describe('splitLink', () => {
       context: {},
     }
 
-    const trueResult: EdenResponse = { result: { type: 'data', data: true, response } }
+    const trueResult: OperationLinkResult = {
+      result: { type: 'data', data: true, response },
+      context: {},
+    }
 
-    const falseResult: EdenResponse = { result: { type: 'data', data: false, response } }
+    const falseResult: OperationLinkResult = {
+      result: { type: 'data', data: false, response },
+      context: {},
+    }
 
     const chain = createChain({
       op,
@@ -70,9 +75,15 @@ describe('splitLink', () => {
       context: {},
     }
 
-    const trueResult: EdenResponse = { result: { type: 'data', data: true, response } }
+    const trueResult: OperationLinkResult = {
+      result: { type: 'data', data: true, response },
+      context: {},
+    }
 
-    const falseResult: EdenResponse = { result: { type: 'data', data: false, response } }
+    const falseResult: OperationLinkResult = {
+      result: { type: 'data', data: false, response },
+      context: {},
+    }
 
     const chain = createChain({
       op,

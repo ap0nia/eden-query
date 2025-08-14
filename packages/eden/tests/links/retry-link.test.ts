@@ -147,6 +147,7 @@ describe('retryLink', () => {
         data: {},
         response,
       },
+      context: {},
     }
 
     const observable = new Observable((observer) => {

@@ -43,7 +43,7 @@ describe('EdenClient', () => {
             () => {
               return () => {
                 return new Observable((observer) => {
-                  observer.next({ result: { type: 'data', data, response } })
+                  observer.next({ result: { type: 'data', data, response }, context: {} })
                 })
               }
             },
@@ -70,7 +70,10 @@ describe('EdenClient', () => {
             () => {
               return ({ op }) => {
                 return new Observable((observer) => {
-                  observer.next({ result: { type: 'data', data: op.params, response } })
+                  observer.next({
+                    result: { type: 'data', data: op.params, response },
+                    context: {},
+                  })
                 })
               }
             },
@@ -105,7 +108,10 @@ describe('EdenClient', () => {
             () => {
               return ({ op }) => {
                 return new Observable((observer) => {
-                  observer.next({ result: { type: 'data', data: op.params, response } })
+                  observer.next({
+                    result: { type: 'data', data: op.params, response },
+                    context: {},
+                  })
                 })
               }
             },

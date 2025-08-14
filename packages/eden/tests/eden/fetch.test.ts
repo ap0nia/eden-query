@@ -21,7 +21,7 @@ describe('fetch', () => {
 
     const fetch = edenFetch<typeof app>(domain)
 
-    const result = await fetch('/index')
+    const result = await fetch('')
 
     expect(result.data).toBe(data)
   })
@@ -50,7 +50,7 @@ describe('fetch', () => {
 
       const fetch = edenFetch<typeof app>(domain, { links: [httpLink()] })
 
-      const result = await fetch('/index')
+      const result = await fetch('')
 
       expect(result.data).toBe(data)
     })
@@ -68,7 +68,7 @@ describe('fetch', () => {
         links: [httpBatchLink({ types: true })],
       })
 
-      const promises = datas.map(() => fetch('/index'))
+      const promises = datas.map(() => fetch(''))
 
       const results = await Promise.all(promises)
 

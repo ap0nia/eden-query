@@ -15,7 +15,7 @@ describe('edenFetch', () => {
 
     const fetch = edenFetch<typeof app>(domain, { fetcher: () => '' as any })
 
-    fetch('/index')
+    fetch('')
   })
 
   test('allows second argument if GET endpoint exists', () => {
@@ -25,7 +25,7 @@ describe('edenFetch', () => {
 
     const fetch = edenFetch<typeof app>(domain, { fetcher: () => '' as any })
 
-    fetch('/index', { method: 'GET' })
+    fetch('', { method: 'GET' })
   })
 
   test('prohibits unregistered methods', () => {
@@ -61,7 +61,7 @@ describe('edenFetch', () => {
 
     attest(() => {
       // @ts-expect-error Testing invalid number of arguments.
-      fetch('/index')
+      fetch('')
     }).type.errors('Expected 2 arguments, but got 1.')
   })
 
@@ -72,6 +72,6 @@ describe('edenFetch', () => {
 
     const fetch = edenFetch<typeof app>(domain, { fetcher: () => '' as any })
 
-    fetch('/index', { method: 'SUBSCRIBE' }, {})
+    fetch('', { method: 'SUBSCRIBE' }, {})
   })
 })

@@ -18,7 +18,7 @@ describe('loggerLink', () => {
           loggerLink({ console: { log, error } }),
           () => () => {
             return new Observable((observer) => {
-              observer.next({ result: { type: 'data', data: 'OK', response } })
+              observer.next({ result: { type: 'data', data: 'OK', response }, context: {} })
               observer.complete()
             })
           },
@@ -43,7 +43,7 @@ describe('loggerLink', () => {
           loggerLink({ console: { log, error } }),
           () => () => {
             return new Observable((observer) => {
-              observer.next({ result: { type: 'data', data: 'OK', response } })
+              observer.next({ result: { type: 'data', data: 'OK', response }, context: {} })
               observer.complete()
             })
           },
@@ -110,7 +110,7 @@ describe('loggerLink', () => {
           }),
           () => () => {
             return new Observable((observer) => {
-              observer.next({ result: { type: 'data', data: 'OK', response } })
+              observer.next({ result: { type: 'data', data: 'OK', response }, context: {} })
               observer.complete()
             })
           },
@@ -138,7 +138,7 @@ describe('loggerLink', () => {
           }),
           () => () => {
             return new Observable((observer) => {
-              observer.next({ result: { type: 'data', data: 'OK', response } })
+              observer.next({ result: { type: 'data', data: 'OK', response }, context: {} })
               observer.complete()
             })
           },
@@ -184,7 +184,7 @@ describe('loggerLink', () => {
           ({ op }) => {
             op.context = context
             return new Observable((observer) => {
-              observer.next({ result: { type: 'data', data: 'OK', response } })
+              observer.next({ result: { type: 'data', data: 'OK', response }, context: {} })
               observer.complete()
             })
           },
@@ -218,7 +218,7 @@ describe('loggerLink', () => {
           loggerLink({ console: { log, error }, colorMode: 'css' }),
           () => () => {
             return new Observable((observer) => {
-              observer.next({ result: { type: 'data', data: 'OK', response } })
+              observer.next({ result: { type: 'data', data: 'OK', response }, context: {} })
               observer.complete()
             })
           },
