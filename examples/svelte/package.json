@@ -1,6 +1,6 @@
 {
   "name": "@examples/svelte",
-  "version": "0.0.1-next.21",
+  "version": "0.0.1-next.22",
   "private": true,
   "type": "module",
   "scripts": {
