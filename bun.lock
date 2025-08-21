@@ -108,7 +108,7 @@
     },
     "examples/svelte": {
       "name": "@examples/svelte",
-      "version": "0.0.1-next.21",
+      "version": "0.0.1-next.22",
       "dependencies": {
         "@ap0nia/eden": "workspace:^",
         "@ap0nia/eden-svelte-query": "workspace:^",
@@ -129,7 +129,7 @@
     },
     "packages/eden": {
       "name": "@ap0nia/eden",
-      "version": "1.0.0-next.21",
+      "version": "1.0.0-next.22",
       "devDependencies": {
         "@ark/attest": "^0.45.11",
         "@rslib/core": "^0.6.9",
@@ -151,7 +151,7 @@
     },
     "packages/svelte-query": {
       "name": "@ap0nia/eden-svelte-query",
-      "version": "0.1.0-next.21",
+      "version": "0.1.0-next.22",
       "dependencies": {
         "@tanstack/svelte-query": "^5.77.2",
       },
@@ -169,7 +169,7 @@
     },
     "packages/tanstack-query": {
       "name": "@ap0nia/eden-tanstack-query",
-      "version": "1.0.0-next.21",
+      "version": "1.0.0-next.22",
       "devDependencies": {
         "@ap0nia/eden": "workspace:^",
         "@ark/attest": "^0.45.11",
@@ -204,7 +204,7 @@
     },
     "packages/tests": {
       "name": "@ap0nia/eden-query-tests",
-      "version": "0.0.1-next.21",
+      "version": "0.0.1-next.22",
       "dependencies": {
         "@ap0nia/eden": "workspace:^",
         "@ap0nia/eden-svelte-query": "workspace:^",
