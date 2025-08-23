@@ -20,11 +20,10 @@ import { handlers } from './unified/handlers.js'
 import { rehypeBlueprint, rehypeGetFloating, rehypeRenderCode } from './unified/rehype/index.js'
 import { remarkCleanSvelte, remarkContainers, remarkGithubAlerts } from './unified/remark/index.js'
 import { remarkNpmToYarn } from './unified/remark/remark-npm-to-yarn.js'
+import { remarkCodeMeta } from './unified/remark-code-meta.js'
+import { getGitTimestamp } from './utils/git.js'
 import { getRelativeFilePath } from './utils/path.js'
 import { parseFrontmatter } from './utils/yaml.js'
-
-import { remarkCodeMeta } from '../unified/remark-code-meta.js'
-import { getGitTimestamp } from './utils/git.js'
 
 /**
  * Generate a string representing the `<script context="module">` part of a Svelte component.
