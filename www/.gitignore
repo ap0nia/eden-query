@@ -14,3 +14,5 @@
 
 ## Temporary, bundled Vite configuration modules that fail to be deleted automatically.
 vite.config.js.timestamp-*
+
+.velite/

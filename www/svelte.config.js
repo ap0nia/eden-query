@@ -26,6 +26,12 @@ const relativeBlueprintPath = path.join('src', 'lib', 'components', 'markdown', 
  * @satisfies {import('@sveltejs/kit').Config}
  */
 const config = {
+  kit: {
+    alias: {
+      '$content/*': '.velite/*',
+    },
+  },
+
   extensions: ['.svelte', '.md'],
 
   preprocess: [

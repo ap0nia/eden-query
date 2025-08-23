@@ -48,7 +48,7 @@ async function getPageIndexInfoByRoute(
     title: '',
     content: '',
     _html: '',
-    _flattenContent: '',
+    // _flattenContent: '',
     routePath: route.routePath,
     lang: route.lang,
     toc: [],

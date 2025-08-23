@@ -1,5 +1,7 @@
 // @ts-check
 
+import { build } from 'velite'
+
 import { defineConfig } from 'vite'
 import devtoolsJson from 'vite-plugin-devtools-json'
 import { groupIconVitePlugin } from 'vitepress-plugin-group-icons'
@@ -34,6 +36,35 @@ const overrideDecodeNamedCharacterReference = {
   },
 }
 
+/**
+ * @param {import('velite').Options} [options]
+ */
+function velite(options) {
+  let started = false
+
+  return {
+    name: '@velite/plugin-vite',
+
+    configureServer: async () => {
+      if (started) {
+        return
+      }
+
+      started = true
+
+      // Start watch mode in dev
+      await build({ ...options, watch: true })
+    },
+
+    buildStart: async () => {
+      if (started) return
+
+      // Run build in production
+      await build({ ...options, watch: false })
+    },
+  }
+}
+
 const config = defineConfig({
   optimizeDeps: {
     exclude: ['decode-named-character-reference'],
@@ -48,6 +79,8 @@ const config = defineConfig({
   },
   plugins: [
     overrideDecodeNamedCharacterReference,
+
+    velite(),
 
     devtoolsJson(),
 

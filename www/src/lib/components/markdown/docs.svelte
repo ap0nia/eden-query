@@ -24,6 +24,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
+  import * as Tooltip from '$lib/components/ui/tooltip'
   import { cn } from '$lib/utils/cn'
 
   import Editor from '../editor.svelte'
@@ -50,8 +51,6 @@
   function toggleEditing() {
     editing = !editing
   }
-
-  $inspect({ rest })
 </script>
 
 <!--
@@ -64,41 +63,43 @@ MDSX blueprint for documentation pages.
 
 -->
 
-<div class="flex min-h-dvh flex-col items-center justify-center gap-2 p-4">
-  {#if editing}
-    <div class="w-full">
-      <Editor defaultValue={rest.metadata?.content} onMessage={console.log} />
-    </div>
-  {:else}
-    <div class="w-full">
-      <div>
-        {@render children?.()}
+<Tooltip.Provider>
+  <div class="flex min-h-dvh flex-col items-center justify-center gap-2 p-4">
+    {#if editing}
+      <div class="w-full">
+        <Editor defaultValue={rest.metadata?.content} onMessage={console.log} />
       </div>
+    {:else}
+      <div class="w-full">
+        <div>
+          {@render children?.()}
+        </div>
+      </div>
+    {/if}
+
+    <div class="flex w-full items-center justify-between">
+      <button class="btn btn-outline" onclick={toggleEditing}>
+        <span>{editing ? 'Cancel editing' : 'Edit'}</span>
+        <span class={cn(editing ? 'icon-[mdi--close]' : 'icon-[mdi--edit]')}></span>
+      </button>
+
+      <time class="text-base-content/70 text-sm">
+        {formatter.format(rest.metadata?.lastUpdated)}
+      </time>
     </div>
-  {/if}
 
-  <div class="flex w-full items-center justify-between">
-    <button class="btn btn-outline" onclick={toggleEditing}>
-      <span>{editing ? 'Cancel editing' : 'Edit'}</span>
-      <span class={cn(editing ? 'icon-[mdi--close]' : 'icon-[mdi--edit]')}></span>
-    </button>
+    <div class="divider"></div>
 
-    <time class="text-base-content/70 text-sm">
-      {formatter.format(rest.metadata?.lastUpdated)}
-    </time>
+    <div class="grid w-full grid-cols-2 gap-2">
+      <a href="/" class="btn btn-outline h-auto flex-col items-start py-2 font-normal">
+        <p class="text-base-content/70 text-sm">Previous page</p>
+        <p class="text-lg font-semibold">Getting Started</p>
+      </a>
+
+      <a href="/" class="btn btn-outline col-start-2 h-auto flex-col items-end py-2 font-normal">
+        <p class="text-base-content/70 text-sm">Next page</p>
+        <p class="text-lg font-semibold">Quick start</p>
+      </a>
+    </div>
   </div>
-
-  <div class="divider"></div>
-
-  <div class="grid w-full grid-cols-2 gap-2">
-    <a href="/" class="btn btn-outline h-auto flex-col items-start py-2 font-normal">
-      <p class="text-base-content/70 text-sm">Previous page</p>
-      <p class="text-lg font-semibold">Getting Started</p>
-    </a>
-
-    <a href="/" class="btn btn-outline col-start-2 h-auto flex-col items-end py-2 font-normal">
-      <p class="text-base-content/70 text-sm">Next page</p>
-      <p class="text-lg font-semibold">Quick start</p>
-    </a>
-  </div>
-</div>
+</Tooltip.Provider>
