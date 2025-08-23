@@ -11,6 +11,27 @@ const config: UserConfig = {
   mediumZoom: false,
 }
 
+const cwd = process.cwd()
+
+const root = undefined
+
+function resolveDocRoot(cwd: string, cliRoot?: string, configRoot?: string): string {
+  // CLI root has highest priority
+  if (cliRoot) {
+    return path.join(cwd, cliRoot)
+  }
+
+  // Config root is next in priority
+  if (configRoot) {
+    return path.isAbsolute(configRoot) ? configRoot : path.join(cwd, configRoot)
+  }
+
+  // Default to 'docs' if no root is specified
+  return path.join(cwd, 'docs')
+}
+
+config.root = resolveDocRoot(cwd, root, config.root)
+
 /**
  * @see https://github.com/web-infra-dev/rspress/blob/393629437aac6fecb3fec37a13c08767e03b67db/packages/core/src/cli/index.ts#L114C3-L114C36
  *
@@ -34,8 +55,6 @@ await pluginDriver.init()
 // const modifiedConfig = await pluginDriver.modifyConfig()
 
 // const ssgConfig = Boolean(modifiedConfig.ssg ?? true)
-
-const cwd = process.cwd()
 
 const runtimeTempDir = path.join(RSPRESS_TEMP_DIR, 'runtime')
 
@@ -63,4 +82,4 @@ const siteData = await createSiteData({
   pluginDriver,
 })
 
-console.log({ siteData })
+console.log({ routeService, siteData, ok: siteData.siteData.pages })
