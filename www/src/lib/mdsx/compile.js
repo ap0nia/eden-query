@@ -47,11 +47,13 @@ function createSvelteModule(ast, file) {
   const metadataKeys = Object.keys(matter)
   const processedAst = ast?.content ? print(ast.content) : undefined
 
-  const exportStatement = `export const metadata = ${metadata};\n`
-  const metadataDeclaration = `const { ${metadataKeys.join(', ')} } = metadata;\n`
+  const exportStatement = `export const metadata = ${metadata};`
+  const metadataDeclaration = `export const { ${metadataKeys.join(', ')} } = metadata;`
   const code = processedAst?.code ?? ''
 
-  const content = `<script context="module">${exportStatement}${metadataDeclaration}${code}</script>`
+  const lines = [exportStatement, metadataDeclaration, code]
+
+  const content = `<script context="module">${lines.join('\n')}</script>`
   return content
 }
 
